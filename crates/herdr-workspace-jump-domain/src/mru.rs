@@ -1,13 +1,11 @@
 use crate::Workspace;
 
-/// The two most recently focused workspaces; the previous one is the toggle target.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Mru {
     pub current: String,
     pub previous: String,
 }
 
-/// A missing target is forgotten because focusing an absent identifier can report success.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Bounce {
     Focus(String),
