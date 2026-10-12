@@ -12,6 +12,8 @@ const KEY_COLUMN_WIDTH: usize = 3;
 const LABEL_INDENT: &str = "  ";
 const CURRENT_MARKER: &str = "current ";
 const MIN_GAP_BEFORE_MARKER: usize = 1;
+const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH;
+const SPACED_MARKER_WIDTH: usize = MIN_GAP_BEFORE_MARKER + CURRENT_MARKER.len();
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
 const UNKNOWN_WIDTH: usize = 0;
@@ -41,12 +43,7 @@ pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
 }
 
 fn marked_row_width(label: &str) -> usize {
-    MARGIN.len()
-        + KEY_COLUMN_WIDTH
-        + LABEL_INDENT.len()
-        + label.chars().count()
-        + MIN_GAP_BEFORE_MARKER
-        + CURRENT_MARKER.chars().count()
+    BEFORE_LABEL + LABEL_INDENT.len() + label.chars().count() + SPACED_MARKER_WIDTH
 }
 
 fn faint_line_width(text: &str) -> usize {
@@ -90,18 +87,17 @@ fn workspace_row(row: &Row<'_>, searching: bool, width: usize) -> String {
         row.target.pick_key.to_string()
     };
     let key = format!("{key:>KEY_COLUMN_WIDTH$}");
-    let before_label = MARGIN.len() + KEY_COLUMN_WIDTH;
     let label = fit(
         &format!("{LABEL_INDENT}{}", row.target.label),
-        room(width, before_label),
+        room(width, BEFORE_LABEL),
     );
     let marked = row.current
-        && room(width, before_label + label.chars().count())
-            .is_none_or(|left| left >= MIN_GAP_BEFORE_MARKER + CURRENT_MARKER.chars().count());
+        && room(width, BEFORE_LABEL + label.chars().count())
+            .is_none_or(|left| left >= SPACED_MARKER_WIDTH);
     let marker = if marked { CURRENT_MARKER } else { "" };
     let rest = match (row.selected, row.current) {
         (false, false) => label,
-        _ => fill(&label, marker, width.saturating_sub(before_label)),
+        _ => fill(&label, marker, width.saturating_sub(BEFORE_LABEL)),
     };
     match (row.selected, row.current) {
         (false, false) => format!("{MARGIN}{BOLD_BLUE}{key}{RESET}{rest}"),
