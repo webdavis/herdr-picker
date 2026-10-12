@@ -10,8 +10,8 @@ Two pieces of workspace navigation [herdr](https://herdr.dev) has no built-in fo
   what makes the toggle correct where a key-bound script was not: a script only sees the switches
   routed through itself.
 - **A one-letter pick popup.** A herdr binding is a single chord, so "prefix, then a letter" has
-  to read its second key somewhere. `pick` reads it inside a herdr popup and jumps to whichever
-  workspace that letter names.
+  to read its second key somewhere. `pick` reads it inside a herdr popup that sizes itself to the
+  herdr window, and jumps to whichever workspace that letter names.
 
 It talks to herdr over `HERDR_SOCKET_PATH` with newline-delimited JSON, and falls back to the
 `herdr` CLI at `HERDR_BIN_PATH` whenever the socket fails.
@@ -56,8 +56,9 @@ Then render the manifest and link the directory:
 herdr plugin link ~/.local/share/herdr-workspace-jump
 ```
 
-Re-run `generate`, and re-link, whenever the config changes. The manifest is build output rather
-than source, and is deliberately not committed.
+Re-run `generate`, and re-link, whenever the config changes or the plugin is updated, since an
+update can add actions, as the self-sizing picker did. The manifest is build output rather than
+source, and is deliberately not committed.
 
 `generate` reads the config path above unless you point it elsewhere: `--config <file>` names one
 file, and `HERDR_PLUGIN_CONFIG_DIR`, which herdr itself sets when it runs a plugin, names the
@@ -111,32 +112,30 @@ to delete forward. alt shortcuts need the terminal to send alt rather than compo
 on macOS is Ghostty's `macos-option-as-alt`. herdr's direct chords, the ones bound without the
 prefix, do reach the popup.
 
-Bind it as a popup rather than a plugin action:
+Bind its plugin action:
 
 ```toml
 [[keys.command]]
 key = "prefix+ctrl+o"
-type = "popup"
-command = "~/.local/share/herdr-workspace-jump/target/release/herdr-workspace-jump pick"
+type = "plugin_action"
+command = "herdr-workspace-jump.pick"
 description = "pick a workspace"
-width = 40
-height = 16
 ```
 
-herdr runs a custom command keybinding through a shell, so the leading `~` above is expanded and an
-absolute path is not required. `width` and `height` are terminal cells and include herdr's border,
-which takes three columns and two rows, so a 40 by 16 popup gives the menu 37 columns and 14 rows.
-Four of those rows are the prompt, the legend and the blank rows around the list, which leaves ten
-for workspaces; a longer list scrolls, or the binding grows a row per workspace. Leave `width` and
-`height` out and herdr opens the popup at half its pane area each way, so in a large terminal the
-bar stretches and a gap opens above the legend. A label too long for its row is cut short with an
-ellipsis, and a row with no room for `current` leaves the mark off, so the list, the hint and the
-legend never wrap.
+The popup sizes itself, so the binding names no width or height. It takes 74% of the herdr window's
+width and 62% of its height, the share herdr-bar's popup takes, however many workspaces there are.
+It grows wider only when a workspace's row needs more room, and never past the window. Inside it,
+herdr's border takes three columns and two rows, and four rows go to the prompt, the legend and the
+blank rows around the list. A label too long for its row is cut short with an ellipsis, and a row
+with no room for `current` and the space before it leaves the mark off, so the list, the hint and
+the legend never wrap.
 
-`pick` is a popup command rather than a plugin action, so `generate` does not render it into the
-manifest and nothing needs regenerating when the binding changes. It reads the same config file the
-manifest comes from and has no `--config` flag; `HERDR_PLUGIN_CONFIG_DIR` is what points it
-elsewhere.
+The action runs `herdr-workspace-jump popup`. That asks herdr for the window's size and opens the
+manifest's `pick` pane as a popup at the size worked out from it, telling the pane which workspace
+the key was pressed in. The pane runs `herdr-workspace-jump pick`, which reads the same config file
+the manifest comes from and has no `--config` flag; `HERDR_PLUGIN_CONFIG_DIR` is what points it
+elsewhere. A `type = "popup"` binding that runs `pick` itself still works, at whatever size that
+binding gives.
 
 The jump does not happen inside the popup. herdr may restore focus to the pane that opened the
 popup once the popup's command exits, which would undo it, so `pick` spawns a detached
@@ -145,19 +144,22 @@ before it asks herdr for anything, and gives up waiting after two seconds.
 
 ## Developing
 
-`scripts/preview-popup` builds the release binary and opens the pick popup from this checkout in a
-throwaway herdr session, with your own theme, so a change to the popup is seen in a real popup
-before it is pushed and the installed clone rebuilt. Run it from a herdr pane and the popup opens by
-itself; outside herdr it prints the chord. The session's prefix is `ctrl+x`, so it neither collides
-with yours nor takes `ctrl+b` from the search: `ctrl+x ctrl+o` reopens the popup, and typing `exit`
-or `ctrl+x q` leaves and tears the session down, which the shell inside says as it opens. A pick
-inside it jumps within that throwaway session, which exercises the whole flow without touching the
-real one. `HERDR_PLUGIN_CONFIG_DIR` is forwarded when set, and `PREVIEW_WIDTH` and `PREVIEW_HEIGHT`
-size the popup. It writes only under `target/`, jump history included, and herdr's own sessions
-directory.
+`scripts/preview-popup` builds the release binary and opens the picker from this checkout in a
+throwaway herdr, with your own theme, so a change to the popup is seen in a real popup before it is
+pushed and the installed clone rebuilt. That herdr keeps a plugin registry of its own under
+`target/preview`, links this checkout there as the plugin with a copy of your declared workspaces,
+and binds `ctrl+x ctrl+o` to `herdr-workspace-jump.pick`, so the popup opens and sizes itself just
+as an installed one does. Run it from a herdr pane and the popup opens by itself; outside herdr it
+prints the chord. The prefix is `ctrl+x`, so it neither collides with yours nor takes `ctrl+b` from
+the search: `ctrl+x ctrl+o` reopens the popup, and typing `exit` or `ctrl+x q` leaves and tears the
+session down, which the shell inside says as it opens. A pick inside it jumps within that throwaway
+herdr, which exercises the whole flow without touching the real one. Your own registry and config
+are only read. It writes under `target/`, jump history included, apart from the ignored
+`herdr-plugin.toml` that `generate` puts in the checkout.
 
 The pick popup is put together from parts that each sit behind a trait, so each is tested alone with
-a small fake, and any one can be replaced where the parts are chosen, in the CLI's `pick`:
+a small fake, and any one can be replaced where the parts are chosen, in the CLI's `pick` and
+`popup`:
 
 - `Matcher` ranks items by how well their labels match a search. `Fuzzy` is the one in use.
 - `TextField` edits the search. `ReadlineField` is the one in use.
@@ -167,6 +169,10 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
 - `pick`, in the application crate, runs the popup's loop against a `KeySource` and a `Screen`. The
   adapters crate gives it the popup's terminal as `TerminalKeys` and `TerminalScreen`, the only code
   that knows ANSI.
+- `open_picker`, in the application crate, opens the popup through a `PopupHost` at the size the
+  domain's `popup_size` gives for the host's window and the columns
+  `TerminalScreen::columns_to_fit` measures. `SocketPopupHost` is the host in use, over herdr's
+  socket.
 
 ## License
 
