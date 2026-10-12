@@ -33,13 +33,30 @@ fn escape_and_ctrl_c_are_the_two_ways_out() {
 }
 
 #[test]
+fn ctrl_n_ctrl_p_the_arrows_and_enter_drive_the_bar() {
+    for (code, modifiers, key) in [
+        (KeyCode::Char('n'), KeyModifiers::CONTROL, PickKey::Next),
+        (KeyCode::Down, KeyModifiers::NONE, PickKey::Next),
+        (KeyCode::Char('p'), KeyModifiers::CONTROL, PickKey::Previous),
+        (KeyCode::Up, KeyModifiers::NONE, PickKey::Previous),
+        (KeyCode::Enter, KeyModifiers::NONE, PickKey::Enter),
+        (
+            KeyCode::Char('n'),
+            KeyModifiers::NONE,
+            PickKey::Character('n'),
+        ),
+    ] {
+        assert_eq!(press(code, modifiers), Some(key), "{code:?} {modifiers:?}");
+    }
+}
+
+#[test]
 fn a_modified_character_or_a_press_carrying_none_has_no_character() {
     for keyless in [
         (KeyCode::Char('d'), KeyModifiers::CONTROL),
         (KeyCode::Char('d'), KeyModifiers::ALT),
-        (KeyCode::Up, KeyModifiers::NONE),
         (KeyCode::F(1), KeyModifiers::NONE),
-        (KeyCode::Enter, KeyModifiers::NONE),
+        (KeyCode::Tab, KeyModifiers::NONE),
     ] {
         assert_eq!(
             press(keyless.0, keyless.1),

@@ -5,6 +5,12 @@ use crate::JumpTarget;
 /// The keystroke that closes the popup without jumping, beside the escape key.
 const CANCEL_CHARACTER: char = 'q';
 
+const BOLD_BLUE: &str = "\x1b[1;34m";
+const FAINT: &str = "\x1b[2m";
+const GREY_BAR: &str = "\x1b[48;5;236m";
+const RESET: &str = "\x1b[0m";
+const LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
+
 /// One keystroke the pick popup read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PickKey {
@@ -12,7 +18,9 @@ pub enum PickKey {
     Escape,
     /// Ctrl-C, which raw mode delivers as a keystroke rather than a signal.
     Interrupt,
-    /// A key that carries no character, such as an arrow or a function key.
+    Next,
+    Previous,
+    Enter,
     Other,
 }
 
@@ -22,40 +30,73 @@ pub enum Pick<'a> {
     Selected(&'a JumpTarget),
     Cancelled,
     Unbound,
+    Changed,
 }
 
-const BOLD_BLUE: &str = "\x1b[1;34m";
-const RESET: &str = "\x1b[0m";
+#[derive(Debug, Clone)]
+pub struct Menu<'a> {
+    targets: &'a [JumpTarget],
+    cursor: usize,
+}
 
-pub fn render_menu(targets: &[JumpTarget]) -> String {
-    let mut menu = String::new();
-    for target in targets {
-        let _ = writeln!(
-            menu,
-            "{BOLD_BLUE}{:>3}{RESET}  {}",
-            target.pick_key, target.label
-        );
+impl<'a> Menu<'a> {
+    pub fn new(targets: &'a [JumpTarget]) -> Self {
+        Self { targets, cursor: 0 }
     }
-    let _ = writeln!(menu, "{BOLD_BLUE}esc{RESET}  cancel");
-    menu
-}
 
-/// Resolve the keystroke against the workspaces the menu offered.
-///
-/// A workspace that picks on the cancel character is reached, because a key the
-/// menu printed beside a label has to do what the menu says.
-pub fn decide_pick(targets: &[JumpTarget], key: PickKey) -> Pick<'_> {
-    let PickKey::Character(character) = key else {
-        return match key {
+    pub fn render(&self, width: usize) -> String {
+        let mut menu = String::new();
+        for (row, target) in self.targets.iter().enumerate() {
+            let key = format!("{:>3}", target.pick_key);
+            let label = format!("  {}", target.label);
+            let _ = if row == self.cursor {
+                let bar = pad(&label, width.saturating_sub(4));
+                writeln!(
+                    menu,
+                    "{GREY_BAR} {BOLD_BLUE}{key}{RESET}{GREY_BAR}{bar}{RESET}"
+                )
+            } else {
+                writeln!(menu, " {BOLD_BLUE}{key}{RESET}{label}")
+            };
+        }
+        let _ = write!(menu, "\n{FAINT} {LEGEND}{RESET}");
+        menu
+    }
+
+    pub fn decide(&mut self, key: PickKey) -> Pick<'a> {
+        match key {
             PickKey::Escape | PickKey::Interrupt => Pick::Cancelled,
-            _ => Pick::Unbound,
-        };
-    };
-    match targets.iter().find(|target| target.pick_key == character) {
-        Some(target) => Pick::Selected(target),
-        None if character == CANCEL_CHARACTER => Pick::Cancelled,
-        None => Pick::Unbound,
+            PickKey::Next => {
+                let last = self.targets.len().saturating_sub(1);
+                self.cursor = (self.cursor + 1).min(last);
+                Pick::Changed
+            }
+            PickKey::Previous => {
+                self.cursor = self.cursor.saturating_sub(1);
+                Pick::Changed
+            }
+            PickKey::Enter => match self.targets.get(self.cursor) {
+                Some(target) => Pick::Selected(target),
+                None => Pick::Changed,
+            },
+            PickKey::Character(character) => {
+                match self
+                    .targets
+                    .iter()
+                    .find(|target| target.pick_key == character)
+                {
+                    Some(target) => Pick::Selected(target),
+                    None if character == CANCEL_CHARACTER => Pick::Cancelled,
+                    None => Pick::Unbound,
+                }
+            }
+            PickKey::Other => Pick::Unbound,
+        }
     }
+}
+
+fn pad(text: &str, width: usize) -> String {
+    format!("{text:width$}")
 }
 
 #[cfg(test)]

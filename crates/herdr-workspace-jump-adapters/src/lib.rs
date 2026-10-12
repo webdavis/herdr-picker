@@ -11,7 +11,7 @@ mod state;
 pub use cli::CliWorkspaceDirectory;
 pub use config::{ConfigError, config_file, read_jump_targets};
 pub use history::FileWorkspaceHistory;
-pub use keyboard::read_one_key;
+pub use keyboard::{read_one_key, terminal_width};
 pub use manifest::{ManifestError, write_manifest};
 pub use process::{spawn_detached, wait_for_process_exit};
 pub use socket::{DEADLINE, SocketWorkspaceDirectory};

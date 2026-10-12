@@ -5,9 +5,9 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    read_jump_targets, read_one_key, spawn_detached, wait_for_process_exit,
+    read_jump_targets, read_one_key, spawn_detached, terminal_width, wait_for_process_exit,
 };
-use herdr_workspace_jump_domain::{JumpTarget, Pick, decide_pick, render_menu};
+use herdr_workspace_jump_domain::{JumpTarget, Menu, Pick};
 
 use crate::command::{CommandError, config_path, failed, log_path};
 
@@ -17,20 +17,35 @@ const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 /// The flag carrying the popup's own pid to the jump it spawns.
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
-/// Offer the declared workspaces, read one key, and hand the jump on.
+const HIDE_CURSOR_AND_CLEAR: &str = "\x1b[?25l\x1b[H\x1b[2J";
+const SHOW_CURSOR: &str = "\x1b[?25h";
+
 pub(crate) fn run() -> Result<(), CommandError> {
+    let picked = offer();
+    print!("{SHOW_CURSOR}");
+    let _ = io::stdout().flush();
+    picked
+}
+
+fn offer() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
-    print!("{}", render_menu(&targets));
-    io::stdout()
-        .flush()
-        .map_err(|failure| failed(format!("cannot print the menu: {failure}")))?;
-    let key = read_one_key().map_err(|failure| failed(format!("cannot read a key: {failure}")))?;
-    match decide_pick(&targets, key) {
-        Pick::Selected(target) => spawn_jump(target, |binary, arguments| {
-            spawn_detached(binary, arguments, Some(&log_path()))
-        }),
-        // Both outcomes close the popup with nothing done.
-        Pick::Cancelled | Pick::Unbound => Ok(()),
+    let mut menu = Menu::new(&targets);
+    loop {
+        print!("{HIDE_CURSOR_AND_CLEAR}{}", menu.render(terminal_width()));
+        io::stdout()
+            .flush()
+            .map_err(|failure| failed(format!("cannot print the menu: {failure}")))?;
+        let key =
+            read_one_key().map_err(|failure| failed(format!("cannot read a key: {failure}")))?;
+        match menu.decide(key) {
+            Pick::Selected(target) => {
+                return spawn_jump(target, |binary, arguments| {
+                    spawn_detached(binary, arguments, Some(&log_path()))
+                });
+            }
+            Pick::Cancelled | Pick::Unbound => return Ok(()),
+            Pick::Changed => {}
+        }
     }
 }
 

@@ -1,10 +1,12 @@
-//! The one keystroke the pick popup reads, in raw mode.
-
 use std::io;
 
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size};
 use herdr_workspace_jump_domain::PickKey;
+
+pub fn terminal_width() -> usize {
+    size().map(|(columns, _)| usize::from(columns)).unwrap_or(0)
+}
 
 /// Raw mode for as long as this value lives.
 ///
@@ -52,10 +54,16 @@ fn keystroke_of(event: Event) -> Option<PickKey> {
     if key.kind == KeyEventKind::Release {
         return None;
     }
+    let control = key.modifiers.contains(KeyModifiers::CONTROL);
     let control_or_alt = KeyModifiers::CONTROL | KeyModifiers::ALT;
     Some(match key.code {
         KeyCode::Esc => PickKey::Escape,
-        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => PickKey::Interrupt,
+        KeyCode::Enter => PickKey::Enter,
+        KeyCode::Down => PickKey::Next,
+        KeyCode::Up => PickKey::Previous,
+        KeyCode::Char('c') if control => PickKey::Interrupt,
+        KeyCode::Char('n') if control => PickKey::Next,
+        KeyCode::Char('p') if control => PickKey::Previous,
         KeyCode::Char(character) if !key.modifiers.intersects(control_or_alt) => {
             PickKey::Character(character)
         }
