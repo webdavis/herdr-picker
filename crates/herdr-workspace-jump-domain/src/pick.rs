@@ -1,15 +1,11 @@
-use std::fmt::Write;
+mod frame;
+
+pub use frame::{Frame, Row};
 
 use crate::JumpTarget;
 
 /// The keystroke that closes the popup without jumping, beside the escape key.
 const CANCEL_CHARACTER: char = 'q';
-
-const BOLD_BLUE: &str = "\x1b[1;34m";
-const FAINT: &str = "\x1b[2m";
-const GREY_BAR: &str = "\x1b[48;5;236m";
-const RESET: &str = "\x1b[0m";
-const LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
 
 /// One keystroke the pick popup read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,23 +40,17 @@ impl<'a> Menu<'a> {
         Self { targets, cursor: 0 }
     }
 
-    pub fn render(&self, width: usize) -> String {
-        let mut menu = String::new();
-        for (row, target) in self.targets.iter().enumerate() {
-            let key = format!("{:>3}", target.pick_key);
-            let label = format!("  {}", target.label);
-            let _ = if row == self.cursor {
-                let bar = pad(&label, width.saturating_sub(4));
-                writeln!(
-                    menu,
-                    "{GREY_BAR} {BOLD_BLUE}{key}{RESET}{GREY_BAR}{bar}{RESET}"
-                )
-            } else {
-                writeln!(menu, " {BOLD_BLUE}{key}{RESET}{label}")
-            };
-        }
-        let _ = write!(menu, "\n{FAINT} {LEGEND}{RESET}");
-        menu
+    pub fn frame(&self) -> Frame<'a> {
+        let rows = self
+            .targets
+            .iter()
+            .enumerate()
+            .map(|(row, target)| Row {
+                target,
+                selected: row == self.cursor,
+            })
+            .collect();
+        Frame { rows }
     }
 
     pub fn decide(&mut self, key: PickKey) -> Pick<'a> {
@@ -93,10 +83,6 @@ impl<'a> Menu<'a> {
             PickKey::Other => Pick::Unbound,
         }
     }
-}
-
-fn pad(text: &str, width: usize) -> String {
-    format!("{text:width$}")
 }
 
 #[cfg(test)]

@@ -5,15 +5,17 @@ mod keyboard;
 mod manifest;
 mod process;
 mod response;
+mod screen;
 mod socket;
 mod state;
 
 pub use cli::CliWorkspaceDirectory;
 pub use config::{ConfigError, config_file, read_jump_targets};
 pub use history::FileWorkspaceHistory;
-pub use keyboard::{read_one_key, terminal_width};
+pub use keyboard::read_one_key;
 pub use manifest::{ManifestError, write_manifest};
 pub use process::{spawn_detached, wait_for_process_exit};
+pub use screen::TerminalScreen;
 pub use socket::{DEADLINE, SocketWorkspaceDirectory};
 pub use state::{log_file, state_file};
 

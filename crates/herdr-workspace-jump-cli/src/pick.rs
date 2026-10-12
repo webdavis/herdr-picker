@@ -1,11 +1,11 @@
 use std::env;
-use std::io::{self, Write};
+use std::io;
 use std::path::Path;
 use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    read_jump_targets, read_one_key, spawn_detached, terminal_width, wait_for_process_exit,
+    TerminalScreen, read_jump_targets, read_one_key, spawn_detached, wait_for_process_exit,
 };
 use herdr_workspace_jump_domain::{JumpTarget, Menu, Pick};
 
@@ -17,24 +17,14 @@ const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 /// The flag carrying the popup's own pid to the jump it spawns.
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
-const HIDE_CURSOR_AND_CLEAR: &str = "\x1b[?25l\x1b[H\x1b[2J";
-const SHOW_CURSOR: &str = "\x1b[?25h";
-
 pub(crate) fn run() -> Result<(), CommandError> {
-    let picked = offer();
-    print!("{SHOW_CURSOR}");
-    let _ = io::stdout().flush();
-    picked
-}
-
-fn offer() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
     let mut menu = Menu::new(&targets);
+    let mut screen = TerminalScreen::stdout();
     loop {
-        print!("{HIDE_CURSOR_AND_CLEAR}{}", menu.render(terminal_width()));
-        io::stdout()
-            .flush()
-            .map_err(|failure| failed(format!("cannot print the menu: {failure}")))?;
+        screen
+            .show(&menu.frame())
+            .map_err(|failure| failed(format!("cannot show the menu: {failure}")))?;
         let key =
             read_one_key().map_err(|failure| failed(format!("cannot read a key: {failure}")))?;
         match menu.decide(key) {

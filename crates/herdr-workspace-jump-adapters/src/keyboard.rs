@@ -1,12 +1,8 @@
 use std::io;
 
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use herdr_workspace_jump_domain::PickKey;
-
-pub fn terminal_width() -> usize {
-    size().map(|(columns, _)| usize::from(columns)).unwrap_or(0)
-}
 
 /// Raw mode for as long as this value lives.
 ///
