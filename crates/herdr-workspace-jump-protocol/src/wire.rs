@@ -36,7 +36,7 @@ pub fn create_request(request_id: &str, label: &str, cwd: &str) -> String {
     )
 }
 
-fn request_line(request_id: &str, method: &str, params: Value) -> String {
+pub(crate) fn request_line(request_id: &str, method: &str, params: Value) -> String {
     let request = json!({ "id": request_id, "method": method, "params": params });
     format!("{request}\n")
 }
