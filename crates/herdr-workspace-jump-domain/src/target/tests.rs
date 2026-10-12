@@ -27,8 +27,11 @@ fn action_id_reproduces_the_ids_the_committed_manifest_registered() {
 fn action_id_replaces_every_character_outside_a_to_z_and_zero_to_nine() {
     assert_eq!(action_id("a b/c"), "jump_a_b_c");
     assert_eq!(action_id("v2.1"), "jump_v2_1");
-    // A multi-byte character is one replacement, not one per byte.
-    assert_eq!(action_id("café"), "jump_caf_");
+    assert_eq!(
+        action_id("café"),
+        "jump_caf_",
+        "a multi-byte character is one replacement, not one per byte"
+    );
 }
 
 #[test]

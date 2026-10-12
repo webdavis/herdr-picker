@@ -2,17 +2,13 @@ use std::fmt;
 
 use crate::keymap::SEARCH_CHARACTER;
 
-/// One workspace as the configuration declares it, before its ids are derived.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WorkspaceDeclaration {
     pub label: String,
     pub directory: String,
-    /// The key that selects this workspace in the pick popup, when declared.
     pub key: Option<String>,
 }
 
-/// One workspace a chord can jump to, with the action id herdr registers it
-/// under and the key that selects it in the pick popup.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JumpTarget {
     pub action_id: String,
@@ -21,7 +17,6 @@ pub struct JumpTarget {
     pub pick_key: char,
 }
 
-/// Why a declared workspace list cannot become a set of actions.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TargetError {
     NoWorkspaces,
@@ -80,10 +75,6 @@ impl fmt::Display for TargetError {
     }
 }
 
-/// Derive herdr's action id from a workspace label.
-///
-/// Lowercased, with every character outside `a-z0-9` replaced by an underscore,
-/// because an action id is what a `plugin_action` keybinding names.
 pub fn action_id(label: &str) -> String {
     let mut id = String::from("jump_");
     for character in label.chars() {
@@ -96,11 +87,6 @@ pub fn action_id(label: &str) -> String {
     id
 }
 
-/// The key that selects a workspace in the pick popup.
-///
-/// A declared key wins; otherwise the label's first character, lowercased. The
-/// popup prints the key and reads it back as one keystroke, so it has to be one
-/// character the terminal can both show and deliver.
 fn pick_key(declaration: &WorkspaceDeclaration) -> Result<char, TargetError> {
     let Some(declared) = &declaration.key else {
         return declaration
@@ -128,7 +114,6 @@ fn usable_as_pick_key(character: &char) -> bool {
     character.is_ascii_graphic() && *character != SEARCH_CHARACTER
 }
 
-/// Turn declared workspaces into jump targets, in the order given.
 pub fn jump_targets<Declarations>(
     declarations: Declarations,
 ) -> Result<Vec<JumpTarget>, TargetError>

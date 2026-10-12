@@ -13,12 +13,10 @@ use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, Readli
 
 use crate::command::{CommandError, config_path, failed, log_path};
 
-/// How long a jump waits for the popup that spawned it to close.
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
 const CURRENT_MARKER_LOOKUP_CAP: Duration = Duration::from_secs(1);
 
-/// The flag carrying the popup's own pid to the jump it spawns.
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
 pub(crate) fn run() -> Result<(), CommandError> {
@@ -50,12 +48,6 @@ fn current_label() -> Option<String> {
         .map(|workspace| workspace.label)
 }
 
-/// Hand the jump to a child that outlives this popup.
-///
-/// herdr may restore focus to the pane that opened the popup once the popup's
-/// command exits, which would undo a jump issued from inside it. The child
-/// waits for this process to go before it asks herdr for anything, and reports
-/// a refusal to the log, since the popup that would have shown it is gone.
 fn spawn_jump(
     target: &JumpTarget,
     spawn: impl FnOnce(&Path, &[&str]) -> io::Result<()>,
@@ -67,15 +59,10 @@ fn spawn_jump(
         .map_err(|failure| failed(format!("cannot start the jump: {failure}")))
 }
 
-/// The argv the popup hands its jump.
-///
-/// `--after-pid` carries the popup's own pid, which is what holds the child
-/// back until herdr can no longer restore focus to the pane the popup covered.
 fn jump_arguments<'a>(target: &'a JumpTarget, popup: &'a str) -> [&'a str; 5] {
     ["jump", &target.label, &target.directory, AFTER_PID, popup]
 }
 
-/// Wait for the popup that spawned this jump to close.
 pub(crate) fn wait_for_spawner(pid: u32) {
     wait_for_process_exit(pid, SPAWNER_EXIT_CAP);
 }

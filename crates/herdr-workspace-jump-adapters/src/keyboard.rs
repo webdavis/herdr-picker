@@ -18,10 +18,6 @@ impl KeySource for TerminalKeys {
     }
 }
 
-/// Raw mode for as long as this value lives.
-///
-/// The popup borrows the terminal herdr gave it, so raw mode is restored on the
-/// way out of every branch, including a failed read and an unwinding panic.
 struct RawMode {
     restore: fn(),
 }
@@ -43,10 +39,6 @@ fn enter_raw_mode() -> io::Result<RawMode> {
     })
 }
 
-/// The keystroke an event carries, when it carries one.
-///
-/// A resize, a focus change and a paste are events the popup waits through, and
-/// so is the release of the key whose press it already answered.
 fn keystroke_of(event: Event) -> Option<PickKey> {
     let Event::Key(key) = event else {
         return None;
