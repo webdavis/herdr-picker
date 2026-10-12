@@ -1,22 +1,11 @@
 use std::fmt;
 
-/// Why a jump could not be completed.
-///
-/// These are distinguished rather than collapsed into one string because the
-/// composition root reports both failed attempts without losing their causes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JumpError {
-    /// herdr could not be reached at all: no socket, or no CLI binary.
     Unreachable(String),
-    /// A read or write failed after connecting, or the deadline expired.
     Transport(String),
-    /// herdr answered with something this plugin cannot read.
     Malformed(String),
-    /// herdr answered with an error envelope.
     Server { code: String, message: String },
-    /// Both the socket and the CLI fallback failed. Rendered rather than
-    /// nested, so the combined message keeps one prefix instead of stacking
-    /// the wrapper's on top of the wrapped one's.
     BothPathsFailed { cli: String, socket: String },
 }
 

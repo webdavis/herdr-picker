@@ -2,18 +2,12 @@ use herdr_workspace_jump_domain::{Jump, Workspace, decide};
 
 use crate::JumpError;
 
-/// Somewhere that workspaces can be listed, focused and created.
-///
-/// Two technologies implement it: the socket directly, and the herdr CLI as the
-/// fallback. Both are exercised by the same jump, and a fake stands in for both
-/// in the tests below.
 pub trait WorkspaceDirectory {
     fn list(&mut self) -> Result<Vec<Workspace>, JumpError>;
     fn focus(&mut self, workspace_id: &str) -> Result<(), JumpError>;
     fn create(&mut self, label: &str, cwd: &str) -> Result<(), JumpError>;
 }
 
-/// Run one create-or-focus against a directory, reporting which branch ran.
 pub fn jump(
     directory: &mut impl WorkspaceDirectory,
     label: &str,
@@ -38,8 +32,6 @@ mod tests {
         }
     }
 
-    /// Records every call so a test can assert what reached the directory, and
-    /// can be told to fail any one of the three.
     #[derive(Default)]
     struct FakeWorkspaceDirectory {
         workspaces: Vec<Workspace>,
