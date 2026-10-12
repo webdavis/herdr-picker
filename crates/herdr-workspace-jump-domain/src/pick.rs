@@ -1,37 +1,12 @@
+mod command;
 mod frame;
 
+pub use command::{Command, Mode, Pick};
 pub use frame::{Frame, Row, SearchLine};
 
 use crate::JumpTarget;
+use crate::field::Edit;
 use crate::fuzzy::Matcher;
-
-/// The keystroke that closes the popup without jumping, beside the escape key.
-const CANCEL_CHARACTER: char = 'q';
-
-pub(crate) const SEARCH_CHARACTER: char = '/';
-
-/// One keystroke the pick popup read.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PickKey {
-    Character(char),
-    Escape,
-    /// Ctrl-C, which raw mode delivers as a keystroke rather than a signal.
-    Interrupt,
-    Next,
-    Previous,
-    Enter,
-    Backspace,
-    Other,
-}
-
-/// What the popup does with the keystroke it read.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Pick<'a> {
-    Selected(&'a JumpTarget),
-    Cancelled,
-    Unbound,
-    Pending,
-}
 
 #[derive(Debug, Clone)]
 pub struct Menu<'a, M> {
@@ -57,6 +32,14 @@ impl<'a, M: Matcher> Menu<'a, M> {
         }
     }
 
+    pub fn mode(&self) -> Mode {
+        if self.searching {
+            Mode::Searching
+        } else {
+            Mode::Browsing
+        }
+    }
+
     pub fn frame(&self) -> Frame<'a> {
         let rows = self
             .shown()
@@ -77,55 +60,52 @@ impl<'a, M: Matcher> Menu<'a, M> {
         }
     }
 
-    pub fn decide(&mut self, key: PickKey) -> Pick<'a> {
-        match key {
-            PickKey::Escape | PickKey::Interrupt => Pick::Cancelled,
-            PickKey::Enter => match self.shown().get(self.selected_row) {
+    pub fn apply(&mut self, command: Command) -> Pick<'a> {
+        match command {
+            Command::Cancel => Pick::Cancelled,
+            Command::Accept => match self.shown().get(self.selected_row) {
                 Some(&target) => Pick::Selected(target),
                 None => Pick::Pending,
             },
-            PickKey::Next => {
+            Command::Next => {
                 let last = self.shown().len().saturating_sub(1);
                 self.selected_row = (self.selected_row + 1).min(last);
                 Pick::Pending
             }
-            PickKey::Previous => {
+            Command::Previous => {
                 self.selected_row = self.selected_row.saturating_sub(1);
                 Pick::Pending
             }
-            PickKey::Character(SEARCH_CHARACTER) if !self.searching => {
-                self.searching = true;
-                self.selected_row = 0;
-                Pick::Pending
-            }
-            PickKey::Character(character) if !self.searching => {
+            Command::Key(character) => {
                 match self
                     .targets
                     .iter()
                     .find(|target| target.pick_key == character)
                 {
                     Some(target) => Pick::Selected(target),
-                    None if character == CANCEL_CHARACTER => Pick::Cancelled,
                     None => Pick::Unbound,
                 }
             }
-            PickKey::Backspace | PickKey::Other if !self.searching => Pick::Unbound,
-            PickKey::Character(character) => {
-                self.query.push(character);
+            Command::Search => {
+                self.searching = true;
                 self.selected_row = 0;
                 Pick::Pending
             }
-            PickKey::Backspace if self.query.is_empty() => {
+            Command::Unbound | Command::Erase | Command::Edit(_) if !self.searching => {
+                Pick::Unbound
+            }
+            Command::Unbound => Pick::Pending,
+            Command::Erase if self.query.is_empty() => {
                 self.searching = false;
                 self.selected_row = 0;
                 Pick::Pending
             }
-            PickKey::Backspace => {
+            Command::Erase => {
                 self.query.pop();
                 self.selected_row = 0;
                 Pick::Pending
             }
-            PickKey::Other => Pick::Pending,
+            Command::Edit(edit) => self.edit(edit),
         }
     }
 
@@ -136,6 +116,13 @@ impl<'a, M: Matcher> Menu<'a, M> {
         } else {
             self.targets.iter().collect()
         }
+    }
+
+    fn edit(&mut self, edit: Edit) -> Pick<'a> {
+        let Edit::Insert(character) = edit;
+        self.query.push(character);
+        self.selected_row = 0;
+        Pick::Pending
     }
 }
 

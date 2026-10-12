@@ -65,6 +65,9 @@ fn search(frame: &Frame<'_>) -> Option<String> {
 
 fn type_text(menu: &mut Menu<'_, impl Matcher>, text: &str) {
     for character in text.chars() {
-        assert_eq!(menu.decide(PickKey::Character(character)), Pick::Pending);
+        assert_eq!(
+            menu.apply(Command::Edit(Edit::Insert(character))),
+            Pick::Pending
+        );
     }
 }

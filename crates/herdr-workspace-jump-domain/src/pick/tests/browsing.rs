@@ -1,13 +1,15 @@
 use super::*;
 
 #[test]
-fn a_new_menu_shows_every_workspace_in_order_with_the_bar_on_the_first() {
+fn a_new_menu_browses_every_workspace_in_order_with_the_bar_on_the_first() {
     let workspaces = three_workspaces();
+    let menu = menu(&workspaces);
+    let frame = menu.frame();
 
-    assert_eq!(
-        shown(&menu(&workspaces).frame()),
-        [">Ivy", "homelab", "dotfiles"]
-    );
+    assert_eq!(menu.mode(), Mode::Browsing);
+    assert_eq!(frame.search, None);
+    assert_eq!(shown(&frame), [">Ivy", "homelab", "dotfiles"]);
+    assert_eq!(frame.total, 3);
 }
 
 #[test]
@@ -22,71 +24,69 @@ fn the_workspace_the_popup_opened_from_is_marked_current_and_an_unknown_one_mark
 }
 
 #[test]
-fn next_and_previous_move_the_bar_and_stop_at_the_ends_and_enter_picks_its_row() {
+fn next_and_previous_move_the_bar_and_stop_at_the_ends_and_accept_picks_its_row() {
     let workspaces = three_workspaces();
     let mut menu = menu(&workspaces);
 
-    assert_eq!(menu.decide(PickKey::Previous), Pick::Pending);
+    assert_eq!(menu.apply(Command::Previous), Pick::Pending);
     assert_eq!(shown(&menu.frame())[0], ">Ivy");
     for _ in 0..4 {
-        assert_eq!(menu.decide(PickKey::Next), Pick::Pending);
+        assert_eq!(menu.apply(Command::Next), Pick::Pending);
     }
     assert_eq!(shown(&menu.frame()), ["Ivy", "homelab", ">dotfiles"]);
-    menu.decide(PickKey::Previous);
-    assert_eq!(menu.decide(PickKey::Enter), Pick::Selected(&workspaces[1]));
+    menu.apply(Command::Previous);
+    assert_eq!(menu.apply(Command::Accept), Pick::Selected(&workspaces[1]));
 }
 
 #[test]
 fn a_workspace_key_picks_that_workspace_wherever_the_bar_is() {
     let workspaces = three_workspaces();
     let mut menu = menu(&workspaces);
-    menu.decide(PickKey::Next);
+    menu.apply(Command::Next);
 
     assert_eq!(
-        menu.decide(PickKey::Character('f')),
+        menu.apply(Command::Key('f')),
         Pick::Selected(&workspaces[2])
     );
     assert_eq!(
-        menu.decide(PickKey::Character('i')),
+        menu.apply(Command::Key('i')),
         Pick::Selected(&workspaces[0])
     );
 }
 
 #[test]
-fn an_uppercase_press_does_not_pick_a_lowercase_key() {
+fn the_key_that_picks_is_the_exact_declared_character() {
     let workspaces = three_workspaces();
 
+    assert_eq!(menu(&workspaces).apply(Command::Key('I')), Pick::Unbound);
+}
+
+#[test]
+fn cancel_closes_and_a_key_no_workspace_claims_closes_unless_a_workspace_claims_it() {
+    let workspaces = three_workspaces();
+    assert_eq!(menu(&workspaces).apply(Command::Cancel), Pick::Cancelled);
+    assert_eq!(menu(&workspaces).apply(Command::Key('q')), Pick::Unbound);
+
+    let queue = targets(vec![("queue", None)]);
     assert_eq!(
-        menu(&workspaces).decide(PickKey::Character('I')),
-        Pick::Unbound
+        menu(&queue).apply(Command::Key('q')),
+        Pick::Selected(&queue[0])
     );
 }
 
 #[test]
-fn escape_q_and_an_interrupt_all_cancel() {
+fn browsing_a_command_only_a_search_can_use_closes_the_menu() {
     let workspaces = three_workspaces();
 
-    for cancelling in [PickKey::Escape, PickKey::Interrupt, PickKey::Character('q')] {
-        assert_eq!(menu(&workspaces).decide(cancelling), Pick::Cancelled);
+    for unbound in [
+        Command::Unbound,
+        Command::Erase,
+        Command::Edit(Edit::Insert('x')),
+    ] {
+        assert_eq!(
+            menu(&workspaces).apply(unbound),
+            Pick::Unbound,
+            "{unbound:?}"
+        );
     }
-}
-
-#[test]
-fn an_unbound_character_an_unreadable_key_and_backspace_are_unbound() {
-    let workspaces = three_workspaces();
-
-    for unbound in [PickKey::Character('z'), PickKey::Other, PickKey::Backspace] {
-        assert_eq!(menu(&workspaces).decide(unbound), Pick::Unbound);
-    }
-}
-
-#[test]
-fn a_workspace_picking_on_q_is_reached_rather_than_shadowed_by_cancel() {
-    let workspaces = targets(vec![("queue", None)]);
-
-    assert_eq!(
-        menu(&workspaces).decide(PickKey::Character('q')),
-        Pick::Selected(&workspaces[0])
-    );
-    assert_eq!(menu(&workspaces).decide(PickKey::Escape), Pick::Cancelled);
 }

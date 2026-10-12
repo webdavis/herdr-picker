@@ -55,19 +55,16 @@ fn keystroke_of(event: Event) -> Option<PickKey> {
         return None;
     }
     let control = key.modifiers.contains(KeyModifiers::CONTROL);
-    let control_or_alt = KeyModifiers::CONTROL | KeyModifiers::ALT;
+    let alt = key.modifiers.contains(KeyModifiers::ALT);
     Some(match key.code {
         KeyCode::Esc => PickKey::Escape,
         KeyCode::Enter => PickKey::Enter,
         KeyCode::Backspace => PickKey::Backspace,
-        KeyCode::Down => PickKey::Next,
-        KeyCode::Up => PickKey::Previous,
-        KeyCode::Char('c') if control => PickKey::Interrupt,
-        KeyCode::Char('n') if control => PickKey::Next,
-        KeyCode::Char('p') if control => PickKey::Previous,
-        KeyCode::Char(character) if !key.modifiers.intersects(control_or_alt) => {
-            PickKey::Character(character)
-        }
+        KeyCode::Up => PickKey::Up,
+        KeyCode::Down => PickKey::Down,
+        KeyCode::Char(_) if alt => PickKey::Other,
+        KeyCode::Char(character) if control => PickKey::Control(character.to_ascii_lowercase()),
+        KeyCode::Char(character) => PickKey::Character(character),
         _ => PickKey::Other,
     })
 }

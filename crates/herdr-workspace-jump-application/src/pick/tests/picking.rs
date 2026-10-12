@@ -21,7 +21,7 @@ fn the_bar_moves_frame_by_frame_and_enter_picks_the_row_under_it() {
 
     let picked = pick(
         menu(&targets),
-        &mut Keys::typing(&[PickKey::Next, PickKey::Next, PickKey::Enter]),
+        &mut Keys::typing(&[PickKey::Control('n'), PickKey::Control('n'), PickKey::Enter]),
         &mut screen,
     );
 

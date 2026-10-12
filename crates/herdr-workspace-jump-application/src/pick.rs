@@ -1,7 +1,7 @@
 use std::fmt;
 use std::io;
 
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Matcher, Menu, Pick, PickKey};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Matcher, Menu, Pick, PickKey, command};
 
 pub trait KeySource {
     fn next_key(&mut self) -> io::Result<PickKey>;
@@ -38,7 +38,7 @@ pub fn pick<'a, M: Matcher>(
         let key = keys
             .next_key()
             .map_err(|failure| PickError::ReadKey(failure.to_string()))?;
-        match menu.decide(key) {
+        match menu.apply(command(key, menu.mode())) {
             Pick::Selected(target) => return Ok(Some(target)),
             Pick::Cancelled | Pick::Unbound => return Ok(None),
             Pick::Pending => {}

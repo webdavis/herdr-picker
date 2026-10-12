@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::pick::SEARCH_CHARACTER;
+use crate::keymap::SEARCH_CHARACTER;
 
 /// One workspace as the configuration declares it, before its ids are derived.
 #[derive(Debug, Clone, PartialEq, Eq)]
