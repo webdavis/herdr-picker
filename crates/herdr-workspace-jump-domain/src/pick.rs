@@ -26,18 +26,21 @@ pub enum Pick<'a> {
     Selected(&'a JumpTarget),
     Cancelled,
     Unbound,
-    Changed,
+    Pending,
 }
 
 #[derive(Debug, Clone)]
 pub struct Menu<'a> {
     targets: &'a [JumpTarget],
-    cursor: usize,
+    selected_row: usize,
 }
 
 impl<'a> Menu<'a> {
     pub fn new(targets: &'a [JumpTarget]) -> Self {
-        Self { targets, cursor: 0 }
+        Self {
+            targets,
+            selected_row: 0,
+        }
     }
 
     pub fn frame(&self) -> Frame<'a> {
@@ -47,7 +50,7 @@ impl<'a> Menu<'a> {
             .enumerate()
             .map(|(row, target)| Row {
                 target,
-                selected: row == self.cursor,
+                selected: row == self.selected_row,
             })
             .collect();
         Frame { rows }
@@ -58,16 +61,16 @@ impl<'a> Menu<'a> {
             PickKey::Escape | PickKey::Interrupt => Pick::Cancelled,
             PickKey::Next => {
                 let last = self.targets.len().saturating_sub(1);
-                self.cursor = (self.cursor + 1).min(last);
-                Pick::Changed
+                self.selected_row = (self.selected_row + 1).min(last);
+                Pick::Pending
             }
             PickKey::Previous => {
-                self.cursor = self.cursor.saturating_sub(1);
-                Pick::Changed
+                self.selected_row = self.selected_row.saturating_sub(1);
+                Pick::Pending
             }
-            PickKey::Enter => match self.targets.get(self.cursor) {
+            PickKey::Enter => match self.targets.get(self.selected_row) {
                 Some(target) => Pick::Selected(target),
-                None => Pick::Changed,
+                None => Pick::Pending,
             },
             PickKey::Character(character) => {
                 match self

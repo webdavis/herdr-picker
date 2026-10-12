@@ -15,10 +15,10 @@ fn next_and_previous_move_the_bar_and_stop_at_the_ends_and_enter_picks_its_row()
     let workspaces = three_workspaces();
     let mut menu = Menu::new(&workspaces);
 
-    assert_eq!(menu.decide(PickKey::Previous), Pick::Changed);
+    assert_eq!(menu.decide(PickKey::Previous), Pick::Pending);
     assert_eq!(shown(&menu.frame())[0], ">Ivy");
     for _ in 0..4 {
-        assert_eq!(menu.decide(PickKey::Next), Pick::Changed);
+        assert_eq!(menu.decide(PickKey::Next), Pick::Pending);
     }
     assert_eq!(shown(&menu.frame()), ["Ivy", "homelab", ">dotfiles"]);
     menu.decide(PickKey::Previous);

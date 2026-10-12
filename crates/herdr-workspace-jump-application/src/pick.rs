@@ -41,7 +41,7 @@ pub fn pick<'a>(
         match menu.decide(key) {
             Pick::Selected(target) => return Ok(Some(target)),
             Pick::Cancelled | Pick::Unbound => return Ok(None),
-            Pick::Changed => {}
+            Pick::Pending => {}
         }
     }
 }
