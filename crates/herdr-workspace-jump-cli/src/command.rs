@@ -2,7 +2,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 use herdr_workspace_jump_adapters::{
-    FileWorkspaceHistory, config_file, log_file, read_jump_targets, state_file,
+    FileWorkspaceHistory, config_file, mru_file, read_jump_targets, spawned_jump_log_file,
 };
 use herdr_workspace_jump_application::record;
 use herdr_workspace_jump_protocol::parse_focused_id;
@@ -29,15 +29,15 @@ pub(crate) fn config_path() -> PathBuf {
     )
 }
 
-fn history_path() -> PathBuf {
-    state_file(
+fn mru_path() -> PathBuf {
+    mru_file(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
     )
 }
 
 pub(crate) fn spawned_jump_log_path() -> PathBuf {
-    log_file(
+    spawned_jump_log_file(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
     )
@@ -80,7 +80,7 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ["last-workspace"] => last_workspace::run(
             env::var("HERDR_SOCKET_PATH").ok(),
             env::var("HERDR_BIN_PATH").ok(),
-            &mut FileWorkspaceHistory::at(&history_path()),
+            &mut FileWorkspaceHistory::at(&mru_path()),
         )
         .map(|_| ())
         .map_err(|failure| {
@@ -91,7 +91,7 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ["generate", options @ ..] => generate::run(options),
         ["record"] => {
             record_at(
-                &history_path(),
+                &mru_path(),
                 &env::var("HERDR_PLUGIN_EVENT_JSON").unwrap_or_default(),
             );
             Ok(())
