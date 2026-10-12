@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
 use crossterm::terminal::size;
+use herdr_workspace_jump_application::Screen;
 use herdr_workspace_jump_domain::Frame;
 
 mod view;
@@ -23,8 +24,10 @@ impl<W: Write> TerminalScreen<W> {
     pub fn new(out: W, size: fn() -> (usize, usize)) -> Self {
         Self { out, size }
     }
+}
 
-    pub fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
+impl<W: Write> Screen for TerminalScreen<W> {
+    fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
         let (width, _) = (self.size)();
         let drawn = view::render(frame, width);
         write!(self.out, "{HIDE_CURSOR_AND_CLEAR}{drawn}")?;

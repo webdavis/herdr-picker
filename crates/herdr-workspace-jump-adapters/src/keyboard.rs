@@ -2,7 +2,21 @@ use std::io;
 
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use herdr_workspace_jump_application::KeySource;
 use herdr_workspace_jump_domain::PickKey;
+
+pub struct TerminalKeys;
+
+impl KeySource for TerminalKeys {
+    fn next_key(&mut self) -> io::Result<PickKey> {
+        let _raw_mode = enter_raw_mode()?;
+        loop {
+            if let Some(key) = keystroke_of(read()?) {
+                return Ok(key);
+            }
+        }
+    }
+}
 
 /// Raw mode for as long as this value lives.
 ///
@@ -27,16 +41,6 @@ fn enter_raw_mode() -> io::Result<RawMode> {
     Ok(RawMode {
         restore: restore_terminal,
     })
-}
-
-/// Read one keystroke from the terminal.
-pub fn read_one_key() -> io::Result<PickKey> {
-    let _raw_mode = enter_raw_mode()?;
-    loop {
-        if let Some(key) = keystroke_of(read()?) {
-            return Ok(key);
-        }
-    }
 }
 
 /// The keystroke an event carries, when it carries one.

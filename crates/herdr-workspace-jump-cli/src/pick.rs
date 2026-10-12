@@ -5,9 +5,10 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    TerminalScreen, read_jump_targets, read_one_key, spawn_detached, wait_for_process_exit,
+    TerminalKeys, TerminalScreen, read_jump_targets, spawn_detached, wait_for_process_exit,
 };
-use herdr_workspace_jump_domain::{JumpTarget, Menu, Pick};
+use herdr_workspace_jump_application::pick;
+use herdr_workspace_jump_domain::{JumpTarget, Menu};
 
 use crate::command::{CommandError, config_path, failed, log_path};
 
@@ -19,23 +20,12 @@ pub(crate) const AFTER_PID: &str = "--after-pid";
 
 pub(crate) fn run() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
-    let mut menu = Menu::new(&targets);
     let mut screen = TerminalScreen::stdout();
-    loop {
-        screen
-            .show(&menu.frame())
-            .map_err(|failure| failed(format!("cannot show the menu: {failure}")))?;
-        let key =
-            read_one_key().map_err(|failure| failed(format!("cannot read a key: {failure}")))?;
-        match menu.decide(key) {
-            Pick::Selected(target) => {
-                return spawn_jump(target, |binary, arguments| {
-                    spawn_detached(binary, arguments, Some(&log_path()))
-                });
-            }
-            Pick::Cancelled | Pick::Unbound => return Ok(()),
-            Pick::Changed => {}
-        }
+    match pick(Menu::new(&targets), &mut TerminalKeys, &mut screen).map_err(failed)? {
+        Some(target) => spawn_jump(target, |binary, arguments| {
+            spawn_detached(binary, arguments, Some(&log_path()))
+        }),
+        None => Ok(()),
     }
 }
 
