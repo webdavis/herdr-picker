@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crossterm::terminal::size;
 use herdr_workspace_jump_application::Screen;
-use herdr_workspace_jump_domain::{Frame, Legend};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend};
 
 mod view;
 
@@ -19,6 +19,10 @@ pub struct TerminalScreen<W: Write> {
 impl TerminalScreen<io::Stdout> {
     pub fn stdout(legend: Legend) -> Self {
         Self::new(io::stdout(), terminal_size, legend)
+    }
+
+    pub fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
+        view::columns_to_fit(targets, legend)
     }
 }
 

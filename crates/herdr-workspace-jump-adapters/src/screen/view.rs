@@ -1,4 +1,4 @@
-use herdr_workspace_jump_domain::{Frame, Legend, Row, SearchLine};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Row, SearchLine};
 
 const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
@@ -30,6 +30,27 @@ pub(super) fn render(frame: &Frame<'_>, legend: Legend, width: usize, height: us
         drawn.push_str(&cursor_in_prompt(search));
     }
     drawn
+}
+
+pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
+    let marked_rows = targets.iter().map(|target| marked_row_width(&target.label));
+    let faint_lines = [legend.search, legend.keys]
+        .into_iter()
+        .map(faint_line_width);
+    marked_rows.chain(faint_lines).max().unwrap_or_default()
+}
+
+fn marked_row_width(label: &str) -> usize {
+    MARGIN.len()
+        + KEY_COLUMN_WIDTH
+        + LABEL_INDENT.len()
+        + label.chars().count()
+        + MIN_GAP_BEFORE_MARKER
+        + CURRENT_MARKER.chars().count()
+}
+
+fn faint_line_width(text: &str) -> usize {
+    MARGIN.len() + text.chars().count()
 }
 
 fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
