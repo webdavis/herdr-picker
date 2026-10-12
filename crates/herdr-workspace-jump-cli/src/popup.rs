@@ -1,0 +1,39 @@
+use std::path::Path;
+
+use herdr_workspace_jump_adapters::{DEADLINE, SocketPopupHost, TerminalScreen};
+use herdr_workspace_jump_application::open_picker;
+use herdr_workspace_jump_domain::{JumpTarget, ReadlineKeymap};
+
+use crate::command::{CommandError, failed};
+
+pub(crate) fn run(
+    socket_path: Option<String>,
+    plugin_id: Option<String>,
+    current_workspace: Option<String>,
+    targets: &[JumpTarget],
+) -> Result<(), CommandError> {
+    let socket_path = present(socket_path, "HERDR_SOCKET_PATH")?;
+    let plugin_id = present(plugin_id, "HERDR_PLUGIN_ID")?;
+    let mut host = SocketPopupHost::at(
+        Path::new(&socket_path),
+        DEADLINE,
+        &plugin_id,
+        current_workspace.as_deref(),
+    );
+    open_picker(
+        &mut host,
+        TerminalScreen::columns_to_fit(targets, ReadlineKeymap::LEGEND),
+    )
+    .map_err(|failure| failed(format!("could not open the picker: {failure}")))
+}
+
+fn present(value: Option<String>, variable: &str) -> Result<String, CommandError> {
+    value.filter(|value| !value.is_empty()).ok_or_else(|| {
+        failed(format!(
+            "{variable} is unset, so herdr did not run this as the plugin's pick action"
+        ))
+    })
+}
+
+#[cfg(test)]
+mod tests;

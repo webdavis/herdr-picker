@@ -7,6 +7,7 @@ mod generate;
 mod last_workspace;
 mod path;
 mod pick;
+mod popup;
 mod run;
 
 use std::env;

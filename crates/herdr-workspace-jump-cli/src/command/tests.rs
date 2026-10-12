@@ -98,8 +98,23 @@ fn pick_takes_no_arguments() {
 }
 
 #[test]
+fn popup_takes_no_arguments() {
+    assert!(matches!(
+        refusal(&["popup", "Ivy"]),
+        Err(CommandError::Usage)
+    ));
+}
+
+#[test]
 fn the_usage_line_names_every_verb() {
-    for verb in ["jump", "pick", "last-workspace", "record", "generate"] {
+    for verb in [
+        "jump",
+        "pick",
+        "popup",
+        "last-workspace",
+        "record",
+        "generate",
+    ] {
         assert!(USAGE.contains(verb), "the usage line omits {verb}: {USAGE}");
     }
 }

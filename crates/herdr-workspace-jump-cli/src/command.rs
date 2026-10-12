@@ -1,13 +1,15 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-use herdr_workspace_jump_adapters::{FileWorkspaceHistory, config_file, log_file, state_file};
+use herdr_workspace_jump_adapters::{
+    FileWorkspaceHistory, config_file, log_file, read_jump_targets, state_file,
+};
 use herdr_workspace_jump_application::record;
 use herdr_workspace_jump_protocol::parse_focused_id;
 
-use crate::{generate, last_workspace, path::expand_tilde, pick, run};
+use crate::{generate, last_workspace, path::expand_tilde, pick, popup, run};
 
-pub(crate) const USAGE: &str = "usage: herdr-workspace-jump jump <label> <cwd> [--after-pid <pid>] | herdr-workspace-jump pick | herdr-workspace-jump last-workspace | herdr-workspace-jump record | herdr-workspace-jump generate --output <directory> [--config <file>]";
+pub(crate) const USAGE: &str = "usage: herdr-workspace-jump jump <label> <cwd> [--after-pid <pid>] | herdr-workspace-jump pick | herdr-workspace-jump popup | herdr-workspace-jump last-workspace | herdr-workspace-jump record | herdr-workspace-jump generate --output <directory> [--config <file>]";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -72,6 +74,12 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             jump_to(label, raw_cwd)
         }
         ["pick"] => pick::run(),
+        ["popup"] => popup::run(
+            env::var("HERDR_SOCKET_PATH").ok(),
+            env::var("HERDR_PLUGIN_ID").ok(),
+            env::var("HERDR_WORKSPACE_ID").ok(),
+            &read_jump_targets(&config_path()).map_err(failed)?,
+        ),
         ["last-workspace"] => last_workspace::run(
             env::var("HERDR_SOCKET_PATH").ok(),
             env::var("HERDR_BIN_PATH").ok(),
