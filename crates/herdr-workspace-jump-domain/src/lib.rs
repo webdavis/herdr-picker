@@ -6,7 +6,7 @@ mod mru;
 mod pick;
 mod target;
 
-pub use field::Edit;
+pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Matcher};
 pub use jump::{Jump, Workspace, decide};
 pub use keymap::{PickKey, command};

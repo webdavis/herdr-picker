@@ -16,6 +16,16 @@ pub enum Edit {
     Paste,
 }
 
+pub trait TextField {
+    fn apply(&mut self, edit: Edit);
+    fn text(&self) -> String;
+    fn cursor(&self) -> usize;
+
+    fn is_empty(&self) -> bool {
+        self.text().is_empty()
+    }
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ReadlineField {
     text: Vec<char>,
@@ -23,8 +33,8 @@ pub struct ReadlineField {
     cut: Vec<char>,
 }
 
-impl ReadlineField {
-    pub fn apply(&mut self, edit: Edit) {
+impl TextField for ReadlineField {
+    fn apply(&mut self, edit: Edit) {
         let end = self.text.len();
         match edit {
             Edit::Insert(character) => {
@@ -58,18 +68,16 @@ impl ReadlineField {
         }
     }
 
-    pub fn text(&self) -> String {
+    fn text(&self) -> String {
         self.text.iter().collect()
     }
 
-    pub fn cursor(&self) -> usize {
+    fn cursor(&self) -> usize {
         self.cursor
     }
+}
 
-    pub fn is_empty(&self) -> bool {
-        self.text.is_empty()
-    }
-
+impl ReadlineField {
     fn cut(&mut self, from: usize, to: usize) {
         if from == to {
             return;

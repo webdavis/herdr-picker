@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use herdr_workspace_jump_domain::{Fuzzy, WorkspaceDeclaration, jump_targets};
+use herdr_workspace_jump_domain::{Fuzzy, ReadlineField, WorkspaceDeclaration, jump_targets};
 
 use super::*;
 
@@ -18,8 +18,8 @@ fn workspaces() -> Vec<JumpTarget> {
     jump_targets(declared).expect("well formed workspaces")
 }
 
-fn menu(targets: &[JumpTarget]) -> Menu<'_, Fuzzy> {
-    Menu::new(targets, None, Fuzzy)
+fn menu(targets: &[JumpTarget]) -> Menu<'_, Fuzzy, ReadlineField> {
+    Menu::new(targets, None, Fuzzy, ReadlineField::default())
 }
 
 struct Keys(VecDeque<PickKey>);

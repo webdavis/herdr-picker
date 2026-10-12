@@ -5,21 +5,26 @@ pub use command::{Command, Mode, Pick};
 pub use frame::{Frame, Row, SearchLine};
 
 use crate::JumpTarget;
-use crate::field::{Edit, ReadlineField};
+use crate::field::{Edit, TextField};
 use crate::fuzzy::Matcher;
 
 #[derive(Debug, Clone)]
-pub struct Menu<'a, M> {
+pub struct Menu<'a, M, F> {
     targets: &'a [JumpTarget],
     current: Option<&'a JumpTarget>,
     selected_row: usize,
     matcher: M,
-    field: ReadlineField,
+    field: F,
     searching: bool,
 }
 
-impl<'a, M: Matcher> Menu<'a, M> {
-    pub fn new(targets: &'a [JumpTarget], current_label: Option<&str>, matcher: M) -> Self {
+impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
+    pub fn new(
+        targets: &'a [JumpTarget],
+        current_label: Option<&str>,
+        matcher: M,
+        field: F,
+    ) -> Self {
         Self {
             targets,
             current: targets
@@ -27,7 +32,7 @@ impl<'a, M: Matcher> Menu<'a, M> {
                 .find(|target| Some(target.label.as_str()) == current_label),
             selected_row: 0,
             matcher,
-            field: ReadlineField::default(),
+            field,
             searching: false,
         }
     }

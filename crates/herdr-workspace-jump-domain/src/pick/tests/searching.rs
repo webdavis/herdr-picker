@@ -17,7 +17,7 @@ fn search_starts_an_empty_search_over_every_workspace_with_the_bar_on_the_first(
 #[test]
 fn a_search_shows_the_workspaces_the_matcher_keeps_in_the_matchers_order() {
     let workspaces = three_workspaces();
-    let mut menu = Menu::new(&workspaces, None, Reversed);
+    let mut menu = Menu::new(&workspaces, None, Reversed, ReadlineField::default());
     menu.apply(Command::Search);
 
     assert_eq!(shown(&menu.frame()), [">dotfiles", "homelab", "Ivy"]);
@@ -104,4 +104,23 @@ fn erase_deletes_behind_the_cursor_and_ends_the_search_once_it_is_empty() {
         menu.apply(Command::Key('i')),
         Pick::Selected(&workspaces[0])
     );
+}
+
+#[test]
+fn the_menu_hands_each_edit_to_its_field_and_shows_what_the_field_holds() {
+    let workspaces = three_workspaces();
+    let mut menu = Menu::new(&workspaces, None, Contains, RecordingField::default());
+    menu.apply(Command::Search);
+
+    menu.apply(Command::Edit(Edit::Insert('h')));
+    menu.apply(Command::Edit(Edit::CutToStart));
+    menu.apply(Command::Erase);
+
+    assert_eq!(
+        menu.field.edits,
+        [Edit::Insert('h'), Edit::CutToStart, Edit::DeleteBackward]
+    );
+    let frame = menu.frame();
+    assert_eq!(search(&frame), Some(("h".to_string(), 1)));
+    assert_eq!(shown(&frame), [">homelab"]);
 }

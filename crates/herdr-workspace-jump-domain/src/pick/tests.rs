@@ -1,5 +1,5 @@
 use super::*;
-use crate::{WorkspaceDeclaration, jump_targets};
+use crate::{ReadlineField, WorkspaceDeclaration, jump_targets};
 
 mod browsing;
 mod searching;
@@ -43,8 +43,31 @@ impl Matcher for Reversed {
     }
 }
 
-fn menu(workspaces: &[JumpTarget]) -> Menu<'_, Contains> {
-    Menu::new(workspaces, None, Contains)
+#[derive(Default)]
+struct RecordingField {
+    edits: Vec<Edit>,
+    text: String,
+}
+
+impl TextField for RecordingField {
+    fn apply(&mut self, edit: Edit) {
+        self.edits.push(edit);
+        if let Edit::Insert(character) = edit {
+            self.text.push(character);
+        }
+    }
+
+    fn text(&self) -> String {
+        self.text.clone()
+    }
+
+    fn cursor(&self) -> usize {
+        self.text.chars().count()
+    }
+}
+
+fn menu(workspaces: &[JumpTarget]) -> Menu<'_, Contains, ReadlineField> {
+    Menu::new(workspaces, None, Contains, ReadlineField::default())
 }
 
 fn shown(frame: &Frame<'_>) -> Vec<String> {
@@ -66,7 +89,7 @@ fn search(frame: &Frame<'_>) -> Option<(String, usize)> {
         .map(|search| (search.text.clone(), search.cursor))
 }
 
-fn type_text(menu: &mut Menu<'_, impl Matcher>, text: &str) {
+fn type_text(menu: &mut Menu<'_, impl Matcher, impl TextField>, text: &str) {
     for character in text.chars() {
         assert_eq!(
             menu.apply(Command::Edit(Edit::Insert(character))),
