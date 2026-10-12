@@ -59,8 +59,7 @@ fn generate_without_an_output_directory_is_a_usage_error() {
     assert!(matches!(refusal, Err(CommandError::Usage)), "{refusal:?}");
 }
 
-/// These verbs reach herdr, so every case below is rejected before anything is sent.
-fn refusal(words: &[&str]) -> Result<(), CommandError> {
+fn refusal_before_reaching_herdr(words: &[&str]) -> Result<(), CommandError> {
     execute(
         &words
             .iter()
@@ -72,7 +71,8 @@ fn refusal(words: &[&str]) -> Result<(), CommandError> {
 #[test]
 fn a_jump_whose_after_pid_is_not_a_number_is_a_usage_error() {
     for rejected in ["abc", "", "-1", "12.5"] {
-        let refused = refusal(&["jump", "Ivy", "/opt/ivy", "--after-pid", rejected]);
+        let refused =
+            refusal_before_reaching_herdr(&["jump", "Ivy", "/opt/ivy", "--after-pid", rejected]);
         assert!(matches!(refused, Err(CommandError::Usage)), "{rejected:?}");
     }
 }
@@ -84,7 +84,7 @@ fn a_jump_with_an_unknown_trailing_flag_or_a_missing_pid_is_a_usage_error() {
         vec!["jump", "Ivy", "/opt/ivy", "--after-pid"],
         vec!["jump", "Ivy", "/opt/ivy", "--after-pid", "1", "extra"],
     ] {
-        let refused = refusal(&rejected);
+        let refused = refusal_before_reaching_herdr(&rejected);
         assert!(matches!(refused, Err(CommandError::Usage)), "{rejected:?}");
     }
 }
@@ -92,14 +92,29 @@ fn a_jump_with_an_unknown_trailing_flag_or_a_missing_pid_is_a_usage_error() {
 #[test]
 fn pick_takes_no_arguments() {
     assert!(matches!(
-        refusal(&["pick", "Ivy"]),
+        refusal_before_reaching_herdr(&["pick", "Ivy"]),
+        Err(CommandError::Usage)
+    ));
+}
+
+#[test]
+fn popup_takes_no_arguments() {
+    assert!(matches!(
+        refusal_before_reaching_herdr(&["popup", "Ivy"]),
         Err(CommandError::Usage)
     ));
 }
 
 #[test]
 fn the_usage_line_names_every_verb() {
-    for verb in ["jump", "pick", "last-workspace", "record", "generate"] {
+    for verb in [
+        "jump",
+        "pick",
+        "popup",
+        "last-workspace",
+        "record",
+        "generate",
+    ] {
         assert!(USAGE.contains(verb), "the usage line omits {verb}: {USAGE}");
     }
 }

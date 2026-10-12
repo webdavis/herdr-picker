@@ -1,45 +1,54 @@
 use std::env;
-use std::io::{self, Write};
+use std::io;
 use std::path::Path;
 use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    read_jump_targets, read_one_key, spawn_detached, wait_for_process_exit,
+    SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, read_jump_targets, spawn_detached,
+    wait_for_process_exit,
 };
-use herdr_workspace_jump_domain::{JumpTarget, Pick, decide_pick, render_menu};
+use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
+use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap};
+use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 
-use crate::command::{CommandError, config_path, failed, log_path};
+use crate::command::{CommandError, config_path, failed, spawned_jump_log_path};
 
-/// How long a jump waits for the popup that spawned it to close.
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
-/// The flag carrying the popup's own pid to the jump it spawns.
+const CURRENT_MARKER_LOOKUP_CAP: Duration = Duration::from_secs(1);
+
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
-/// Offer the declared workspaces, read one key, and hand the jump on.
 pub(crate) fn run() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
-    print!("{}", render_menu(&targets));
-    io::stdout()
-        .flush()
-        .map_err(|failure| failed(format!("cannot print the menu: {failure}")))?;
-    let key = read_one_key().map_err(|failure| failed(format!("cannot read a key: {failure}")))?;
-    match decide_pick(&targets, key) {
-        Pick::Selected(target) => spawn_jump(target, |binary, arguments| {
-            spawn_detached(binary, arguments, Some(&log_path()))
+    let current = current_label();
+    let menu = Menu::new(
+        &targets,
+        current.as_deref(),
+        Fuzzy,
+        ReadlineField::default(),
+    );
+    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND);
+    match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
+        Some(target) => spawn_jump(target, |binary, arguments| {
+            spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))
         }),
-        // Both outcomes close the popup with nothing done.
-        Pick::Cancelled | Pick::Unbound => Ok(()),
+        None => Ok(()),
     }
 }
 
-/// Hand the jump to a child that outlives this popup.
-///
-/// herdr may restore focus to the pane that opened the popup once the popup's
-/// command exits, which would undo a jump issued from inside it. The child
-/// waits for this process to go before it asks herdr for anything, and reports
-/// a refusal to the log, since the popup that would have shown it is gone.
+fn current_label() -> Option<String> {
+    let active = env::var(ACTIVE_WORKSPACE_VARIABLE).ok()?;
+    let socket = env::var("HERDR_SOCKET_PATH").ok()?;
+    SocketWorkspaceDirectory::at(Path::new(&socket), CURRENT_MARKER_LOOKUP_CAP)
+        .list()
+        .ok()?
+        .into_iter()
+        .find(|workspace| workspace.workspace_id == active)
+        .map(|workspace| workspace.label)
+}
+
 fn spawn_jump(
     target: &JumpTarget,
     spawn: impl FnOnce(&Path, &[&str]) -> io::Result<()>,
@@ -51,15 +60,10 @@ fn spawn_jump(
         .map_err(|failure| failed(format!("cannot start the jump: {failure}")))
 }
 
-/// The argv the popup hands its jump.
-///
-/// `--after-pid` carries the popup's own pid, which is what holds the child
-/// back until herdr can no longer restore focus to the pane the popup covered.
 fn jump_arguments<'a>(target: &'a JumpTarget, popup: &'a str) -> [&'a str; 5] {
     ["jump", &target.label, &target.directory, AFTER_PID, popup]
 }
 
-/// Wait for the popup that spawned this jump to close.
 pub(crate) fn wait_for_spawner(pid: u32) {
     wait_for_process_exit(pid, SPAWNER_EXIT_CAP);
 }

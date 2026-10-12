@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ -t 0 ] || { echo "no terminal to attach to; run it from a shell in a herdr pane" >&2; exit 1; }
+
+cd "$(dirname "$0")/.."
+checkout=$PWD
+dir=$checkout/target/preview
+registry=$dir/xdg
+bin=$checkout/target/release/herdr-workspace-jump
+prefix=ctrl+x
+user_shell=${SHELL:-/bin/sh}
+how_to_leave="exit or $prefix q leaves"
+users_workspaces=${HERDR_PLUGIN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/config/herdr-workspace-jump}/config.toml
+preview_workspaces=$registry/herdr/plugins/config/herdr-workspace-jump/config.toml
+
+in_preview() {
+  env -u HERDR_SOCKET_PATH -u HERDR_CLIENT_SOCKET_PATH -u HERDR_WORKSPACE_ID \
+    -u HERDR_TAB_ID -u HERDR_PANE_ID -u HERDR_SESSION -u HERDR_PLUGIN_CONFIG_DIR \
+    XDG_CONFIG_HOME="$registry" XDG_STATE_HOME="$dir/state" "$@"
+}
+
+write_shell_that_says_how_to_leave() {
+  cat >"$dir/shell" <<EOF
+#!/bin/sh
+case "\${1:-}" in -c) ;; *) echo "preview: $prefix ctrl+o opens the popup; $how_to_leave";; esac
+exec "$user_shell" "\$@"
+EOF
+  chmod +x "$dir/shell"
+}
+
+link_this_checkout() {
+  [ -f "$users_workspaces" ] || { echo "no workspaces declared at $users_workspaces" >&2; exit 1; }
+  mkdir -p "$(dirname "$preview_workspaces")"
+  cp "$users_workspaces" "$preview_workspaces"
+  "$bin" generate --output "$checkout" --config "$preview_workspaces"
+  in_preview herdr plugin link "$checkout" >/dev/null
+}
+
+users_theme() {
+  if [ -f ~/.config/herdr/config.toml ]; then
+    awk '/^\[theme\]/{on=1} /^\[/ && !/^\[theme\]/{on=0} on' ~/.config/herdr/config.toml
+  fi
+}
+
+write_config() {
+  {
+    echo 'onboarding = false'
+    users_theme
+    cat <<EOF
+[terminal]
+default_shell = "$dir/shell"
+
+[experimental]
+allow_nested = true
+
+[keys]
+prefix = "$prefix"
+
+[[keys.command]]
+key = "prefix+ctrl+o"
+type = "plugin_action"
+command = "herdr-workspace-jump.pick"
+description = "pick a workspace"
+EOF
+  } >"$dir/config.toml"
+  in_preview env HERDR_CONFIG_PATH="$dir/config.toml" herdr config check >/dev/null
+}
+
+teardown() {
+  in_preview herdr session stop default >/dev/null 2>&1 || true
+  in_preview herdr session delete default >/dev/null 2>&1 || true
+}
+
+preview_panes() {
+  in_preview herdr pane list 2>/dev/null | grep -o '"pane_id":"[^"]*"' | sort
+}
+
+wait_for_preview() {
+  for _ in $(seq 1 50); do
+    sleep 0.2
+    [ -n "$(preview_panes)" ] && return
+  done
+  return 1
+}
+
+open_popup_from_this_pane() {
+  if [ "${HERDR_ENV:-}" = 1 ] && [ -n "${HERDR_PANE_ID:-}" ]; then
+    sleep 1
+    herdr pane send-keys "$HERDR_PANE_ID" "$prefix" ctrl+o
+  fi
+}
+
+a_pane_closed() {
+  comm -23 <(echo "$1") <(echo "$2") | grep -q .
+}
+
+end_preview_once_a_pane_closes() {
+  local seen=$1 now
+  while sleep 0.5; do
+    now=$(preview_panes)
+    [ -n "$now" ] || break
+    a_pane_closed "$seen" "$now" && break
+    seen=$now
+  done
+  teardown
+}
+
+cargo build --release --quiet
+teardown
+rm -rf "$registry"
+mkdir -p "$dir"
+write_shell_that_says_how_to_leave
+link_this_checkout
+write_config
+trap teardown EXIT
+
+(
+  wait_for_preview || exit
+  seen=$(preview_panes)
+  open_popup_from_this_pane
+  end_preview_once_a_pane_closes "$seen"
+) >"$dir/open.log" 2>&1 &
+[ "${HERDR_ENV:-}" = 1 ] || echo "press $prefix ctrl+o to open the popup; $how_to_leave"
+
+in_preview env HERDR_CONFIG_PATH="$dir/config.toml" herdr || true

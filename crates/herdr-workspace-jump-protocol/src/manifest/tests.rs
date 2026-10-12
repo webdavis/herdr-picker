@@ -3,8 +3,8 @@ use super::*;
 const GOLDEN_MANIFEST: &str = r#"id = "herdr-workspace-jump"
 name = "Workspace Jump"
 version = "1.2.3"
-min_herdr_version = "0.7.0"
-description = "Workspace navigation herdr has no built-in for: create-or-focus by label, and a most-recently-used toggle."
+min_herdr_version = "0.7.4"
+description = "Workspace navigation herdr has no built-in for: create-or-focus by label, a most-recently-used toggle, and a workspace picker."
 platforms = ["macos", "linux"]
 
 [[build]]
@@ -40,9 +40,20 @@ id = "last_workspace"
 title = "Last workspace (most-recently-used toggle)"
 command = ["./target/release/herdr-workspace-jump", "last-workspace"]
 
+[[actions]]
+id = "pick"
+title = "Pick a workspace"
+command = ["./target/release/herdr-workspace-jump", "popup"]
+
 [[events]]
 on = "workspace.focused"
 command = ["./target/release/herdr-workspace-jump", "record"]
+
+[[panes]]
+id = "pick"
+title = "Workspace picker"
+placement = "popup"
+command = ["./target/release/herdr-workspace-jump", "pick"]
 "#;
 
 fn target(label: &str, directory: &str) -> JumpTarget {
@@ -120,12 +131,10 @@ fn the_rendered_manifest_round_trips_with_argv_arrays_for_every_action() {
     );
     assert_eq!(
         argv.last(),
-        Some(&vec![
-            "./target/release/herdr-workspace-jump",
-            "last-workspace"
-        ])
+        Some(&vec!["./target/release/herdr-workspace-jump", "popup"])
     );
-    assert_eq!(argv.len(), 6, "five jumps and the toggle");
+    assert_eq!(argv.len(), 7, "five jumps, the toggle and the picker");
+    assert_eq!(parsed["panes"][0]["placement"].as_str(), Some("popup"));
     assert_eq!(
         parsed["events"][0]["on"].as_str(),
         Some("workspace.focused")

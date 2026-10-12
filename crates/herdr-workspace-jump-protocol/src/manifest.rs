@@ -1,9 +1,10 @@
 use herdr_workspace_jump_domain::JumpTarget;
 use serde::Serialize;
 
-/// herdr runs a plugin's commands from the plugin directory, so the release
-/// binary is named relative to it.
-const EXECUTABLE: &str = "./target/release/herdr-workspace-jump";
+use crate::popup::PICKER_PANE;
+
+const EXECUTABLE_FROM_PLUGIN_ROOT: &str = "./target/release/herdr-workspace-jump";
+const PICKER_ACTION: &str = "pick";
 
 #[derive(Serialize)]
 struct Manifest<'a> {
@@ -16,6 +17,7 @@ struct Manifest<'a> {
     build: [BuildStep; 1],
     actions: Vec<Action>,
     events: [Event; 1],
+    panes: [Pane; 1],
 }
 
 #[derive(Serialize)]
@@ -36,18 +38,25 @@ struct Event {
     command: Vec<String>,
 }
 
-/// Render the plugin manifest that registers one jump action per workspace.
-///
-/// `version` is the version of the package that owns the binary, which the
-/// caller knows and this crate does not.
-pub fn render_manifest(version: &str, targets: &[JumpTarget]) -> Result<String, toml::ser::Error> {
+#[derive(Serialize)]
+struct Pane {
+    id: &'static str,
+    title: &'static str,
+    placement: &'static str,
+    command: Vec<String>,
+}
+
+pub fn render_manifest(
+    binary_version: &str,
+    targets: &[JumpTarget],
+) -> Result<String, toml::ser::Error> {
     let mut actions: Vec<Action> = targets
         .iter()
         .map(|target| Action {
             id: target.action_id.clone(),
             title: format!("Jump to the {} workspace", target.label),
             command: vec![
-                EXECUTABLE.to_string(),
+                EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
                 "jump".to_string(),
                 target.label.clone(),
                 target.directory.clone(),
@@ -57,14 +66,22 @@ pub fn render_manifest(version: &str, targets: &[JumpTarget]) -> Result<String, 
     actions.push(Action {
         id: "last_workspace".to_string(),
         title: "Last workspace (most-recently-used toggle)".to_string(),
-        command: vec![EXECUTABLE.to_string(), "last-workspace".to_string()],
+        command: vec![
+            EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
+            "last-workspace".to_string(),
+        ],
+    });
+    actions.push(Action {
+        id: PICKER_ACTION.to_string(),
+        title: "Pick a workspace".to_string(),
+        command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "popup".to_string()],
     });
     let manifest = Manifest {
         id: "herdr-workspace-jump",
         name: "Workspace Jump",
-        version,
-        min_herdr_version: "0.7.0",
-        description: "Workspace navigation herdr has no built-in for: create-or-focus by label, and a most-recently-used toggle.",
+        version: binary_version,
+        min_herdr_version: "0.7.4",
+        description: "Workspace navigation herdr has no built-in for: create-or-focus by label, a most-recently-used toggle, and a workspace picker.",
         platforms: ["macos", "linux"],
         build: [BuildStep {
             command: vec![
@@ -77,7 +94,16 @@ pub fn render_manifest(version: &str, targets: &[JumpTarget]) -> Result<String, 
         actions,
         events: [Event {
             on: "workspace.focused",
-            command: vec![EXECUTABLE.to_string(), "record".to_string()],
+            command: vec![
+                EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
+                "record".to_string(),
+            ],
+        }],
+        panes: [Pane {
+            id: PICKER_PANE,
+            title: "Workspace picker",
+            placement: "popup",
+            command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "pick".to_string()],
         }],
     };
     toml::to_string(&manifest)

@@ -1,54 +1,132 @@
-use std::fmt::Write;
+mod command;
+mod frame;
+
+pub use command::{Command, Mode, Pick};
+pub use frame::{Frame, Row, SearchLine};
 
 use crate::JumpTarget;
+use crate::field::{Edit, TextField};
+use crate::fuzzy::Matcher;
 
-/// The keystroke that closes the popup without jumping, beside the escape key.
-const CANCEL_CHARACTER: char = 'q';
-
-/// One keystroke the pick popup read.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PickKey {
-    Character(char),
-    Escape,
-    /// Ctrl-C, which raw mode delivers as a keystroke rather than a signal.
-    Interrupt,
-    /// A key that carries no character, such as an arrow or a function key.
-    Other,
+#[derive(Debug, Clone)]
+pub struct Menu<'a, M, F> {
+    targets: &'a [JumpTarget],
+    current: Option<&'a JumpTarget>,
+    selected_row: usize,
+    matcher: M,
+    field: F,
+    searching: bool,
 }
 
-/// What the popup does with the keystroke it read.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Pick<'a> {
-    Selected(&'a JumpTarget),
-    Cancelled,
-    Unbound,
-}
-
-/// The popup's menu: one line per workspace, then the cancel line.
-pub fn render_menu(targets: &[JumpTarget]) -> String {
-    let mut menu = String::new();
-    for target in targets {
-        let _ = writeln!(menu, "{}  {}", target.pick_key, target.label);
+impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
+    pub fn new(
+        targets: &'a [JumpTarget],
+        current_label: Option<&str>,
+        matcher: M,
+        field: F,
+    ) -> Self {
+        Self {
+            targets,
+            current: targets
+                .iter()
+                .find(|target| Some(target.label.as_str()) == current_label),
+            selected_row: 0,
+            matcher,
+            field,
+            searching: false,
+        }
     }
-    menu.push_str("esc  cancel\n");
-    menu
-}
 
-/// Resolve the keystroke against the workspaces the menu offered.
-///
-/// A workspace that picks on the cancel character is reached, because a key the
-/// menu printed beside a label has to do what the menu says.
-pub fn decide_pick(targets: &[JumpTarget], key: PickKey) -> Pick<'_> {
-    let PickKey::Character(character) = key else {
-        return match key {
-            PickKey::Escape | PickKey::Interrupt => Pick::Cancelled,
-            _ => Pick::Unbound,
-        };
-    };
-    match targets.iter().find(|target| target.pick_key == character) {
-        Some(target) => Pick::Selected(target),
-        None if character == CANCEL_CHARACTER => Pick::Cancelled,
-        None => Pick::Unbound,
+    pub fn mode(&self) -> Mode {
+        if self.searching {
+            Mode::Searching
+        } else {
+            Mode::Browsing
+        }
+    }
+
+    pub fn frame(&self) -> Frame<'a> {
+        let rows = self
+            .shown()
+            .into_iter()
+            .enumerate()
+            .map(|(row, target)| Row {
+                target,
+                selected: row == self.selected_row,
+                current: self.current == Some(target),
+            })
+            .collect();
+        Frame {
+            search: self.searching.then(|| SearchLine {
+                text: self.field.text(),
+                cursor: self.field.cursor(),
+            }),
+            rows,
+            total: self.targets.len(),
+        }
+    }
+
+    pub fn apply(&mut self, command: Command) -> Pick<'a> {
+        match command {
+            Command::Cancel => Pick::Cancelled,
+            Command::Accept => match self.shown().get(self.selected_row) {
+                Some(&target) => Pick::Selected(target),
+                None => Pick::Pending,
+            },
+            Command::Next => {
+                let last = self.shown().len().saturating_sub(1);
+                self.selected_row = (self.selected_row + 1).min(last);
+                Pick::Pending
+            }
+            Command::Previous => {
+                self.selected_row = self.selected_row.saturating_sub(1);
+                Pick::Pending
+            }
+            Command::Key(character) => {
+                match self
+                    .targets
+                    .iter()
+                    .find(|target| target.pick_key == character)
+                {
+                    Some(target) => Pick::Selected(target),
+                    None => Pick::Unbound,
+                }
+            }
+            Command::Search => {
+                self.searching = true;
+                self.selected_row = 0;
+                Pick::Pending
+            }
+            Command::Unbound | Command::Erase | Command::Edit(_) if !self.searching => {
+                Pick::Unbound
+            }
+            Command::Unbound => Pick::Pending,
+            Command::Erase if self.field.is_empty() => {
+                self.searching = false;
+                self.selected_row = 0;
+                Pick::Pending
+            }
+            Command::Erase => self.edit(Edit::DeleteBackward),
+            Command::Edit(edit) => self.edit(edit),
+        }
+    }
+
+    fn shown(&self) -> Vec<&'a JumpTarget> {
+        if self.searching {
+            self.matcher
+                .rank(&self.field.text(), self.targets, |target| &target.label)
+        } else {
+            self.targets.iter().collect()
+        }
+    }
+
+    fn edit(&mut self, edit: Edit) -> Pick<'a> {
+        let before = self.field.text();
+        self.field.apply(edit);
+        if self.field.text() != before {
+            self.selected_row = 0;
+        }
+        Pick::Pending
     }
 }
 

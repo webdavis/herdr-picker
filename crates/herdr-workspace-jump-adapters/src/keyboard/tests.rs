@@ -21,30 +21,69 @@ fn a_plain_or_shifted_character_press_is_that_character() {
 }
 
 #[test]
-fn escape_and_ctrl_c_are_the_two_ways_out() {
+fn ctrl_and_alt_characters_are_reported_with_their_modifier() {
     assert_eq!(
-        press(KeyCode::Esc, KeyModifiers::NONE),
-        Some(PickKey::Escape)
+        press(KeyCode::Char('u'), KeyModifiers::CONTROL),
+        Some(PickKey::Control('u'))
     );
     assert_eq!(
-        press(KeyCode::Char('c'), KeyModifiers::CONTROL),
-        Some(PickKey::Interrupt)
+        press(
+            KeyCode::Char('U'),
+            KeyModifiers::CONTROL | KeyModifiers::SHIFT
+        ),
+        Some(PickKey::Control('u'))
+    );
+    assert_eq!(
+        press(KeyCode::Char('b'), KeyModifiers::ALT),
+        Some(PickKey::Alt('b'))
+    );
+    assert_eq!(
+        press(
+            KeyCode::Char('h'),
+            KeyModifiers::CONTROL | KeyModifiers::ALT
+        ),
+        Some(PickKey::Other),
+        "ctrl+alt chords are left to herdr"
     );
 }
 
 #[test]
-fn a_modified_character_or_a_press_carrying_none_has_no_character() {
-    for keyless in [
-        (KeyCode::Char('d'), KeyModifiers::CONTROL),
-        (KeyCode::Char('d'), KeyModifiers::ALT),
-        (KeyCode::Up, KeyModifiers::NONE),
-        (KeyCode::F(1), KeyModifiers::NONE),
-        (KeyCode::Enter, KeyModifiers::NONE),
+fn the_named_keys_are_reported_by_name() {
+    for (code, key) in [
+        (KeyCode::Esc, PickKey::Escape),
+        (KeyCode::Enter, PickKey::Enter),
+        (KeyCode::Backspace, PickKey::Backspace),
+        (KeyCode::Delete, PickKey::Delete),
+        (KeyCode::Up, PickKey::Up),
+        (KeyCode::Down, PickKey::Down),
+        (KeyCode::Left, PickKey::Left),
+        (KeyCode::Right, PickKey::Right),
+        (KeyCode::Home, PickKey::Home),
+        (KeyCode::End, PickKey::End),
     ] {
+        assert_eq!(press(code, KeyModifiers::NONE), Some(key), "{code:?}");
+    }
+}
+
+#[test]
+fn backspace_with_ctrl_or_alt_is_the_word_backspace() {
+    assert_eq!(
+        press(KeyCode::Backspace, KeyModifiers::ALT),
+        Some(PickKey::WordBackspace)
+    );
+    assert_eq!(
+        press(KeyCode::Backspace, KeyModifiers::CONTROL),
+        Some(PickKey::WordBackspace)
+    );
+}
+
+#[test]
+fn a_key_with_no_name_here_is_other() {
+    for other in [KeyCode::F(1), KeyCode::Tab, KeyCode::PageUp] {
         assert_eq!(
-            press(keyless.0, keyless.1),
+            press(other, KeyModifiers::NONE),
             Some(PickKey::Other),
-            "{keyless:?}"
+            "{other:?}"
         );
     }
 }

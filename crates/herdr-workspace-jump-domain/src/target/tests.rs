@@ -27,8 +27,11 @@ fn action_id_reproduces_the_ids_the_committed_manifest_registered() {
 fn action_id_replaces_every_character_outside_a_to_z_and_zero_to_nine() {
     assert_eq!(action_id("a b/c"), "jump_a_b_c");
     assert_eq!(action_id("v2.1"), "jump_v2_1");
-    // A multi-byte character is one replacement, not one per byte.
-    assert_eq!(action_id("café"), "jump_caf_");
+    assert_eq!(
+        action_id("café"),
+        "jump_caf_",
+        "a multi-byte character is one replacement, not one per byte"
+    );
 }
 
 #[test]
@@ -135,8 +138,8 @@ fn a_label_whose_first_character_cannot_be_a_key_needs_its_own_key() {
 }
 
 #[test]
-fn a_pick_key_must_be_exactly_one_printable_ascii_character() {
-    for rejected in ["", "ab", "é", " ", "\t"] {
+fn a_pick_key_must_be_exactly_one_printable_ascii_character_other_than_slash() {
+    for rejected in ["", "ab", "é", " ", "\t", "/"] {
         assert_eq!(
             jump_targets(vec![keyed("homelab", "/srv/homelab", rejected)]),
             Err(TargetError::UnusablePickKey {
@@ -146,6 +149,12 @@ fn a_pick_key_must_be_exactly_one_printable_ascii_character() {
             "{rejected:?} is not a usable pick key"
         );
     }
+    assert_eq!(
+        jump_targets(vec![declaration("/srv", "/srv")]),
+        Err(TargetError::LabelHasNoDefaultPickKey {
+            label: "/srv".to_string(),
+        })
+    );
 }
 
 #[test]

@@ -1,5 +1,8 @@
 use super::*;
-use crate::{WorkspaceDeclaration, jump_targets};
+use crate::{ReadlineField, WorkspaceDeclaration, jump_targets};
+
+mod browsing;
+mod searching;
 
 fn targets(declarations: Vec<(&str, Option<&str>)>) -> Vec<JumpTarget> {
     let declared = declarations
@@ -21,66 +24,76 @@ fn three_workspaces() -> Vec<JumpTarget> {
     ])
 }
 
-#[test]
-fn the_menu_lists_every_workspace_in_order_and_ends_with_the_cancel_line() {
-    assert_eq!(
-        render_menu(&three_workspaces()),
-        "i  Ivy\nh  homelab\nf  dotfiles\nesc  cancel\n"
-    );
-}
+struct Contains;
 
-#[test]
-fn a_workspace_key_selects_that_workspace() {
-    let workspaces = three_workspaces();
-
-    assert_eq!(
-        decide_pick(&workspaces, PickKey::Character('f')),
-        Pick::Selected(&workspaces[2])
-    );
-    assert_eq!(
-        decide_pick(&workspaces, PickKey::Character('i')),
-        Pick::Selected(&workspaces[0])
-    );
-}
-
-#[test]
-fn the_key_that_selects_is_the_exact_declared_character() {
-    let workspaces = three_workspaces();
-
-    // The popup reads one keystroke, so an uppercase press is a different key.
-    assert_eq!(
-        decide_pick(&workspaces, PickKey::Character('I')),
-        Pick::Unbound
-    );
-}
-
-#[test]
-fn escape_q_and_an_interrupt_all_cancel() {
-    let workspaces = three_workspaces();
-
-    for cancelling in [PickKey::Escape, PickKey::Interrupt, PickKey::Character('q')] {
-        assert_eq!(decide_pick(&workspaces, cancelling), Pick::Cancelled);
+impl Matcher for Contains {
+    fn rank<'t, T>(&self, query: &str, items: &'t [T], label: impl Fn(&T) -> &str) -> Vec<&'t T> {
+        items
+            .iter()
+            .filter(|item| label(item).contains(query))
+            .collect()
     }
 }
 
-#[test]
-fn an_unbound_character_and_an_unreadable_key_do_nothing() {
-    let workspaces = three_workspaces();
+struct Reversed;
 
-    assert_eq!(
-        decide_pick(&workspaces, PickKey::Character('z')),
-        Pick::Unbound
-    );
-    assert_eq!(decide_pick(&workspaces, PickKey::Other), Pick::Unbound);
+impl Matcher for Reversed {
+    fn rank<'t, T>(&self, _: &str, items: &'t [T], _: impl Fn(&T) -> &str) -> Vec<&'t T> {
+        items.iter().rev().collect()
+    }
 }
 
-#[test]
-fn a_workspace_picking_on_q_is_reached_rather_than_shadowed_by_cancel() {
-    let workspaces = targets(vec![("queue", None)]);
+#[derive(Default)]
+struct RecordingField {
+    edits: Vec<Edit>,
+    text: String,
+}
 
-    assert_eq!(
-        decide_pick(&workspaces, PickKey::Character('q')),
-        Pick::Selected(&workspaces[0])
-    );
-    assert_eq!(decide_pick(&workspaces, PickKey::Escape), Pick::Cancelled);
+impl TextField for RecordingField {
+    fn apply(&mut self, edit: Edit) {
+        self.edits.push(edit);
+        if let Edit::Insert(character) = edit {
+            self.text.push(character);
+        }
+    }
+
+    fn text(&self) -> String {
+        self.text.clone()
+    }
+
+    fn cursor(&self) -> usize {
+        self.text.chars().count()
+    }
+}
+
+fn menu(workspaces: &[JumpTarget]) -> Menu<'_, Contains, ReadlineField> {
+    Menu::new(workspaces, None, Contains, ReadlineField::default())
+}
+
+fn shown(frame: &Frame<'_>) -> Vec<String> {
+    frame
+        .rows
+        .iter()
+        .map(|row| {
+            let bar = if row.selected { ">" } else { "" };
+            let current = if row.current { "*" } else { "" };
+            format!("{bar}{}{current}", row.target.label)
+        })
+        .collect()
+}
+
+fn search(frame: &Frame<'_>) -> Option<(String, usize)> {
+    frame
+        .search
+        .as_ref()
+        .map(|search| (search.text.clone(), search.cursor))
+}
+
+fn type_text(menu: &mut Menu<'_, impl Matcher, impl TextField>, text: &str) {
+    for character in text.chars() {
+        assert_eq!(
+            menu.apply(Command::Edit(Edit::Insert(character))),
+            Pick::Pending
+        );
+    }
 }
