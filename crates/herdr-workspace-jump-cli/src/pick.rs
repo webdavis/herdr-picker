@@ -10,6 +10,7 @@ use herdr_workspace_jump_adapters::{
 };
 use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
 use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap};
+use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 
 use crate::command::{CommandError, config_path, failed, log_path};
 
@@ -38,7 +39,7 @@ pub(crate) fn run() -> Result<(), CommandError> {
 }
 
 fn current_label() -> Option<String> {
-    let active = env::var("HERDR_ACTIVE_WORKSPACE_ID").ok()?;
+    let active = env::var(ACTIVE_WORKSPACE_VARIABLE).ok()?;
     let socket = env::var("HERDR_SOCKET_PATH").ok()?;
     SocketWorkspaceDirectory::at(Path::new(&socket), CURRENT_MARKER_LOOKUP_CAP)
         .list()
