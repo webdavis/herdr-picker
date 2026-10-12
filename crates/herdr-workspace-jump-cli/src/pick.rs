@@ -12,7 +12,7 @@ use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
 use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap};
 use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 
-use crate::command::{CommandError, config_path, failed, log_path};
+use crate::command::{CommandError, config_path, failed, spawned_jump_log_path};
 
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
@@ -32,7 +32,7 @@ pub(crate) fn run() -> Result<(), CommandError> {
     let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND);
     match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
-            spawn_detached(binary, arguments, Some(&log_path()))
+            spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))
         }),
         None => Ok(()),
     }

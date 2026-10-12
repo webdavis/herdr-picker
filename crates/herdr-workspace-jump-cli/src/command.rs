@@ -21,8 +21,6 @@ pub(crate) fn failed(refusal: impl std::fmt::Display) -> CommandError {
     CommandError::Failed(refusal.to_string())
 }
 
-/// The declared workspaces: the directory herdr hands a plugin, else the
-/// documented path under the user's own configuration.
 pub(crate) fn config_path() -> PathBuf {
     config_file(
         env::var("HERDR_PLUGIN_CONFIG_DIR").ok().as_deref(),
@@ -38,8 +36,7 @@ fn history_path() -> PathBuf {
     )
 }
 
-/// Where a jump the popup spawned reports what went wrong.
-pub(crate) fn log_path() -> PathBuf {
+pub(crate) fn spawned_jump_log_path() -> PathBuf {
     log_file(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
