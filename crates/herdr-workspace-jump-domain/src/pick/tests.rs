@@ -22,10 +22,13 @@ fn three_workspaces() -> Vec<JumpTarget> {
 }
 
 #[test]
-fn the_menu_lists_every_workspace_in_order_and_ends_with_the_cancel_line() {
+fn the_menu_lists_each_workspace_in_order_with_its_key_right_aligned_in_bold_palette_blue() {
     assert_eq!(
         render_menu(&three_workspaces()),
-        "i  Ivy\nh  homelab\nf  dotfiles\nesc  cancel\n"
+        "\x1b[1;34m  i\x1b[0m  Ivy\n\
+         \x1b[1;34m  h\x1b[0m  homelab\n\
+         \x1b[1;34m  f\x1b[0m  dotfiles\n\
+         \x1b[1;34mesc\x1b[0m  cancel\n"
     );
 }
 

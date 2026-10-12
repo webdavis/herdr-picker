@@ -24,13 +24,19 @@ pub enum Pick<'a> {
     Unbound,
 }
 
-/// The popup's menu: one line per workspace, then the cancel line.
+const BOLD_BLUE: &str = "\x1b[1;34m";
+const RESET: &str = "\x1b[0m";
+
 pub fn render_menu(targets: &[JumpTarget]) -> String {
     let mut menu = String::new();
     for target in targets {
-        let _ = writeln!(menu, "{}  {}", target.pick_key, target.label);
+        let _ = writeln!(
+            menu,
+            "{BOLD_BLUE}{:>3}{RESET}  {}",
+            target.pick_key, target.label
+        );
     }
-    menu.push_str("esc  cancel\n");
+    let _ = writeln!(menu, "{BOLD_BLUE}esc{RESET}  cancel");
     menu
 }
 
