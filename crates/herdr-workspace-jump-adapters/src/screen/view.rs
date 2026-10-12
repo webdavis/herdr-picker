@@ -4,6 +4,10 @@ const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
 const GREY_BAR: &str = "\x1b[48;5;236m";
 const RESET: &str = "\x1b[0m";
+
+const MARGIN: &str = " ";
+const KEY_COLUMN_WIDTH: usize = 3;
+const LABEL_INDENT: &str = "  ";
 const KEYS_LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
 
 pub(super) fn render(frame: &Frame<'_>, width: usize) -> String {
@@ -13,18 +17,19 @@ pub(super) fn render(frame: &Frame<'_>, width: usize) -> String {
         .map(|row| workspace_row(row, width))
         .collect();
     lines.push(String::new());
-    lines.push(format!("{FAINT} {KEYS_LEGEND}{RESET}"));
+    lines.push(format!("{FAINT}{MARGIN}{KEYS_LEGEND}{RESET}"));
     lines.join("\n")
 }
 
 fn workspace_row(row: &Row<'_>, width: usize) -> String {
-    let key = format!("{:>3}", row.target.pick_key);
-    let label = format!("  {}", row.target.label);
+    let key = format!("{:>KEY_COLUMN_WIDTH$}", row.target.pick_key);
+    let label = format!("{LABEL_INDENT}{}", row.target.label);
+    let label_width = width.saturating_sub(MARGIN.len() + KEY_COLUMN_WIDTH);
     if row.selected {
-        let bar = fill(&label, "", width.saturating_sub(4));
-        format!("{GREY_BAR} {BOLD_BLUE}{key}{RESET}{GREY_BAR}{bar}{RESET}")
+        let rest = fill(&label, "", label_width);
+        format!("{GREY_BAR}{MARGIN}{BOLD_BLUE}{key}{RESET}{GREY_BAR}{rest}{RESET}")
     } else {
-        format!(" {BOLD_BLUE}{key}{RESET}{label}")
+        format!("{MARGIN}{BOLD_BLUE}{key}{RESET}{label}")
     }
 }
 
