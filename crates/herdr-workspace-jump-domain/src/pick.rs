@@ -3,6 +3,7 @@ mod frame;
 pub use frame::{Frame, Row, SearchLine};
 
 use crate::JumpTarget;
+use crate::fuzzy::Matcher;
 
 /// The keystroke that closes the popup without jumping, beside the escape key.
 const CANCEL_CHARACTER: char = 'q';
@@ -33,22 +34,24 @@ pub enum Pick<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub struct Menu<'a> {
+pub struct Menu<'a, M> {
     targets: &'a [JumpTarget],
     current: Option<&'a JumpTarget>,
     selected_row: usize,
+    matcher: M,
     query: String,
     searching: bool,
 }
 
-impl<'a> Menu<'a> {
-    pub fn new(targets: &'a [JumpTarget], current_label: Option<&str>) -> Self {
+impl<'a, M: Matcher> Menu<'a, M> {
+    pub fn new(targets: &'a [JumpTarget], current_label: Option<&str>, matcher: M) -> Self {
         Self {
             targets,
             current: targets
                 .iter()
                 .find(|target| Some(target.label.as_str()) == current_label),
             selected_row: 0,
+            matcher,
             query: String::new(),
             searching: false,
         }
@@ -128,22 +131,12 @@ impl<'a> Menu<'a> {
 
     fn shown(&self) -> Vec<&'a JumpTarget> {
         if self.searching {
-            self.targets
-                .iter()
-                .filter(|target| holds_in_order(&target.label, &self.query))
-                .collect()
+            self.matcher
+                .rank(&self.query, self.targets, |target| &target.label)
         } else {
             self.targets.iter().collect()
         }
     }
-}
-
-fn holds_in_order(label: &str, query: &str) -> bool {
-    let mut letters = label.chars().flat_map(char::to_lowercase);
-    query
-        .chars()
-        .flat_map(char::to_lowercase)
-        .all(|wanted| letters.any(|letter| letter == wanted))
 }
 
 #[cfg(test)]

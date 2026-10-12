@@ -29,14 +29,13 @@ fn typing_narrows_the_rows_and_puts_the_bar_back_on_the_first() {
 }
 
 #[test]
-fn a_label_matches_when_it_holds_the_letters_in_order_ignoring_case() {
+fn a_search_shows_the_workspaces_the_matcher_keeps_in_the_matchers_order() {
     let workspaces = three_workspaces();
-    let mut menu = menu(&workspaces);
+    let mut menu = Menu::new(&workspaces, None, Reversed);
     menu.decide(PickKey::Character('/'));
 
-    type_text(&mut menu, "HLB");
-
-    assert_eq!(shown(&menu.frame()), [">homelab"]);
+    assert_eq!(shown(&menu.frame()), [">dotfiles", "homelab", "Ivy"]);
+    assert_eq!(menu.decide(PickKey::Enter), Pick::Selected(&workspaces[2]));
 }
 
 #[test]

@@ -14,10 +14,10 @@ fn a_new_menu_shows_every_workspace_in_order_with_the_bar_on_the_first() {
 fn the_workspace_the_popup_opened_from_is_marked_current_and_an_unknown_one_marks_nothing() {
     let workspaces = three_workspaces();
 
-    let opened = Menu::new(&workspaces, Some("homelab"));
+    let opened = Menu::new(&workspaces, Some("homelab"), Contains);
     assert_eq!(shown(&opened.frame()), [">Ivy", "homelab*", "dotfiles"]);
 
-    let unknown = Menu::new(&workspaces, Some("elsewhere"));
+    let unknown = Menu::new(&workspaces, Some("elsewhere"), Contains);
     assert_eq!(shown(&unknown.frame()), [">Ivy", "homelab", "dotfiles"]);
 }
 

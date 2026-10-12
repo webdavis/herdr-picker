@@ -9,7 +9,7 @@ use herdr_workspace_jump_adapters::{
     wait_for_process_exit,
 };
 use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
-use herdr_workspace_jump_domain::{JumpTarget, Menu};
+use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu};
 
 use crate::command::{CommandError, config_path, failed, log_path};
 
@@ -24,7 +24,7 @@ pub(crate) const AFTER_PID: &str = "--after-pid";
 pub(crate) fn run() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
     let current = current_label();
-    let menu = Menu::new(&targets, current.as_deref());
+    let menu = Menu::new(&targets, current.as_deref(), Fuzzy);
     let mut screen = TerminalScreen::stdout();
     match pick(menu, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {

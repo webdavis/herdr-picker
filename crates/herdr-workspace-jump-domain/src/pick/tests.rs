@@ -24,8 +24,27 @@ fn three_workspaces() -> Vec<JumpTarget> {
     ])
 }
 
-fn menu(workspaces: &[JumpTarget]) -> Menu<'_> {
-    Menu::new(workspaces, None)
+struct Contains;
+
+impl Matcher for Contains {
+    fn rank<'t, T>(&self, query: &str, items: &'t [T], label: impl Fn(&T) -> &str) -> Vec<&'t T> {
+        items
+            .iter()
+            .filter(|item| label(item).contains(query))
+            .collect()
+    }
+}
+
+struct Reversed;
+
+impl Matcher for Reversed {
+    fn rank<'t, T>(&self, _: &str, items: &'t [T], _: impl Fn(&T) -> &str) -> Vec<&'t T> {
+        items.iter().rev().collect()
+    }
+}
+
+fn menu(workspaces: &[JumpTarget]) -> Menu<'_, Contains> {
+    Menu::new(workspaces, None, Contains)
 }
 
 fn shown(frame: &Frame<'_>) -> Vec<String> {
@@ -44,7 +63,7 @@ fn search(frame: &Frame<'_>) -> Option<String> {
     frame.search.as_ref().map(|search| search.text.clone())
 }
 
-fn type_text(menu: &mut Menu<'_>, text: &str) {
+fn type_text(menu: &mut Menu<'_, impl Matcher>, text: &str) {
     for character in text.chars() {
         assert_eq!(menu.decide(PickKey::Character(character)), Pick::Pending);
     }
