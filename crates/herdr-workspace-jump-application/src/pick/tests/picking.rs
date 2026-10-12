@@ -37,7 +37,7 @@ fn the_bar_moves_frame_by_frame_and_enter_picks_the_row_under_it() {
 }
 
 #[test]
-fn a_search_is_answered_frame_by_frame_and_enter_picks_the_first_match() {
+fn a_search_is_answered_frame_by_frame_and_enter_picks_the_best_match() {
     let targets = workspaces();
     let mut screen = Notes::default();
     let mut keys = typed("/es");
@@ -45,14 +45,14 @@ fn a_search_is_answered_frame_by_frame_and_enter_picks_the_first_match() {
 
     let picked = pick(menu(&targets), &mut Keys::typing(&keys), &mut screen);
 
-    assert_eq!(picked, Ok(Some(&targets[0])));
+    assert_eq!(picked, Ok(Some(&targets[2])));
     assert_eq!(
         screen.frames,
         [
             ">netpulse plantpulse essential dotfiles fitness",
             "/ >netpulse plantpulse essential dotfiles fitness",
-            "/e >netpulse plantpulse essential dotfiles fitness",
-            "/es >netpulse essential dotfiles fitness",
+            "/e >essential netpulse fitness dotfiles plantpulse",
+            "/es >essential fitness dotfiles netpulse",
         ]
     );
 }
