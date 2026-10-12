@@ -43,10 +43,11 @@ Ivy = { dir = "~/workspaces/Ivy", key = "v" }
 A leading `~` is expanded when the jump runs, so it can stay in the file.
 
 `key` defaults to the label's first character lowercased, which is why `homelab` picks on `h` and
-`Ivy` would pick on `i` without the `v` above. It has to be exactly one printable ASCII character,
-and two workspaces resolving to the same key are refused when the config is read, in one sentence
-naming both labels. `generate` reads the same file, so that refusal fails a manifest render as much
-as a popup: a new workspace whose key is already taken means giving one of the two its own `key`.
+`Ivy` would pick on `i` without the `v` above. It has to be exactly one printable ASCII character
+other than `/`, which starts a search in the popup, and two workspaces resolving to the same key are
+refused when the config is read, in one sentence naming both labels. `generate` reads the same file,
+so that refusal fails a manifest render as much as a popup: a new workspace whose key is already
+taken means giving one of the two its own `key`.
 
 Then render the manifest and link the directory:
 
@@ -79,10 +80,38 @@ command = "herdr-workspace-jump.last_workspace"
 
 ## The pick popup
 
-`pick` prints one line per workspace, `<key>  <label>`, reads a single keystroke, and jumps to the
-workspace that keystroke names. `esc` and ctrl-c always close it without jumping, and so does `q`
-unless a workspace claims that key, and so does any key no workspace claims at all. Bind it as a
-popup rather than a plugin action:
+`pick` is laid out so nothing moves while you use it. The top row is the search prompt, a faint `/
+search` until `/` is pressed, then what has been typed, with how many workspaces it kept at the
+right edge. Below a blank row come the workspaces, the key right-aligned beside the label in the
+terminal's bold blue, with the selected row on a dark grey bar, the way fzf marks its current line,
+and the workspace the popup opened from faint and marked `current`. The bottom row is a faint legend
+of the keys that move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the arrow keys
+move the bar, enter jumps to the row under it, and a list taller than the popup scrolls to keep that
+row in view. While searching, the key column goes blank and what is typed keeps only the workspaces
+whose labels hold those letters in that order, ignoring case, best match first: a run of the typed
+letters beats a scatter, an early match beats a late one and a short label beats a long one. The
+search field edits like herdr's own fields, with the keys below, and backspace on an empty search
+ends it. `esc`, ctrl-c and ctrl-g always close the popup without jumping. Outside a search, so does
+any key no workspace claims, `q` included.
+
+| Search keys | What they do |
+| --- | --- |
+| Left / Right, ctrl+b / ctrl+f | Move one character |
+| Home / End, ctrl+a / ctrl+e | Move to the beginning or end |
+| alt+b / alt+f | Move one word |
+| Backspace, ctrl+h | Delete the previous character |
+| Delete, ctrl+d | Delete the next character |
+| ctrl+u / ctrl+k | Cut to the beginning or end |
+| ctrl+w, alt+backspace, ctrl+backspace | Cut the previous word |
+| alt+d | Cut the next word |
+| ctrl+y | Insert the last cut text |
+
+herdr takes its prefix before the popup sees it, so when the prefix is `ctrl+d`, Delete is the way
+to delete forward. alt shortcuts need the terminal to send alt rather than compose characters, which
+on macOS is Ghostty's `macos-option-as-alt`. herdr's direct chords, the ones bound without the
+prefix, do reach the popup.
+
+Bind it as a popup rather than a plugin action:
 
 ```toml
 [[keys.command]]
@@ -91,12 +120,16 @@ type = "popup"
 command = "~/.local/share/herdr-workspace-jump/target/release/herdr-workspace-jump pick"
 description = "pick a workspace"
 width = 40
-height = 13
+height = 16
 ```
 
 herdr runs a custom command keybinding through a shell, so the leading `~` above is expanded and an
-absolute path is not required. `width` and `height` are terminal cells and include the border, so
-thirteen rows hold ten workspaces, the cancel line and the border itself.
+absolute path is not required. `width` and `height` are terminal cells and include herdr's border,
+which takes three columns and two rows, so a 40 by 16 popup gives the menu 37 columns and 14 rows.
+Four of those rows are the prompt, the legend and the blank rows around the list, which leaves ten
+for workspaces; a longer list scrolls, or the binding grows a row per workspace. Leave `width` and
+`height` out and herdr opens the popup at half its pane area each way, so in a large terminal the
+bar stretches and a gap opens above the legend.
 
 `pick` is a popup command rather than a plugin action, so `generate` does not render it into the
 manifest and nothing needs regenerating when the binding changes. It reads the same config file the
@@ -120,6 +153,18 @@ inside it jumps within that throwaway session, which exercises the whole flow wi
 real one. `HERDR_PLUGIN_CONFIG_DIR` is forwarded when set, and `PREVIEW_WIDTH` and `PREVIEW_HEIGHT`
 size the popup. It writes only under `target/`, jump history included, and herdr's own sessions
 directory.
+
+The pick popup is put together from parts that each sit behind a trait, so each is tested alone with
+a small fake, and any one can be replaced where the parts are chosen, in the CLI's `pick`:
+
+- `Matcher` ranks items by how well their labels match a search. `Fuzzy` is the one in use.
+- `TextField` edits the search. `ReadlineField` is the one in use.
+- `Keymap` turns keys into the menu's commands. `ReadlineKeymap` is the one in use.
+- `Menu` holds the popup's state, takes commands, and describes what to show as a `Frame`, without
+  knowing keys or terminals.
+- `pick`, in the application crate, runs the popup's loop against a `KeySource` and a `Screen`. The
+  adapters crate gives it the popup's terminal as `TerminalKeys` and `TerminalScreen`, the only code
+  that knows ANSI.
 
 ## License
 
