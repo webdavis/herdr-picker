@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crossterm::terminal::size;
 use herdr_workspace_jump_application::Screen;
-use herdr_workspace_jump_domain::Frame;
+use herdr_workspace_jump_domain::{Frame, Legend};
 
 mod view;
 
@@ -13,24 +13,25 @@ const UNKNOWN_SIZE: (usize, usize) = (0, 0);
 pub struct TerminalScreen<W: Write> {
     out: W,
     size: fn() -> (usize, usize),
+    legend: Legend,
 }
 
 impl TerminalScreen<io::Stdout> {
-    pub fn stdout() -> Self {
-        Self::new(io::stdout(), terminal_size)
+    pub fn stdout(legend: Legend) -> Self {
+        Self::new(io::stdout(), terminal_size, legend)
     }
 }
 
 impl<W: Write> TerminalScreen<W> {
-    pub fn new(out: W, size: fn() -> (usize, usize)) -> Self {
-        Self { out, size }
+    pub fn new(out: W, size: fn() -> (usize, usize), legend: Legend) -> Self {
+        Self { out, size, legend }
     }
 }
 
 impl<W: Write> Screen for TerminalScreen<W> {
     fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
         let (width, height) = (self.size)();
-        let drawn = view::render(frame, width, height);
+        let drawn = view::render(frame, self.legend, width, height);
         let prompt_cursor = if frame.search.is_some() {
             SHOW_CURSOR
         } else {

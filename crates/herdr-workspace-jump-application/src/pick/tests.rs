@@ -1,6 +1,9 @@
+use std::cell::RefCell;
 use std::collections::VecDeque;
 
-use herdr_workspace_jump_domain::{Fuzzy, ReadlineField, WorkspaceDeclaration, jump_targets};
+use herdr_workspace_jump_domain::{
+    Command, Fuzzy, Mode, ReadlineField, ReadlineKeymap, WorkspaceDeclaration, jump_targets,
+};
 
 use super::*;
 
@@ -60,6 +63,18 @@ impl Screen for Notes {
         }));
         self.frames.push(line.join(" "));
         Ok(())
+    }
+}
+
+#[derive(Default)]
+struct ModeNoting {
+    modes: RefCell<Vec<Mode>>,
+}
+
+impl Keymap for ModeNoting {
+    fn command(&self, key: PickKey, mode: Mode) -> Command {
+        self.modes.borrow_mut().push(mode);
+        ReadlineKeymap.command(key, mode)
     }
 }
 

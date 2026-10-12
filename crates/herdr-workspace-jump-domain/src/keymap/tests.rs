@@ -1,5 +1,9 @@
 use super::*;
 
+fn command(key: PickKey, mode: Mode) -> Command {
+    ReadlineKeymap.command(key, mode)
+}
+
 #[test]
 fn escape_ctrl_c_and_ctrl_g_cancel_enter_accepts_and_the_list_keys_move_in_either_mode() {
     for mode in [Mode::Browsing, Mode::Searching] {
@@ -84,4 +88,18 @@ fn searching_a_key_with_no_editing_meaning_is_unbound() {
             "{unbound:?}"
         );
     }
+}
+
+#[test]
+fn the_key_the_search_hint_names_is_the_one_that_starts_a_search() {
+    let named = ReadlineKeymap::LEGEND
+        .search
+        .chars()
+        .next()
+        .expect("the hint names a key");
+
+    assert_eq!(
+        command(PickKey::Character(named), Mode::Browsing),
+        Command::Search
+    );
 }

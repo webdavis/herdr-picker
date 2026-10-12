@@ -9,7 +9,7 @@ fn a_screen_that_cannot_show_stops_the_popup_before_any_key_is_read() {
         ..Notes::default()
     };
 
-    let picked = pick(menu(&targets), &mut keys, &mut screen);
+    let picked = pick(menu(&targets), &ReadlineKeymap, &mut keys, &mut screen);
 
     assert_eq!(picked, Err(PickError::Show("terminal gone".to_string())));
     assert_eq!(keys.0.len(), 1, "a key was read after the show failed");
@@ -21,6 +21,7 @@ fn a_key_that_cannot_be_read_is_reported() {
 
     let picked = pick(
         menu(&targets),
+        &ReadlineKeymap,
         &mut Keys::typing(&[]),
         &mut Notes::default(),
     );

@@ -2,7 +2,7 @@ use std::fmt;
 use std::io;
 
 use herdr_workspace_jump_domain::{
-    Frame, JumpTarget, Matcher, Menu, Pick, PickKey, TextField, command,
+    Frame, JumpTarget, Keymap, Matcher, Menu, Pick, PickKey, TextField,
 };
 
 pub trait KeySource {
@@ -30,6 +30,7 @@ impl fmt::Display for PickError {
 
 pub fn pick<'a, M: Matcher, F: TextField>(
     mut menu: Menu<'a, M, F>,
+    keymap: &impl Keymap,
     keys: &mut impl KeySource,
     screen: &mut impl Screen,
 ) -> Result<Option<&'a JumpTarget>, PickError> {
@@ -40,7 +41,7 @@ pub fn pick<'a, M: Matcher, F: TextField>(
         let key = keys
             .next_key()
             .map_err(|failure| PickError::ReadKey(failure.to_string()))?;
-        match menu.apply(command(key, menu.mode())) {
+        match menu.apply(keymap.command(key, menu.mode())) {
             Pick::Selected(target) => return Ok(Some(target)),
             Pick::Cancelled | Pick::Unbound => return Ok(None),
             Pick::Pending => {}

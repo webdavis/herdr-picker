@@ -1,4 +1,4 @@
-use herdr_workspace_jump_domain::{Frame, Row, SearchLine};
+use herdr_workspace_jump_domain::{Frame, Legend, Row, SearchLine};
 
 const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
@@ -13,14 +13,12 @@ const LABEL_INDENT: &str = "  ";
 const CURRENT_MARKER: &str = "current ";
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
-const SEARCH_HINT: &str = "/ search";
-const KEYS_LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
 
-pub(super) fn render(frame: &Frame<'_>, width: usize, height: usize) -> String {
-    let above = [prompt_row(frame, width), String::new()];
+pub(super) fn render(frame: &Frame<'_>, legend: Legend, width: usize, height: usize) -> String {
+    let above = [prompt_row(frame, legend, width), String::new()];
     let below = [
         String::new(),
-        format!("{FAINT}{MARGIN}{KEYS_LEGEND}{RESET}"),
+        format!("{FAINT}{MARGIN}{}{RESET}", legend.keys),
     ];
     let room = height
         .checked_sub(above.len() + below.len())
@@ -34,9 +32,9 @@ pub(super) fn render(frame: &Frame<'_>, width: usize, height: usize) -> String {
     drawn
 }
 
-fn prompt_row(frame: &Frame<'_>, width: usize) -> String {
+fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     let Some(search) = &frame.search else {
-        return format!("{FAINT}{MARGIN}{SEARCH_HINT}{RESET}");
+        return format!("{FAINT}{MARGIN}{}{RESET}", legend.search);
     };
     let typed = format!("{SEARCH_PROMPT}{}", search.text);
     let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);

@@ -9,7 +9,7 @@ use herdr_workspace_jump_adapters::{
     wait_for_process_exit,
 };
 use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
-use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField};
+use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap};
 
 use crate::command::{CommandError, config_path, failed, log_path};
 
@@ -30,8 +30,8 @@ pub(crate) fn run() -> Result<(), CommandError> {
         Fuzzy,
         ReadlineField::default(),
     );
-    let mut screen = TerminalScreen::stdout();
-    match pick(menu, &mut TerminalKeys, &mut screen).map_err(failed)? {
+    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND);
+    match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&log_path()))
         }),
