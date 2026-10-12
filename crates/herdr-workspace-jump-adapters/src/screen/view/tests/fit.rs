@@ -1,8 +1,8 @@
 use super::*;
 
 #[test]
-fn the_columns_to_fit_are_the_widest_workspace_with_a_spaced_current_mark() {
-    assert_eq!(columns_to_fit(&three_workspaces(), LEGEND), 23);
+fn the_columns_to_fit_leave_room_to_refuse_the_widest_workspace() {
+    assert_eq!(columns_to_fit(&three_workspaces(), LEGEND), 20);
 }
 
 #[test]
@@ -16,34 +16,41 @@ fn a_legend_wider_than_every_workspace_sets_the_columns_to_fit() {
 }
 
 #[test]
-fn at_the_columns_to_fit_every_label_and_its_current_mark_show_whole() {
+fn at_the_columns_to_fit_every_label_shows_whole() {
     let workspaces = three_workspaces();
     let width = columns_to_fit(&workspaces, LEGEND);
 
-    for (current, workspace) in workspaces.iter().enumerate() {
-        let drawn = render(
-            &browsing(&workspaces, current, Some(current)),
-            LEGEND,
-            width,
-            0,
-        );
+    let drawn = render(&browsing(&workspaces, 2), LEGEND, width, 0);
 
-        assert!(!drawn.contains(ELLIPSIS), "{drawn:?}");
+    assert!(!drawn.contains(ELLIPSIS), "{drawn:?}");
+    for workspace in &workspaces {
         assert!(
             visible_rows(&drawn)
                 .iter()
-                .any(|row| row.contains(&workspace.label) && row.ends_with("current")),
+                .any(|row| row.ends_with(&workspace.label)),
             "{drawn:?}"
         );
     }
 }
 
 #[test]
-fn one_column_fewer_leaves_the_widest_workspaces_current_mark_out() {
+fn one_column_fewer_cuts_the_widest_refusal() {
     let workspaces = three_workspaces();
     let width = columns_to_fit(&workspaces, LEGEND) - 1;
 
-    let drawn = render(&browsing(&workspaces, 2, Some(2)), LEGEND, width, 0);
+    let drawn = render(&refused(&workspaces, &workspaces[2]), LEGEND, width, 0);
 
-    assert!(!drawn.contains("current"), "{drawn:?}");
+    assert!(drawn.contains(ELLIPSIS), "{drawn:?}");
+}
+
+#[test]
+fn at_the_columns_to_fit_every_refusal_shows_whole() {
+    let workspaces = three_workspaces();
+    let width = columns_to_fit(&workspaces, LEGEND);
+
+    for current in &workspaces {
+        let drawn = render(&refused(&workspaces, current), LEGEND, width, 0);
+
+        assert!(!drawn.contains(ELLIPSIS), "{drawn:?}");
+    }
 }

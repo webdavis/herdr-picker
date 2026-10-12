@@ -1,8 +1,9 @@
 use super::*;
-use crate::screen::fixtures::{LEGEND, browsing, searching, three_workspaces};
+use crate::screen::fixtures::{LEGEND, browsing, refused, searching, three_workspaces};
 
 mod fit;
 mod layout;
+mod refusal;
 mod search;
 mod width;
 

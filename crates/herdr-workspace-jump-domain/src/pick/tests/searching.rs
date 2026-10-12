@@ -40,6 +40,24 @@ fn typing_narrows_the_rows_and_puts_the_bar_back_on_the_first() {
 }
 
 #[test]
+fn a_search_never_offers_the_workspace_the_popup_opened_from() {
+    let workspaces = three_workspaces();
+    let mut menu = Menu::new(
+        &workspaces,
+        Some("homelab"),
+        Contains,
+        ReadlineField::default(),
+    );
+    menu.apply(Command::Search);
+
+    type_text(&mut menu, "o");
+
+    let frame = menu.frame();
+    assert_eq!(shown(&frame), [">dotfiles"]);
+    assert_eq!(frame.total, 2);
+}
+
+#[test]
 fn moving_within_the_search_leaves_the_bar_on_its_row() {
     let workspaces = three_workspaces();
     let mut menu = menu(&workspaces);

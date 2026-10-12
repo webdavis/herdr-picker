@@ -1,4 +1,4 @@
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Row, SearchLine};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, Row, SearchLine};
 
 pub(super) const LEGEND: Legend = Legend {
     search: "/ find",
@@ -13,11 +13,7 @@ pub(super) fn three_workspaces() -> Vec<JumpTarget> {
     ]
 }
 
-pub(super) fn browsing(
-    targets: &[JumpTarget],
-    selected: usize,
-    current: Option<usize>,
-) -> Frame<'_> {
+pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
     Frame {
         search: None,
         rows: targets
@@ -26,15 +22,21 @@ pub(super) fn browsing(
             .map(|(index, target)| Row {
                 target,
                 selected: index == selected,
-                current: Some(index) == current,
             })
             .collect(),
         total: targets.len(),
+        refusal: None,
     }
 }
 
+pub(super) fn refused<'a>(offered: &'a [JumpTarget], current: &'a JumpTarget) -> Frame<'a> {
+    let mut frame = browsing(offered, 0);
+    frame.refusal = Some(Refusal::AlreadyCurrent(current));
+    frame
+}
+
 pub(super) fn searching<'a>(text: &str, cursor: usize, shown: &'a [JumpTarget]) -> Frame<'a> {
-    let mut frame = browsing(shown, 0, None);
+    let mut frame = browsing(shown, 0);
     frame.search = Some(SearchLine {
         text: text.to_string(),
         cursor,

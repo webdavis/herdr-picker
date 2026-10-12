@@ -5,30 +5,10 @@ fn an_unknown_width_pads_nothing_and_cuts_nothing() {
     let workspaces = three_workspaces();
 
     assert_eq!(
-        render(&browsing(&workspaces, 0, None), LEGEND, 0, 0)
+        render(&browsing(&workspaces, 0), LEGEND, 0, 0)
             .lines()
             .nth(2),
         Some("\x1b[48;5;236m \x1b[1;34m  i\x1b[0m\x1b[48;5;236m  Ivy\x1b[0m")
-    );
-}
-
-#[test]
-fn a_current_mark_without_room_for_a_space_before_it_is_left_out() {
-    let workspaces = three_workspaces();
-    let homelab_row = |width| {
-        render(&browsing(&workspaces, 0, Some(1)), LEGEND, width, 0)
-            .lines()
-            .nth(3)
-            .map(str::to_string)
-    };
-
-    assert_eq!(
-        homelab_row(21).as_deref(),
-        Some("\x1b[2m   h  homelab        \x1b[0m")
-    );
-    assert_eq!(
-        homelab_row(22).as_deref(),
-        Some("\x1b[2m   h  homelab current \x1b[0m")
     );
 }
 
@@ -37,7 +17,7 @@ fn a_label_too_long_for_its_row_is_cut_with_an_ellipsis() {
     let workspaces = three_workspaces();
 
     assert_eq!(
-        render(&browsing(&workspaces, 0, None), LEGEND, 10, 0)
+        render(&browsing(&workspaces, 0), LEGEND, 10, 0)
             .lines()
             .nth(3),
         Some(" \x1b[1;34m  h\x1b[0m  hom…")
@@ -47,7 +27,7 @@ fn a_label_too_long_for_its_row_is_cut_with_an_ellipsis() {
 #[test]
 fn the_hint_and_the_legend_are_cut_to_a_narrow_popup() {
     let workspaces = three_workspaces();
-    let drawn = render(&browsing(&workspaces, 0, None), LEGEND, 6, 0);
+    let drawn = render(&browsing(&workspaces, 0), LEGEND, 6, 0);
 
     assert_eq!(drawn.lines().next(), Some("\x1b[2m / fi…\x1b[0m"));
     assert_eq!(drawn.lines().last(), Some("\x1b[2m the …\x1b[0m"));
@@ -58,11 +38,9 @@ fn no_row_of_a_browsing_frame_is_wider_than_a_popup_that_knows_its_width() {
     let workspaces = three_workspaces();
 
     for width in 5..=40 {
-        for current in [None, Some(0), Some(1), Some(2)] {
-            for line in render(&browsing(&workspaces, 2, current), LEGEND, width, 0).lines() {
-                let shown = without_escape_sequences(line).chars().count();
-                assert!(shown <= width, "{shown} columns in {width}: {line:?}");
-            }
+        for line in render(&browsing(&workspaces, 2), LEGEND, width, 0).lines() {
+            let shown = without_escape_sequences(line).chars().count();
+            assert!(shown <= width, "{shown} columns in {width}: {line:?}");
         }
     }
 }
