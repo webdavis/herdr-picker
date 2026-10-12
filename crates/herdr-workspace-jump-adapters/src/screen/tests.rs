@@ -16,7 +16,7 @@ fn showing_clears_the_popup_draws_the_frame_and_going_shows_the_cursor_again() {
         String::from_utf8(written).expect("ANSI is UTF-8"),
         format!(
             "{HIDE_CURSOR_AND_CLEAR}{}{SHOW_CURSOR}",
-            view::render(&frame, 20)
+            view::render(&frame, 20, 0)
         )
     );
 }

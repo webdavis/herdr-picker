@@ -16,18 +16,17 @@ const FIRST_COLUMN: usize = 1;
 const SEARCH_HINT: &str = "/ search";
 const KEYS_LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
 
-pub(super) fn render(frame: &Frame<'_>, width: usize) -> String {
+pub(super) fn render(frame: &Frame<'_>, width: usize, height: usize) -> String {
     let above = [prompt_row(frame, width), String::new()];
     let below = [
         String::new(),
         format!("{FAINT}{MARGIN}{KEYS_LEGEND}{RESET}"),
     ];
-    let searching = frame.search.is_some();
-    let workspaces: Vec<String> = frame
-        .rows
-        .iter()
-        .map(|row| workspace_row(row, searching, width))
-        .collect();
+    let room = height
+        .checked_sub(above.len() + below.len())
+        .unwrap_or(frame.rows.len());
+    let mut workspaces = workspace_rows(frame, room, width);
+    workspaces.resize(room, String::new());
     let mut drawn = [above.as_slice(), &workspaces, &below].concat().join("\n");
     if let Some(search) = &frame.search {
         drawn.push_str(&cursor_in_prompt(search));
@@ -50,6 +49,19 @@ fn prompt_row(frame: &Frame<'_>, width: usize) -> String {
 fn cursor_in_prompt(search: &SearchLine) -> String {
     let column = FIRST_COLUMN + SEARCH_PROMPT.chars().count() + search.text.chars().count();
     format!("\x1b[{PROMPT_ROW};{column}H")
+}
+
+fn workspace_rows(frame: &Frame<'_>, room: usize, width: usize) -> Vec<String> {
+    let selected = frame.rows.iter().position(|row| row.selected).unwrap_or(0);
+    let top = (selected + 1).saturating_sub(room);
+    let searching = frame.search.is_some();
+    frame
+        .rows
+        .iter()
+        .skip(top)
+        .take(room)
+        .map(|row| workspace_row(row, searching, width))
+        .collect()
 }
 
 fn workspace_row(row: &Row<'_>, searching: bool, width: usize) -> String {

@@ -8,6 +8,7 @@ mod view;
 
 const HIDE_CURSOR_AND_CLEAR: &str = "\x1b[?25l\x1b[H\x1b[2J";
 const SHOW_CURSOR: &str = "\x1b[?25h";
+const UNKNOWN_SIZE: (usize, usize) = (0, 0);
 
 pub struct TerminalScreen<W: Write> {
     out: W,
@@ -28,8 +29,8 @@ impl<W: Write> TerminalScreen<W> {
 
 impl<W: Write> Screen for TerminalScreen<W> {
     fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
-        let (width, _) = (self.size)();
-        let drawn = view::render(frame, width);
+        let (width, height) = (self.size)();
+        let drawn = view::render(frame, width, height);
         let prompt_cursor = if frame.search.is_some() {
             SHOW_CURSOR
         } else {
@@ -50,7 +51,7 @@ impl<W: Write> Drop for TerminalScreen<W> {
 fn terminal_size() -> (usize, usize) {
     size()
         .map(|(columns, rows)| (usize::from(columns), usize::from(rows)))
-        .unwrap_or((0, 0))
+        .unwrap_or(UNKNOWN_SIZE)
 }
 
 #[cfg(test)]
