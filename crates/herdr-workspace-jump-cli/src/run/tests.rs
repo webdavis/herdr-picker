@@ -1,5 +1,7 @@
 use super::*;
 
+const NO_CLI_TO_FALL_BACK_TO: &str = "/nonexistent/herdr-binary";
+
 #[test]
 fn run_completes_a_jump_over_the_socket_without_touching_the_cli() {
     let list =
@@ -11,10 +13,9 @@ fn run_completes_a_jump_over_the_socket_without_touching_the_cli() {
     ]);
     let path = &server.path;
 
-    // The CLI binary does not exist, so a fallback would fail the assertion.
     let outcome = run(
         Some(path.to_string_lossy().to_string()),
-        Some("/nonexistent/herdr-binary".to_string()),
+        Some(NO_CLI_TO_FALL_BACK_TO.to_string()),
         "dotfiles",
         "/tmp",
     );
@@ -23,11 +24,9 @@ fn run_completes_a_jump_over_the_socket_without_touching_the_cli() {
 }
 #[test]
 fn run_falls_back_to_the_cli_when_the_socket_path_is_absent() {
-    // Both paths are dead, so the surviving error proves which one answered
-    // last: the CLI failure, carrying the socket failure behind it.
     let failure = run(
         None,
-        Some("/nonexistent/herdr-binary".to_string()),
+        Some(NO_CLI_TO_FALL_BACK_TO.to_string()),
         "dotfiles",
         "/tmp",
     );
@@ -35,17 +34,18 @@ fn run_falls_back_to_the_cli_when_the_socket_path_is_absent() {
         Err(error) => error.to_string(),
         Ok(outcome) => panic!("expected both paths to fail, got {outcome:?}"),
     };
-    assert!(rendered.contains("/nonexistent/herdr-binary"), "{rendered}");
+    assert!(
+        rendered.contains(NO_CLI_TO_FALL_BACK_TO),
+        "the CLI failure, the last one, is the one reported: {rendered}"
+    );
     assert!(
         rendered.contains("HERDR_SOCKET_PATH is unset"),
-        "{rendered}"
+        "the socket failure is carried behind it: {rendered}"
     );
-    // Exactly one prefix per failure, never the wrapper's stacked on top of
-    // the wrapped one's. Two failures are named, so two prefixes.
     assert_eq!(
         rendered.matches("herdr unreachable").count(),
         2,
-        "{rendered}"
+        "one prefix for each of the two failures, none stacked: {rendered}"
     );
 }
 #[test]
@@ -53,7 +53,7 @@ fn run_falls_back_to_the_cli_when_the_socket_cannot_be_opened() {
     let absent = std::path::PathBuf::from("/nonexistent/hwj-run-no-socket");
     let failure = run(
         Some(absent.to_string_lossy().to_string()),
-        Some("/nonexistent/herdr-binary".to_string()),
+        Some(NO_CLI_TO_FALL_BACK_TO.to_string()),
         "dotfiles",
         "/tmp",
     );

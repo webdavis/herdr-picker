@@ -4,11 +4,6 @@ use herdr_workspace_jump_adapters::{CliWorkspaceDirectory, DEADLINE, SocketWorks
 use herdr_workspace_jump_application::{JumpError, jump};
 use herdr_workspace_jump_domain::Jump;
 
-/// Try the socket, then the CLI.
-///
-/// Re-list before retrying the action. If a create's answer was lost but its
-/// workspace is visible in that second list, the retry focuses it. Concurrent
-/// changes are not covered by an exactly-once guarantee.
 pub(crate) fn run(
     socket_path: Option<String>,
     herdr_binary: Option<String>,
