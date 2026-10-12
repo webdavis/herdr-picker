@@ -11,6 +11,7 @@ const MIN_GAP_BEFORE_COUNT: usize = 2;
 const KEY_COLUMN_WIDTH: usize = 3;
 const LABEL_INDENT: &str = "  ";
 const CURRENT_MARKER: &str = "current ";
+const MIN_GAP_BEFORE_MARKER: usize = 1;
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
 const UNKNOWN_WIDTH: usize = 0;
@@ -75,7 +76,7 @@ fn workspace_row(row: &Row<'_>, searching: bool, width: usize) -> String {
     );
     let marked = row.current
         && room(width, before_label + label.chars().count())
-            .is_none_or(|left| left >= CURRENT_MARKER.chars().count());
+            .is_none_or(|left| left >= MIN_GAP_BEFORE_MARKER + CURRENT_MARKER.chars().count());
     let marker = if marked { CURRENT_MARKER } else { "" };
     let rest = match (row.selected, row.current) {
         (false, false) => label,

@@ -13,14 +13,22 @@ fn an_unknown_width_pads_nothing_and_cuts_nothing() {
 }
 
 #[test]
-fn a_current_mark_with_no_room_beside_its_label_is_left_out() {
+fn a_current_mark_without_room_for_a_space_before_it_is_left_out() {
     let workspaces = three_workspaces();
+    let homelab_row = |width| {
+        render(&browsing(&workspaces, 0, Some(1)), LEGEND, width, 0)
+            .lines()
+            .nth(3)
+            .map(str::to_string)
+    };
 
     assert_eq!(
-        render(&browsing(&workspaces, 0, Some(1)), LEGEND, 20, 0)
-            .lines()
-            .nth(3),
-        Some("\x1b[2m   h  homelab       \x1b[0m")
+        homelab_row(21).as_deref(),
+        Some("\x1b[2m   h  homelab        \x1b[0m")
+    );
+    assert_eq!(
+        homelab_row(22).as_deref(),
+        Some("\x1b[2m   h  homelab current \x1b[0m")
     );
 }
 
