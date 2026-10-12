@@ -108,6 +108,19 @@ popup once the popup's command exits, which would undo it, so `pick` spawns a de
 `jump <label> <cwd> --after-pid <pid>` and exits at once. That child waits for the popup to be gone
 before it asks herdr for anything, and gives up waiting after two seconds.
 
+## Developing
+
+`scripts/preview-popup` builds the release binary and opens the pick popup from this checkout in a
+throwaway herdr session, with your own theme, so a change to the popup is seen in a real popup
+before it is pushed and the installed clone rebuilt. Run it from a herdr pane and the popup opens by
+itself; outside herdr it prints the chord. The session's prefix is `ctrl+x`, so it neither collides
+with yours nor takes `ctrl+b` from the search: `ctrl+x ctrl+o` reopens the popup, and typing `exit`
+or `ctrl+x q` leaves and tears the session down, which the shell inside says as it opens. A pick
+inside it jumps within that throwaway session, which exercises the whole flow without touching the
+real one. `HERDR_PLUGIN_CONFIG_DIR` is forwarded when set, and `PREVIEW_WIDTH` and `PREVIEW_HEIGHT`
+size the popup. It writes only under `target/`, jump history included, and herdr's own sessions
+directory.
+
 ## License
 
 MIT

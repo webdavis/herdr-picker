@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[ -t 0 ] || { echo "no terminal to attach to; run it from a shell in a herdr pane" >&2; exit 1; }
+
+cd "$(dirname "$0")/.."
+name=herdr-workspace-jump-preview
+dir=$PWD/target/preview
+bin=$PWD/target/release/herdr-workspace-jump
+width=${PREVIEW_WIDTH:-40}
+height=${PREVIEW_HEIGHT:-16}
+prefix=ctrl+x
+user_shell=${SHELL:-/bin/sh}
+how_to_leave="exit or $prefix q leaves"
+
+without_herdr_env() {
+  env -u HERDR_SOCKET_PATH -u HERDR_CLIENT_SOCKET_PATH -u HERDR_WORKSPACE_ID \
+    -u HERDR_TAB_ID -u HERDR_PANE_ID -u HERDR_SESSION "$@"
+}
+
+write_shell_that_says_how_to_leave() {
+  cat >"$dir/shell" <<EOF
+#!/bin/sh
+case "\${1:-}" in -c) ;; *) echo "preview: $prefix ctrl+o opens the popup; $how_to_leave";; esac
+exec "$user_shell" "\$@"
+EOF
+  chmod +x "$dir/shell"
+}
+
+users_theme() {
+  if [ -f ~/.config/herdr/config.toml ]; then
+    awk '/^\[theme\]/{on=1} /^\[/ && !/^\[theme\]/{on=0} on' ~/.config/herdr/config.toml
+  fi
+}
+
+write_config() {
+  {
+    echo 'onboarding = false'
+    users_theme
+    cat <<EOF
+[terminal]
+default_shell = "$dir/shell"
+
+[experimental]
+allow_nested = true
+
+[keys]
+prefix = "$prefix"
+
+[[keys.command]]
+key = "prefix+ctrl+o"
+type = "popup"
+command = "${HERDR_PLUGIN_CONFIG_DIR:+HERDR_PLUGIN_CONFIG_DIR=$HERDR_PLUGIN_CONFIG_DIR }$bin pick"
+description = "pick a workspace"
+width = $width
+height = $height
+EOF
+  } >"$dir/config.toml"
+  HERDR_CONFIG_PATH=$dir/config.toml herdr config check >/dev/null
+}
+
+teardown() {
+  herdr session stop "$name" >/dev/null 2>&1 || true
+  herdr session delete "$name" >/dev/null 2>&1 || true
+}
+
+preview_panes() {
+  without_herdr_env env HERDR_SESSION=$name herdr pane list 2>/dev/null |
+    grep -o '"pane_id":"[^"]*"' | sort
+}
+
+wait_for_preview() {
+  for _ in $(seq 1 50); do
+    sleep 0.2
+    [ -n "$(preview_panes)" ] && return
+  done
+  return 1
+}
+
+open_popup_from_this_pane() {
+  if [ "${HERDR_ENV:-}" = 1 ] && [ -n "${HERDR_PANE_ID:-}" ]; then
+    sleep 1
+    herdr pane send-keys "$HERDR_PANE_ID" "$prefix" ctrl+o
+  fi
+}
+
+a_pane_closed() {
+  comm -23 <(echo "$1") <(echo "$2") | grep -q .
+}
+
+end_preview_once_a_pane_closes() {
+  local seen=$1 now
+  while sleep 0.5; do
+    now=$(preview_panes)
+    [ -n "$now" ] || break
+    a_pane_closed "$seen" "$now" && break
+    seen=$now
+  done
+  teardown
+}
+
+cargo build --release --quiet
+mkdir -p "$dir"
+write_shell_that_says_how_to_leave
+write_config
+teardown
+trap teardown EXIT
+
+(
+  wait_for_preview || exit
+  seen=$(preview_panes)
+  open_popup_from_this_pane
+  end_preview_once_a_pane_closes "$seen"
+) >"$dir/open.log" 2>&1 &
+[ "${HERDR_ENV:-}" = 1 ] || echo "press $prefix ctrl+o to open the popup; $how_to_leave"
+
+without_herdr_env env HERDR_CONFIG_PATH="$dir/config.toml" XDG_STATE_HOME="$dir/state" \
+  herdr --session "$name" || true
