@@ -86,7 +86,7 @@ search` until `/` is pressed, then what has been typed, with how many workspaces
 right edge. Below a blank row come the workspaces, the key right-aligned beside the label in the
 terminal's bold blue, with the selected row on a dark grey bar, the way fzf marks its current line.
 The workspace the popup opened from is left out, since there is nowhere to jump; its key puts
-`already in` and its name in red on the bottom row until the next key. Otherwise the bottom row is a
+`already in` and its name in red on the row above the legend until the next key. The bottom row is a
 faint legend of the keys that move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and
 the arrow keys move the bar, enter jumps to the row under it, and a list taller than the popup
 scrolls to keep that row in view. While searching, the key column goes blank and what is typed keeps
@@ -129,7 +129,7 @@ It grows wider only when a workspace's row, or the message refusing its key, nee
 and never past the window. Inside it,
 herdr's border takes three columns and two rows, and four rows go to the prompt, the legend and the
 blank rows around the list. A label too long for its row is cut short with an ellipsis, as is a
-message on the bottom row, so the list, the hint and the legend never wrap.
+message above the legend, so the list, the hint and the legend never wrap.
 
 The action runs `herdr-workspace-jump popup`. That asks herdr for the window's size and opens the
 manifest's `pick` pane as a popup at the size worked out from it, telling the pane which workspace
