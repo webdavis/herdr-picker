@@ -9,7 +9,6 @@ struct Options {
     config: Option<PathBuf>,
 }
 
-/// Render the plugin manifest from the declared workspaces.
 pub(crate) fn run(arguments: &[&str]) -> Result<(), CommandError> {
     let options = parse(arguments)?;
     let config = options.config.unwrap_or_else(config_path);
@@ -27,8 +26,7 @@ fn parse(arguments: &[&str]) -> Result<Options, CommandError> {
             "--config" => &mut config,
             _ => return Err(CommandError::Usage),
         };
-        // A flag in a value's place is a missing value, not a directory named `--config`.
-        if slot.is_some() || value.starts_with("--") {
+        if slot.is_some() || is_a_flag(value) {
             return Err(CommandError::Usage);
         }
         *slot = Some(PathBuf::from(value));
@@ -41,6 +39,10 @@ fn parse(arguments: &[&str]) -> Result<Options, CommandError> {
         output: output.ok_or(CommandError::Usage)?,
         config,
     })
+}
+
+fn is_a_flag(word: &str) -> bool {
+    word.starts_with("--")
 }
 
 #[cfg(test)]

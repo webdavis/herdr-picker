@@ -9,13 +9,11 @@ pub(crate) fn run(
     herdr_binary: Option<String>,
     history: &mut impl WorkspaceHistory,
 ) -> Result<Bounce, JumpError> {
-    // A focus event can change history before its reply arrives.
-    // Both transports must retry the target from the original snapshot.
-    let target = history.read();
+    let target_before_any_reply = history.read();
     let over_socket = match socket_path.filter(|path| !path.is_empty()) {
         Some(path) => {
             let mut directory = SocketWorkspaceDirectory::at(Path::new(&path), DEADLINE);
-            bounce(&mut directory, history, &target)
+            bounce(&mut directory, history, &target_before_any_reply)
         }
         None => Err(JumpError::Unreachable("HERDR_SOCKET_PATH is unset".into())),
     };
@@ -24,9 +22,11 @@ pub(crate) fn run(
         Err(failure) => failure,
     };
     let mut directory = CliWorkspaceDirectory::using(herdr_binary);
-    bounce(&mut directory, history, &target).map_err(|cli_failure| JumpError::BothPathsFailed {
-        cli: cli_failure.to_string(),
-        socket: socket_failure.to_string(),
+    bounce(&mut directory, history, &target_before_any_reply).map_err(|cli_failure| {
+        JumpError::BothPathsFailed {
+            cli: cli_failure.to_string(),
+            socket: socket_failure.to_string(),
+        }
     })
 }
 

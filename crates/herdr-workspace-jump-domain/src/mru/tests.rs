@@ -20,10 +20,7 @@ fn next_mru_on_a_cold_start_records_only_the_current() {
 }
 
 #[test]
-fn next_mru_keeps_a_previous_it_has_no_current_to_replace() {
-    // Reachable through a truncated or hand-edited state file, where
-    // `read_at` yields an empty current beside a recorded previous. The
-    // recorded one is still the better toggle target than nothing.
+fn next_mru_keeps_a_previous_that_a_truncated_state_file_left_beside_an_empty_current() {
     assert_eq!(next_mru(&mru("", "wB"), "A"), Some(mru("A", "wB")));
 }
 
@@ -49,7 +46,7 @@ fn decide_bounce_focuses_a_previous_that_still_exists() {
 }
 
 #[test]
-fn decide_bounce_drops_a_previous_that_is_gone() {
+fn decide_bounce_drops_a_previous_that_is_gone_rather_than_focus_an_id_herdr_may_accept() {
     assert_eq!(
         decide_bounce(&mru("wA", "wGone"), &[workspace("wA")]),
         Bounce::DropStale

@@ -77,13 +77,8 @@ impl SocketServer {
                         }
                     }
                     Reply::HangUp => {}
-                    Reply::Silent => {
-                        // The fake's independent bound releases a client whose
-                        // own deadline is removed by a mutation.
-                        let _ = stopped.recv_timeout(FAKE_BOUND);
-                    }
+                    Reply::Silent => stay_silent_until_the_fakes_own_bound(&stopped),
                 }
-                // herdr 0.8.2 closes each ordinary connection after one reply.
             }
         });
         Self {
@@ -101,6 +96,10 @@ impl SocketServer {
             .expect("fake saw request");
         serde_json::from_str(request.trim()).expect("request is JSON")
     }
+}
+
+fn stay_silent_until_the_fakes_own_bound(stopped: &Receiver<()>) {
+    let _ = stopped.recv_timeout(FAKE_BOUND);
 }
 
 impl Drop for SocketServer {

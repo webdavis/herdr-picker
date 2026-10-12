@@ -86,7 +86,6 @@ impl SocketServer {
                         }
                     }
                 }
-                // herdr 0.8.2 closes each ordinary connection after one reply.
             }
         });
         Self {

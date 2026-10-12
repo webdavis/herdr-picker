@@ -2,7 +2,6 @@ use herdr_workspace_jump_domain::{Bounce, Mru, decide_bounce, next_mru};
 
 use crate::{JumpError, WorkspaceDirectory};
 
-// History is best effort: unreadable state is cold, and recording cannot fail a focus event.
 pub trait WorkspaceHistory {
     fn read(&self) -> Mru;
     fn write(&mut self, mru: &Mru);

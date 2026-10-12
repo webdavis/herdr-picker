@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-/// Expand a leading `~`, which herdr's argv-only action commands cannot do.
 pub(crate) fn expand_tilde(raw: &str, home: Option<&str>) -> Result<PathBuf, String> {
     let tail = match raw.strip_prefix('~') {
         None => return Ok(PathBuf::from(raw)),
@@ -40,7 +39,9 @@ mod tests {
             expand_tilde("relative/path", Some("/Users/me")),
             Ok(PathBuf::from("relative/path"))
         );
-        // A tilde anywhere but the front is an ordinary character.
+    }
+    #[test]
+    fn a_tilde_anywhere_but_the_front_is_an_ordinary_character() {
         assert_eq!(
             expand_tilde("/opt/~backup", Some("/Users/me")),
             Ok(PathBuf::from("/opt/~backup"))

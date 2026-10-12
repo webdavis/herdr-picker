@@ -5,18 +5,11 @@ use std::path::{Path, PathBuf};
 
 use herdr_workspace_jump_domain::{JumpTarget, TargetError, WorkspaceDeclaration, jump_targets};
 use serde::Deserialize;
-
-/// The declared workspaces, keyed by the label herdr shows.
-///
-/// A `BTreeMap` orders the manifest and the pick popup by label, so two runs
-/// over the same file render the same bytes.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct WorkspaceDeclarations {
     workspaces: BTreeMap<String, Declaration>,
 }
-
-/// A workspace is its directory, or a table that also names its pick key.
 #[derive(Deserialize)]
 #[serde(
     untagged,
@@ -50,20 +43,21 @@ impl Declaration {
         }
     }
 }
-
-/// Why the declared workspaces could not be read.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConfigError {
-    /// The file could not be opened or read.
-    Unreadable { path: PathBuf, reason: String },
-    /// The file is not the TOML this plugin expects.
+    Unreadable {
+        path: PathBuf,
+        reason: String,
+    },
     Unparseable {
         path: PathBuf,
         reason: String,
         line: Option<usize>,
     },
-    /// The file parsed, but the workspaces it declares cannot become actions.
-    Invalid { path: PathBuf, cause: TargetError },
+    Invalid {
+        path: PathBuf,
+        cause: TargetError,
+    },
 }
 
 impl fmt::Display for ConfigError {
@@ -86,9 +80,6 @@ impl fmt::Display for ConfigError {
         )
     }
 }
-
-/// herdr hands a plugin its own config directory; the documented path is the
-/// fallback for a run from a shell.
 pub fn config_file(
     plugin_config_dir: Option<&str>,
     xdg_config_home: Option<&str>,
@@ -109,8 +100,6 @@ fn base_config_dir(xdg_config_home: Option<&str>, home: Option<&str>) -> PathBuf
         None => PathBuf::from(home.unwrap_or_default()).join(".config"),
     }
 }
-
-/// Read the declared workspaces and turn them into jump targets, ordered by label.
 pub fn read_jump_targets(path: &Path) -> Result<Vec<JumpTarget>, ConfigError> {
     let content = fs::read_to_string(path).map_err(|failure| ConfigError::Unreadable {
         path: path.to_owned(),
@@ -120,7 +109,7 @@ pub fn read_jump_targets(path: &Path) -> Result<Vec<JumpTarget>, ConfigError> {
         toml::from_str(&content).map_err(|failure| ConfigError::Unparseable {
             path: path.to_owned(),
             reason: failure.message().to_string(),
-            line: line_of(&content, &failure),
+            line: one_based_line_of(&content, &failure),
         })?;
     let workspaces = declarations
         .workspaces
@@ -131,9 +120,7 @@ pub fn read_jump_targets(path: &Path) -> Result<Vec<JumpTarget>, ConfigError> {
         cause,
     })
 }
-
-/// The one-based line a parse failure points at, when it carries a span.
-fn line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {
+fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {
     let span = failure.span()?;
     let before = content.get(..span.start)?;
     Some(before.matches('\n').count() + 1)
