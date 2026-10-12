@@ -13,11 +13,7 @@ pub(super) fn three_workspaces() -> Vec<JumpTarget> {
     ]
 }
 
-pub(super) fn browsing(
-    targets: &[JumpTarget],
-    selected: usize,
-    current: Option<usize>,
-) -> Frame<'_> {
+pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
     Frame {
         search: None,
         rows: targets
@@ -26,7 +22,6 @@ pub(super) fn browsing(
             .map(|(index, target)| Row {
                 target,
                 selected: index == selected,
-                current: Some(index) == current,
             })
             .collect(),
         total: targets.len(),
@@ -34,7 +29,7 @@ pub(super) fn browsing(
 }
 
 pub(super) fn searching<'a>(text: &str, cursor: usize, shown: &'a [JumpTarget]) -> Frame<'a> {
-    let mut frame = browsing(shown, 0, None);
+    let mut frame = browsing(shown, 0);
     frame.search = Some(SearchLine {
         text: text.to_string(),
         cursor,

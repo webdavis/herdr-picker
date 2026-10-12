@@ -53,7 +53,6 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             .map(|(row, target)| Row {
                 target,
                 selected: row == self.selected_row,
-                current: self.current == Some(target),
             })
             .collect();
         Frame {
@@ -62,7 +61,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
                 cursor: self.field.cursor(),
             }),
             rows,
-            total: self.targets.len(),
+            total: self.offered().count(),
         }
     }
 
@@ -115,9 +114,18 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         if self.searching {
             self.matcher
                 .rank(&self.field.text(), self.targets, |target| &target.label)
+                .into_iter()
+                .filter(|target| Some(*target) != self.current)
+                .collect()
         } else {
-            self.targets.iter().collect()
+            self.offered().collect()
         }
+    }
+
+    fn offered(&self) -> impl Iterator<Item = &'a JumpTarget> {
+        self.targets
+            .iter()
+            .filter(move |target| Some(*target) != self.current)
     }
 
     fn edit(&mut self, edit: Edit) -> Pick<'a> {

@@ -24,7 +24,7 @@ fn the_picker_opens_wide_enough_for_the_longest_workspace_and_knows_where_it_cam
         Some("w6".to_string()),
         &[
             workspace("Ivy", 'i'),
-            workspace("essential-feed-case-study", 'e'),
+            workspace("essential-feed-case-study-and-its-write-up", 'e'),
         ],
     );
 
@@ -32,7 +32,7 @@ fn the_picker_opens_wide_enough_for_the_longest_workspace_and_knows_where_it_cam
     assert_eq!(server.seen()["method"], "pane.layout");
     let open = server.seen();
     assert_eq!(open["params"]["plugin_id"], "herdr-workspace-jump");
-    assert_eq!(open["params"]["width"], json!(43));
+    assert_eq!(open["params"]["width"], json!(51));
     assert_eq!(open["params"]["height"], json!(17));
     assert_eq!(open["params"]["env"]["HERDR_ACTIVE_WORKSPACE_ID"], "w6");
 }

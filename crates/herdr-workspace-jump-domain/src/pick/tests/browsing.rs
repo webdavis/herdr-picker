@@ -13,7 +13,7 @@ fn a_new_menu_browses_every_workspace_in_order_with_the_bar_on_the_first() {
 }
 
 #[test]
-fn the_workspace_the_popup_opened_from_is_marked_current_and_an_unknown_one_marks_nothing() {
+fn the_workspace_the_popup_opened_from_is_left_out_and_an_unknown_one_leaves_the_list_whole() {
     let workspaces = three_workspaces();
 
     let opened = Menu::new(
@@ -22,7 +22,8 @@ fn the_workspace_the_popup_opened_from_is_marked_current_and_an_unknown_one_mark
         Contains,
         ReadlineField::default(),
     );
-    assert_eq!(shown(&opened.frame()), [">Ivy", "homelab*", "dotfiles"]);
+    assert_eq!(shown(&opened.frame()), [">Ivy", "dotfiles"]);
+    assert_eq!(opened.frame().total, 2);
 
     let unknown = Menu::new(
         &workspaces,
@@ -31,6 +32,7 @@ fn the_workspace_the_popup_opened_from_is_marked_current_and_an_unknown_one_mark
         ReadlineField::default(),
     );
     assert_eq!(shown(&unknown.frame()), [">Ivy", "homelab", "dotfiles"]);
+    assert_eq!(unknown.frame().total, 3);
 }
 
 #[test]

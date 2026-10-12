@@ -76,8 +76,7 @@ fn shown(frame: &Frame<'_>) -> Vec<String> {
         .iter()
         .map(|row| {
             let bar = if row.selected { ">" } else { "" };
-            let current = if row.current { "*" } else { "" };
-            format!("{bar}{}{current}", row.target.label)
+            format!("{bar}{}", row.target.label)
         })
         .collect()
 }
