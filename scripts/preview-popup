@@ -4,18 +4,20 @@ set -euo pipefail
 [ -t 0 ] || { echo "no terminal to attach to; run it from a shell in a herdr pane" >&2; exit 1; }
 
 cd "$(dirname "$0")/.."
-name=herdr-workspace-jump-preview
-dir=$PWD/target/preview
-bin=$PWD/target/release/herdr-workspace-jump
-width=${PREVIEW_WIDTH:-40}
-height=${PREVIEW_HEIGHT:-16}
+checkout=$PWD
+dir=$checkout/target/preview
+registry=$dir/xdg
+bin=$checkout/target/release/herdr-workspace-jump
 prefix=ctrl+x
 user_shell=${SHELL:-/bin/sh}
 how_to_leave="exit or $prefix q leaves"
+users_workspaces=${HERDR_PLUGIN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/config/herdr-workspace-jump}/config.toml
+preview_workspaces=$registry/herdr/plugins/config/herdr-workspace-jump/config.toml
 
-without_herdr_env() {
+in_preview() {
   env -u HERDR_SOCKET_PATH -u HERDR_CLIENT_SOCKET_PATH -u HERDR_WORKSPACE_ID \
-    -u HERDR_TAB_ID -u HERDR_PANE_ID -u HERDR_SESSION "$@"
+    -u HERDR_TAB_ID -u HERDR_PANE_ID -u HERDR_SESSION -u HERDR_PLUGIN_CONFIG_DIR \
+    XDG_CONFIG_HOME="$registry" XDG_STATE_HOME="$dir/state" "$@"
 }
 
 write_shell_that_says_how_to_leave() {
@@ -25,6 +27,14 @@ case "\${1:-}" in -c) ;; *) echo "preview: $prefix ctrl+o opens the popup; $how_
 exec "$user_shell" "\$@"
 EOF
   chmod +x "$dir/shell"
+}
+
+link_this_checkout() {
+  [ -f "$users_workspaces" ] || { echo "no workspaces declared at $users_workspaces" >&2; exit 1; }
+  mkdir -p "$(dirname "$preview_workspaces")"
+  cp "$users_workspaces" "$preview_workspaces"
+  "$bin" generate --output "$checkout" --config "$preview_workspaces"
+  in_preview herdr plugin link "$checkout" >/dev/null
 }
 
 users_theme() {
@@ -49,24 +59,21 @@ prefix = "$prefix"
 
 [[keys.command]]
 key = "prefix+ctrl+o"
-type = "popup"
-command = "${HERDR_PLUGIN_CONFIG_DIR:+HERDR_PLUGIN_CONFIG_DIR=$HERDR_PLUGIN_CONFIG_DIR }$bin pick"
+type = "plugin_action"
+command = "herdr-workspace-jump.pick"
 description = "pick a workspace"
-width = $width
-height = $height
 EOF
   } >"$dir/config.toml"
-  HERDR_CONFIG_PATH=$dir/config.toml herdr config check >/dev/null
+  in_preview env HERDR_CONFIG_PATH="$dir/config.toml" herdr config check >/dev/null
 }
 
 teardown() {
-  herdr session stop "$name" >/dev/null 2>&1 || true
-  herdr session delete "$name" >/dev/null 2>&1 || true
+  in_preview herdr session stop default >/dev/null 2>&1 || true
+  in_preview herdr session delete default >/dev/null 2>&1 || true
 }
 
 preview_panes() {
-  without_herdr_env env HERDR_SESSION=$name herdr pane list 2>/dev/null |
-    grep -o '"pane_id":"[^"]*"' | sort
+  in_preview herdr pane list 2>/dev/null | grep -o '"pane_id":"[^"]*"' | sort
 }
 
 wait_for_preview() {
@@ -100,10 +107,12 @@ end_preview_once_a_pane_closes() {
 }
 
 cargo build --release --quiet
+teardown
+rm -rf "$registry"
 mkdir -p "$dir"
 write_shell_that_says_how_to_leave
+link_this_checkout
 write_config
-teardown
 trap teardown EXIT
 
 (
@@ -114,5 +123,4 @@ trap teardown EXIT
 ) >"$dir/open.log" 2>&1 &
 [ "${HERDR_ENV:-}" = 1 ] || echo "press $prefix ctrl+o to open the popup; $how_to_leave"
 
-without_herdr_env env HERDR_CONFIG_PATH="$dir/config.toml" XDG_STATE_HOME="$dir/state" \
-  herdr --session "$name" || true
+in_preview env HERDR_CONFIG_PATH="$dir/config.toml" herdr || true
