@@ -9,12 +9,9 @@ use herdr_workspace_jump_protocol::render_manifest;
 
 const MANIFEST_NAME: &str = "herdr-plugin.toml";
 
-/// Why the plugin manifest could not be put in place.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ManifestError {
-    /// The declared workspaces could not be encoded as TOML.
     Unrenderable(String),
-    /// The manifest could not be written where it was asked for.
     Unwritable { path: PathBuf, reason: String },
 }
 
@@ -31,7 +28,6 @@ impl fmt::Display for ManifestError {
     }
 }
 
-/// Write the manifest into the plugin directory, replacing any manifest already there.
 pub fn write_manifest(
     directory: &Path,
     version: &str,

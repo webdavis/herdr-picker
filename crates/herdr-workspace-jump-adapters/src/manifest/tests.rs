@@ -77,9 +77,7 @@ fn write_manifest_reports_a_directory_it_cannot_write() {
 }
 
 #[test]
-fn write_manifest_removes_its_temporary_file_when_the_rename_fails() {
-    // A directory standing in the manifest's place fails the rename after the
-    // temporary file has been written, which is the path that leaks one.
+fn write_manifest_removes_its_temporary_file_when_a_directory_in_its_place_fails_the_rename() {
     let sandbox = TempDirectory::new("failed-rename");
     fs::create_dir_all(sandbox.manifest()).expect("a blocking directory");
 

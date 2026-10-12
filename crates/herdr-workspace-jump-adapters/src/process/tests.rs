@@ -3,13 +3,9 @@ use std::thread;
 
 use super::*;
 
-/// How long a test waits for the wait itself, which is longer than any cap a
-/// test passes and short enough to fail rather than hang the run.
-const BOUND: Duration = Duration::from_secs(5);
+const LONGER_THAN_ANY_CAP: Duration = Duration::from_secs(5);
 
-/// Run the wait off the test thread, so one that never gives up fails here
-/// instead of parking the suite until an external timeout kills it.
-fn elapsed_waiting(pid: u32, cap: Duration) -> Duration {
+fn elapsed_waiting_off_the_test_thread(pid: u32, cap: Duration) -> Duration {
     let (finished, waited) = mpsc::channel();
     thread::spawn(move || {
         let started = Instant::now();
@@ -17,11 +13,10 @@ fn elapsed_waiting(pid: u32, cap: Duration) -> Duration {
         let _ = finished.send(started.elapsed());
     });
     waited
-        .recv_timeout(BOUND)
+        .recv_timeout(LONGER_THAN_ANY_CAP)
         .expect("the wait never returned, so its cap is gone")
 }
 
-/// A pid that has run and been reaped, so nothing holds it.
 fn a_pid_that_is_gone() -> u32 {
     let mut finished = Command::new("true").spawn().expect("a child that exits");
     let pid = finished.id();
@@ -49,7 +44,7 @@ impl Drop for TempDirectory {
 
 #[test]
 fn the_wait_ends_at_once_for_a_process_that_is_already_gone() {
-    let elapsed = elapsed_waiting(a_pid_that_is_gone(), Duration::from_secs(2));
+    let elapsed = elapsed_waiting_off_the_test_thread(a_pid_that_is_gone(), Duration::from_secs(2));
 
     assert!(
         elapsed < Duration::from_secs(1),
@@ -61,10 +56,13 @@ fn the_wait_ends_at_once_for_a_process_that_is_already_gone() {
 fn the_wait_gives_up_at_the_cap_for_a_process_that_stays() {
     let cap = Duration::from_millis(50);
 
-    let elapsed = elapsed_waiting(std::process::id(), cap);
+    let elapsed = elapsed_waiting_off_the_test_thread(std::process::id(), cap);
 
     assert!(elapsed >= cap, "it returned before the cap: {elapsed:?}");
-    assert!(elapsed < BOUND, "it overran its cap: {elapsed:?}");
+    assert!(
+        elapsed < LONGER_THAN_ANY_CAP,
+        "it overran its cap: {elapsed:?}"
+    );
 }
 
 #[test]
@@ -103,14 +101,13 @@ fn a_program_that_cannot_be_started_is_reported() {
 #[test]
 fn what_a_detached_child_writes_to_stderr_is_appended_to_the_log() {
     let sandbox = TempDirectory::new("errors");
-    // The directory the log names does not exist yet, the way a first run finds it.
-    let log = sandbox.0.join("state").join("jump.log");
+    let log_in_a_directory_no_run_has_made = sandbox.0.join("state").join("jump.log");
 
     for refusal in ["could not jump to Ivy: herdr unreachable", "and again"] {
         spawn_detached(
             Path::new("/bin/sh"),
             &["-c", &format!("echo '{refusal}' >&2")],
-            Some(&log),
+            Some(&log_in_a_directory_no_run_has_made),
         )
         .expect("the child starts");
     }
@@ -119,7 +116,7 @@ fn what_a_detached_child_writes_to_stderr_is_appended_to_the_log() {
     let mut written = String::new();
     while Instant::now() < deadline && written.lines().count() < 2 {
         sleep(POLL_INTERVAL);
-        written = std::fs::read_to_string(&log).unwrap_or_default();
+        written = std::fs::read_to_string(&log_in_a_directory_no_run_has_made).unwrap_or_default();
     }
     assert!(
         written.contains("could not jump to Ivy: herdr unreachable"),
