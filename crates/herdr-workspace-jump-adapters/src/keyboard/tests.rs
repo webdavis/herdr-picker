@@ -21,7 +21,7 @@ fn a_plain_or_shifted_character_press_is_that_character() {
 }
 
 #[test]
-fn ctrl_characters_are_reported_with_the_modifier_and_alt_ones_are_other() {
+fn ctrl_and_alt_characters_are_reported_with_their_modifier() {
     assert_eq!(
         press(KeyCode::Char('u'), KeyModifiers::CONTROL),
         Some(PickKey::Control('u'))
@@ -35,14 +35,15 @@ fn ctrl_characters_are_reported_with_the_modifier_and_alt_ones_are_other() {
     );
     assert_eq!(
         press(KeyCode::Char('b'), KeyModifiers::ALT),
-        Some(PickKey::Other)
+        Some(PickKey::Alt('b'))
     );
     assert_eq!(
         press(
             KeyCode::Char('h'),
             KeyModifiers::CONTROL | KeyModifiers::ALT
         ),
-        Some(PickKey::Other)
+        Some(PickKey::Other),
+        "ctrl+alt chords are left to herdr"
     );
 }
 
@@ -52,11 +53,28 @@ fn the_named_keys_are_reported_by_name() {
         (KeyCode::Esc, PickKey::Escape),
         (KeyCode::Enter, PickKey::Enter),
         (KeyCode::Backspace, PickKey::Backspace),
+        (KeyCode::Delete, PickKey::Delete),
         (KeyCode::Up, PickKey::Up),
         (KeyCode::Down, PickKey::Down),
+        (KeyCode::Left, PickKey::Left),
+        (KeyCode::Right, PickKey::Right),
+        (KeyCode::Home, PickKey::Home),
+        (KeyCode::End, PickKey::End),
     ] {
         assert_eq!(press(code, KeyModifiers::NONE), Some(key), "{code:?}");
     }
+}
+
+#[test]
+fn backspace_with_ctrl_or_alt_is_the_word_backspace() {
+    assert_eq!(
+        press(KeyCode::Backspace, KeyModifiers::ALT),
+        Some(PickKey::WordBackspace)
+    );
+    assert_eq!(
+        press(KeyCode::Backspace, KeyModifiers::CONTROL),
+        Some(PickKey::WordBackspace)
+    );
 }
 
 #[test]

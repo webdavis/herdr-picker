@@ -47,7 +47,7 @@ fn prompt_row(frame: &Frame<'_>, width: usize) -> String {
 }
 
 fn cursor_in_prompt(search: &SearchLine) -> String {
-    let column = FIRST_COLUMN + SEARCH_PROMPT.chars().count() + search.text.chars().count();
+    let column = FIRST_COLUMN + SEARCH_PROMPT.chars().count() + search.cursor;
     format!("\x1b[{PROMPT_ROW};{column}H")
 }
 

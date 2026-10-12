@@ -10,7 +10,7 @@ fn search_starts_an_empty_search_over_every_workspace_with_the_bar_on_the_first(
 
     let frame = menu.frame();
     assert_eq!(menu.mode(), Mode::Searching);
-    assert_eq!(search(&frame), Some(String::new()));
+    assert_eq!(search(&frame), Some((String::new(), 0)));
     assert_eq!(shown(&frame), [">Ivy", "homelab", "dotfiles"]);
 }
 
@@ -35,8 +35,23 @@ fn typing_narrows_the_rows_and_puts_the_bar_back_on_the_first() {
 
     let frame = menu.frame();
     assert_eq!(shown(&frame), [">homelab", "dotfiles"]);
-    assert_eq!(search(&frame), Some("o".to_string()));
+    assert_eq!(search(&frame), Some(("o".to_string(), 1)));
     assert_eq!(frame.total, 3);
+}
+
+#[test]
+fn moving_within_the_search_leaves_the_bar_on_its_row() {
+    let workspaces = three_workspaces();
+    let mut menu = menu(&workspaces);
+    menu.apply(Command::Search);
+    type_text(&mut menu, "o");
+    menu.apply(Command::Next);
+
+    assert_eq!(menu.apply(Command::Edit(Edit::Start)), Pick::Pending);
+
+    let frame = menu.frame();
+    assert_eq!(shown(&frame), ["homelab", ">dotfiles"]);
+    assert_eq!(search(&frame), Some(("o".to_string(), 0)));
 }
 
 #[test]
@@ -59,20 +74,28 @@ fn searching_an_unbound_key_is_ignored() {
 
     assert_eq!(menu.apply(Command::Unbound), Pick::Pending);
     assert_eq!(menu.mode(), Mode::Searching);
-    assert_eq!(search(&menu.frame()), Some("ho".to_string()));
+    assert_eq!(search(&menu.frame()), Some(("ho".to_string(), 2)));
 }
 
 #[test]
-fn erase_deletes_the_last_letter_and_ends_the_search_once_it_is_empty() {
+fn erase_deletes_behind_the_cursor_and_ends_the_search_once_it_is_empty() {
     let workspaces = three_workspaces();
     let mut menu = menu(&workspaces);
     menu.apply(Command::Search);
     type_text(&mut menu, "ho");
 
+    menu.apply(Command::Edit(Edit::Start));
     assert_eq!(menu.apply(Command::Erase), Pick::Pending);
-    assert_eq!(search(&menu.frame()), Some("h".to_string()));
+    assert_eq!(
+        menu.mode(),
+        Mode::Searching,
+        "text after the cursor keeps the search"
+    );
+
+    menu.apply(Command::Edit(Edit::End));
     menu.apply(Command::Erase);
-    assert_eq!(search(&menu.frame()), Some(String::new()));
+    menu.apply(Command::Erase);
+    assert_eq!(search(&menu.frame()), Some((String::new(), 0)));
 
     assert_eq!(menu.apply(Command::Erase), Pick::Pending);
     assert_eq!(menu.mode(), Mode::Browsing);

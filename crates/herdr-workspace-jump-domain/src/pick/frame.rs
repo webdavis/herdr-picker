@@ -10,6 +10,7 @@ pub struct Frame<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SearchLine {
     pub text: String,
+    pub cursor: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

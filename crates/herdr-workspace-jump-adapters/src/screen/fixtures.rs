@@ -37,10 +37,11 @@ pub(super) fn browsing(
     }
 }
 
-pub(super) fn searching<'a>(text: &str, shown: &'a [JumpTarget]) -> Frame<'a> {
+pub(super) fn searching<'a>(text: &str, cursor: usize, shown: &'a [JumpTarget]) -> Frame<'a> {
     let mut frame = browsing(shown, 0, None);
     frame.search = Some(SearchLine {
         text: text.to_string(),
+        cursor,
     });
     frame.total = three_workspaces().len();
     frame

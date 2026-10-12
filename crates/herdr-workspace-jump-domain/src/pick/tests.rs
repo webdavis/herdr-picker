@@ -59,8 +59,11 @@ fn shown(frame: &Frame<'_>) -> Vec<String> {
         .collect()
 }
 
-fn search(frame: &Frame<'_>) -> Option<String> {
-    frame.search.as_ref().map(|search| search.text.clone())
+fn search(frame: &Frame<'_>) -> Option<(String, usize)> {
+    frame
+        .search
+        .as_ref()
+        .map(|search| (search.text.clone(), search.cursor))
 }
 
 fn type_text(menu: &mut Menu<'_, impl Matcher>, text: &str) {

@@ -58,6 +58,24 @@ fn a_search_is_answered_frame_by_frame_and_enter_picks_the_best_match() {
 }
 
 #[test]
+fn readline_keys_edit_the_search_between_frames() {
+    let targets = workspaces();
+    let mut screen = Notes::default();
+    let mut keys = typed("/net");
+    keys.extend([PickKey::Control('u')]);
+    keys.extend(typed("fit"));
+    keys.push(PickKey::Enter);
+
+    let picked = pick(menu(&targets), &mut Keys::typing(&keys), &mut screen);
+
+    assert_eq!(picked, Ok(Some(&targets[4])));
+    assert_eq!(
+        screen.frames[5], "/ >netpulse plantpulse essential dotfiles fitness",
+        "ctrl+u left only the slash"
+    );
+}
+
+#[test]
 fn escape_closes_with_nothing_picked() {
     let targets = workspaces();
     let mut screen = Notes::default();

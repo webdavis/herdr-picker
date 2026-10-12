@@ -5,7 +5,7 @@ pub use command::{Command, Mode, Pick};
 pub use frame::{Frame, Row, SearchLine};
 
 use crate::JumpTarget;
-use crate::field::Edit;
+use crate::field::{Edit, ReadlineField};
 use crate::fuzzy::Matcher;
 
 #[derive(Debug, Clone)]
@@ -14,7 +14,7 @@ pub struct Menu<'a, M> {
     current: Option<&'a JumpTarget>,
     selected_row: usize,
     matcher: M,
-    query: String,
+    field: ReadlineField,
     searching: bool,
 }
 
@@ -27,7 +27,7 @@ impl<'a, M: Matcher> Menu<'a, M> {
                 .find(|target| Some(target.label.as_str()) == current_label),
             selected_row: 0,
             matcher,
-            query: String::new(),
+            field: ReadlineField::default(),
             searching: false,
         }
     }
@@ -53,7 +53,8 @@ impl<'a, M: Matcher> Menu<'a, M> {
             .collect();
         Frame {
             search: self.searching.then(|| SearchLine {
-                text: self.query.clone(),
+                text: self.field.text(),
+                cursor: self.field.cursor(),
             }),
             rows,
             total: self.targets.len(),
@@ -95,16 +96,12 @@ impl<'a, M: Matcher> Menu<'a, M> {
                 Pick::Unbound
             }
             Command::Unbound => Pick::Pending,
-            Command::Erase if self.query.is_empty() => {
+            Command::Erase if self.field.is_empty() => {
                 self.searching = false;
                 self.selected_row = 0;
                 Pick::Pending
             }
-            Command::Erase => {
-                self.query.pop();
-                self.selected_row = 0;
-                Pick::Pending
-            }
+            Command::Erase => self.edit(Edit::DeleteBackward),
             Command::Edit(edit) => self.edit(edit),
         }
     }
@@ -112,16 +109,18 @@ impl<'a, M: Matcher> Menu<'a, M> {
     fn shown(&self) -> Vec<&'a JumpTarget> {
         if self.searching {
             self.matcher
-                .rank(&self.query, self.targets, |target| &target.label)
+                .rank(&self.field.text(), self.targets, |target| &target.label)
         } else {
             self.targets.iter().collect()
         }
     }
 
     fn edit(&mut self, edit: Edit) -> Pick<'a> {
-        let Edit::Insert(character) = edit;
-        self.query.push(character);
-        self.selected_row = 0;
+        let before = self.field.text();
+        self.field.apply(edit);
+        if self.field.text() != before {
+            self.selected_row = 0;
+        }
         Pick::Pending
     }
 }

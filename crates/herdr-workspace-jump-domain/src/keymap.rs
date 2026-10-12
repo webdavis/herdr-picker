@@ -7,19 +7,29 @@ pub(crate) const SEARCH_CHARACTER: char = '/';
 pub enum PickKey {
     Character(char),
     Control(char),
+    Alt(char),
     Escape,
     Enter,
     Backspace,
+    WordBackspace,
+    Delete,
     Up,
     Down,
+    Left,
+    Right,
+    Home,
+    End,
     Other,
 }
 
 pub fn command(key: PickKey, mode: Mode) -> Command {
-    use PickKey::{Backspace, Character, Control, Down, Enter, Escape, Up};
+    use PickKey::{
+        Alt, Backspace, Character, Control, Delete, Down, End, Enter, Escape, Home, Left, Right,
+        Up, WordBackspace,
+    };
     let searching = mode == Mode::Searching;
     match key {
-        Escape | Control('c') => Command::Cancel,
+        Escape | Control('c' | 'g') => Command::Cancel,
         Enter => Command::Accept,
         Down | Control('n') => Command::Next,
         Up | Control('p') => Command::Previous,
@@ -27,7 +37,19 @@ pub fn command(key: PickKey, mode: Mode) -> Command {
         Character(character) if !searching => Command::Key(character),
         _ if !searching => Command::Unbound,
         Character(character) => Command::Edit(Edit::Insert(character)),
-        Backspace => Command::Erase,
+        Backspace | Control('h') => Command::Erase,
+        Delete | Control('d') => Command::Edit(Edit::DeleteForward),
+        Left | Control('b') => Command::Edit(Edit::Backward),
+        Right | Control('f') => Command::Edit(Edit::Forward),
+        Home | Control('a') => Command::Edit(Edit::Start),
+        End | Control('e') => Command::Edit(Edit::End),
+        Alt('b') => Command::Edit(Edit::WordBackward),
+        Alt('f') => Command::Edit(Edit::WordForward),
+        Control('u') => Command::Edit(Edit::CutToStart),
+        Control('k') => Command::Edit(Edit::CutToEnd),
+        Control('w') | WordBackspace => Command::Edit(Edit::CutWordBackward),
+        Alt('d') => Command::Edit(Edit::CutWordForward),
+        Control('y') => Command::Edit(Edit::Paste),
         _ => Command::Unbound,
     }
 }

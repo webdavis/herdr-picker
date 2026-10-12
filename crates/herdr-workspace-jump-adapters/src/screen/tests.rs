@@ -24,7 +24,7 @@ fn showing_clears_the_popup_draws_the_frame_and_going_shows_the_cursor_again() {
 #[test]
 fn a_search_shows_the_cursor_in_its_prompt() {
     let workspaces = three_workspaces();
-    let frame = searching("ho", &workspaces[1..2]);
+    let frame = searching("ho", 2, &workspaces[1..2]);
     let mut written = Vec::new();
 
     {
