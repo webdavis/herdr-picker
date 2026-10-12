@@ -72,10 +72,10 @@ fn escape_q_and_an_interrupt_all_cancel() {
 }
 
 #[test]
-fn an_unbound_character_and_an_unreadable_key_do_nothing() {
+fn an_unbound_character_an_unreadable_key_and_backspace_are_unbound() {
     let workspaces = three_workspaces();
 
-    for unbound in [PickKey::Character('z'), PickKey::Other] {
+    for unbound in [PickKey::Character('z'), PickKey::Other, PickKey::Backspace] {
         assert_eq!(menu(&workspaces).decide(unbound), Pick::Unbound);
     }
 }

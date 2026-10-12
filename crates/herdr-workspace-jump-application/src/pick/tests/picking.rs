@@ -37,6 +37,27 @@ fn the_bar_moves_frame_by_frame_and_enter_picks_the_row_under_it() {
 }
 
 #[test]
+fn a_search_is_answered_frame_by_frame_and_enter_picks_the_first_match() {
+    let targets = workspaces();
+    let mut screen = Notes::default();
+    let mut keys = typed("/es");
+    keys.push(PickKey::Enter);
+
+    let picked = pick(menu(&targets), &mut Keys::typing(&keys), &mut screen);
+
+    assert_eq!(picked, Ok(Some(&targets[0])));
+    assert_eq!(
+        screen.frames,
+        [
+            ">netpulse plantpulse essential dotfiles fitness",
+            "/ >netpulse plantpulse essential dotfiles fitness",
+            "/e >netpulse plantpulse essential dotfiles fitness",
+            "/es >netpulse essential dotfiles fitness",
+        ]
+    );
+}
+
+#[test]
 fn escape_closes_with_nothing_picked() {
     let targets = workspaces();
     let mut screen = Notes::default();

@@ -51,6 +51,14 @@ fn ctrl_n_ctrl_p_the_arrows_and_enter_drive_the_bar() {
 }
 
 #[test]
+fn backspace_is_reported_as_backspace() {
+    assert_eq!(
+        press(KeyCode::Backspace, KeyModifiers::NONE),
+        Some(PickKey::Backspace)
+    );
+}
+
+#[test]
 fn a_modified_character_or_a_press_carrying_none_has_no_character() {
     for keyless in [
         (KeyCode::Char('d'), KeyModifiers::CONTROL),

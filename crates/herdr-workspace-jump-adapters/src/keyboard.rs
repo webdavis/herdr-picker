@@ -59,6 +59,7 @@ fn keystroke_of(event: Event) -> Option<PickKey> {
     Some(match key.code {
         KeyCode::Esc => PickKey::Escape,
         KeyCode::Enter => PickKey::Enter,
+        KeyCode::Backspace => PickKey::Backspace,
         KeyCode::Down => PickKey::Next,
         KeyCode::Up => PickKey::Previous,
         KeyCode::Char('c') if control => PickKey::Interrupt,

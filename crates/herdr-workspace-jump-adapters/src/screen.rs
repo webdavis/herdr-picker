@@ -30,7 +30,12 @@ impl<W: Write> Screen for TerminalScreen<W> {
     fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
         let (width, _) = (self.size)();
         let drawn = view::render(frame, width);
-        write!(self.out, "{HIDE_CURSOR_AND_CLEAR}{drawn}")?;
+        let prompt_cursor = if frame.search.is_some() {
+            SHOW_CURSOR
+        } else {
+            ""
+        };
+        write!(self.out, "{HIDE_CURSOR_AND_CLEAR}{drawn}{prompt_cursor}")?;
         self.out.flush()
     }
 }

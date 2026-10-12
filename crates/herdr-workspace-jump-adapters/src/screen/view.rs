@@ -1,4 +1,4 @@
-use herdr_workspace_jump_domain::{Frame, Row};
+use herdr_workspace_jump_domain::{Frame, Row, SearchLine};
 
 const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
@@ -6,24 +6,59 @@ const GREY_BAR: &str = "\x1b[48;5;236m";
 const RESET: &str = "\x1b[0m";
 
 const MARGIN: &str = " ";
+const SEARCH_PROMPT: &str = " /";
+const MIN_GAP_BEFORE_COUNT: usize = 2;
 const KEY_COLUMN_WIDTH: usize = 3;
 const LABEL_INDENT: &str = "  ";
 const CURRENT_MARKER: &str = "current ";
+const PROMPT_ROW: usize = 1;
+const FIRST_COLUMN: usize = 1;
+const SEARCH_HINT: &str = "/ search";
 const KEYS_LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
 
 pub(super) fn render(frame: &Frame<'_>, width: usize) -> String {
-    let mut lines: Vec<String> = frame
+    let above = [prompt_row(frame, width), String::new()];
+    let below = [
+        String::new(),
+        format!("{FAINT}{MARGIN}{KEYS_LEGEND}{RESET}"),
+    ];
+    let searching = frame.search.is_some();
+    let workspaces: Vec<String> = frame
         .rows
         .iter()
-        .map(|row| workspace_row(row, width))
+        .map(|row| workspace_row(row, searching, width))
         .collect();
-    lines.push(String::new());
-    lines.push(format!("{FAINT}{MARGIN}{KEYS_LEGEND}{RESET}"));
-    lines.join("\n")
+    let mut drawn = [above.as_slice(), &workspaces, &below].concat().join("\n");
+    if let Some(search) = &frame.search {
+        drawn.push_str(&cursor_in_prompt(search));
+    }
+    drawn
 }
 
-fn workspace_row(row: &Row<'_>, width: usize) -> String {
-    let key = format!("{:>KEY_COLUMN_WIDTH$}", row.target.pick_key);
+fn prompt_row(frame: &Frame<'_>, width: usize) -> String {
+    let Some(search) = &frame.search else {
+        return format!("{FAINT}{MARGIN}{SEARCH_HINT}{RESET}");
+    };
+    let typed = format!("{SEARCH_PROMPT}{}", search.text);
+    let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);
+    let gap = width
+        .saturating_sub(typed.chars().count() + count.chars().count())
+        .max(MIN_GAP_BEFORE_COUNT);
+    format!("{typed}{:gap$}{FAINT}{count}{RESET}", "")
+}
+
+fn cursor_in_prompt(search: &SearchLine) -> String {
+    let column = FIRST_COLUMN + SEARCH_PROMPT.chars().count() + search.text.chars().count();
+    format!("\x1b[{PROMPT_ROW};{column}H")
+}
+
+fn workspace_row(row: &Row<'_>, searching: bool, width: usize) -> String {
+    let key = if searching {
+        String::new()
+    } else {
+        row.target.pick_key.to_string()
+    };
+    let key = format!("{key:>KEY_COLUMN_WIDTH$}");
     let label = format!("{LABEL_INDENT}{}", row.target.label);
     let label_width = width.saturating_sub(MARGIN.len() + KEY_COLUMN_WIDTH);
     let rest = match (row.selected, row.current) {

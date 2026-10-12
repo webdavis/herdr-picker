@@ -2,6 +2,7 @@ use super::*;
 use crate::{WorkspaceDeclaration, jump_targets};
 
 mod browsing;
+mod searching;
 
 fn targets(declarations: Vec<(&str, Option<&str>)>) -> Vec<JumpTarget> {
     let declared = declarations
@@ -37,4 +38,14 @@ fn shown(frame: &Frame<'_>) -> Vec<String> {
             format!("{bar}{}{current}", row.target.label)
         })
         .collect()
+}
+
+fn search(frame: &Frame<'_>) -> Option<String> {
+    frame.search.as_ref().map(|search| search.text.clone())
+}
+
+fn type_text(menu: &mut Menu<'_>, text: &str) {
+    for character in text.chars() {
+        assert_eq!(menu.decide(PickKey::Character(character)), Pick::Pending);
+    }
 }

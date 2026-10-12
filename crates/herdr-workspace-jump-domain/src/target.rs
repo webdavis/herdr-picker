@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::pick::SEARCH_CHARACTER;
+
 /// One workspace as the configuration declares it, before its ids are derived.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WorkspaceDeclaration {
@@ -64,7 +66,7 @@ impl fmt::Display for TargetError {
             ),
             Self::UnusablePickKey { label, key } => write!(
                 formatter,
-                "the workspace {label} declares the pick key {key:?}, which is not one printable ASCII character"
+                "the workspace {label} declares the pick key {key:?}, which is not one printable ASCII character other than {SEARCH_CHARACTER}, the key that starts a search"
             ),
             Self::LabelHasNoDefaultPickKey { label } => write!(
                 formatter,
@@ -106,7 +108,7 @@ fn pick_key(declaration: &WorkspaceDeclaration) -> Result<char, TargetError> {
             .chars()
             .next()
             .map(|first| first.to_ascii_lowercase())
-            .filter(char::is_ascii_graphic)
+            .filter(usable_as_pick_key)
             .ok_or_else(|| TargetError::LabelHasNoDefaultPickKey {
                 label: declaration.label.clone(),
             });
@@ -115,11 +117,15 @@ fn pick_key(declaration: &WorkspaceDeclaration) -> Result<char, TargetError> {
     characters
         .next()
         .filter(|_| characters.next().is_none())
-        .filter(char::is_ascii_graphic)
+        .filter(usable_as_pick_key)
         .ok_or_else(|| TargetError::UnusablePickKey {
             label: declaration.label.clone(),
             key: declared.clone(),
         })
+}
+
+fn usable_as_pick_key(character: &char) -> bool {
+    character.is_ascii_graphic() && *character != SEARCH_CHARACTER
 }
 
 /// Turn declared workspaces into jump targets, in the order given.

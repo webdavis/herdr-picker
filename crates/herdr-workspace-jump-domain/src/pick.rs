@@ -1,11 +1,13 @@
 mod frame;
 
-pub use frame::{Frame, Row};
+pub use frame::{Frame, Row, SearchLine};
 
 use crate::JumpTarget;
 
 /// The keystroke that closes the popup without jumping, beside the escape key.
 const CANCEL_CHARACTER: char = 'q';
+
+pub(crate) const SEARCH_CHARACTER: char = '/';
 
 /// One keystroke the pick popup read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -17,6 +19,7 @@ pub enum PickKey {
     Next,
     Previous,
     Enter,
+    Backspace,
     Other,
 }
 
@@ -34,6 +37,8 @@ pub struct Menu<'a> {
     targets: &'a [JumpTarget],
     current: Option<&'a JumpTarget>,
     selected_row: usize,
+    query: String,
+    searching: bool,
 }
 
 impl<'a> Menu<'a> {
@@ -44,13 +49,15 @@ impl<'a> Menu<'a> {
                 .iter()
                 .find(|target| Some(target.label.as_str()) == current_label),
             selected_row: 0,
+            query: String::new(),
+            searching: false,
         }
     }
 
     pub fn frame(&self) -> Frame<'a> {
         let rows = self
-            .targets
-            .iter()
+            .shown()
+            .into_iter()
             .enumerate()
             .map(|(row, target)| Row {
                 target,
@@ -58,14 +65,24 @@ impl<'a> Menu<'a> {
                 current: self.current == Some(target),
             })
             .collect();
-        Frame { rows }
+        Frame {
+            search: self.searching.then(|| SearchLine {
+                text: self.query.clone(),
+            }),
+            rows,
+            total: self.targets.len(),
+        }
     }
 
     pub fn decide(&mut self, key: PickKey) -> Pick<'a> {
         match key {
             PickKey::Escape | PickKey::Interrupt => Pick::Cancelled,
+            PickKey::Enter => match self.shown().get(self.selected_row) {
+                Some(&target) => Pick::Selected(target),
+                None => Pick::Pending,
+            },
             PickKey::Next => {
-                let last = self.targets.len().saturating_sub(1);
+                let last = self.shown().len().saturating_sub(1);
                 self.selected_row = (self.selected_row + 1).min(last);
                 Pick::Pending
             }
@@ -73,11 +90,12 @@ impl<'a> Menu<'a> {
                 self.selected_row = self.selected_row.saturating_sub(1);
                 Pick::Pending
             }
-            PickKey::Enter => match self.targets.get(self.selected_row) {
-                Some(target) => Pick::Selected(target),
-                None => Pick::Pending,
-            },
-            PickKey::Character(character) => {
+            PickKey::Character(SEARCH_CHARACTER) if !self.searching => {
+                self.searching = true;
+                self.selected_row = 0;
+                Pick::Pending
+            }
+            PickKey::Character(character) if !self.searching => {
                 match self
                     .targets
                     .iter()
@@ -88,9 +106,44 @@ impl<'a> Menu<'a> {
                     None => Pick::Unbound,
                 }
             }
-            PickKey::Other => Pick::Unbound,
+            PickKey::Backspace | PickKey::Other if !self.searching => Pick::Unbound,
+            PickKey::Character(character) => {
+                self.query.push(character);
+                self.selected_row = 0;
+                Pick::Pending
+            }
+            PickKey::Backspace if self.query.is_empty() => {
+                self.searching = false;
+                self.selected_row = 0;
+                Pick::Pending
+            }
+            PickKey::Backspace => {
+                self.query.pop();
+                self.selected_row = 0;
+                Pick::Pending
+            }
+            PickKey::Other => Pick::Pending,
         }
     }
+
+    fn shown(&self) -> Vec<&'a JumpTarget> {
+        if self.searching {
+            self.targets
+                .iter()
+                .filter(|target| holds_in_order(&target.label, &self.query))
+                .collect()
+        } else {
+            self.targets.iter().collect()
+        }
+    }
+}
+
+fn holds_in_order(label: &str, query: &str) -> bool {
+    let mut letters = label.chars().flat_map(char::to_lowercase);
+    query
+        .chars()
+        .flat_map(char::to_lowercase)
+        .all(|wanted| letters.any(|letter| letter == wanted))
 }
 
 #[cfg(test)]

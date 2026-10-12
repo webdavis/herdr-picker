@@ -1,4 +1,4 @@
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Row};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Row, SearchLine};
 
 pub(super) fn target(label: &str, key: char) -> JumpTarget {
     JumpTarget {
@@ -23,6 +23,7 @@ pub(super) fn browsing(
     current: Option<usize>,
 ) -> Frame<'_> {
     Frame {
+        search: None,
         rows: targets
             .iter()
             .enumerate()
@@ -32,5 +33,15 @@ pub(super) fn browsing(
                 current: Some(index) == current,
             })
             .collect(),
+        total: targets.len(),
     }
+}
+
+pub(super) fn searching<'a>(text: &str, shown: &'a [JumpTarget]) -> Frame<'a> {
+    let mut frame = browsing(shown, 0, None);
+    frame.search = Some(SearchLine {
+        text: text.to_string(),
+    });
+    frame.total = three_workspaces().len();
+    frame
 }

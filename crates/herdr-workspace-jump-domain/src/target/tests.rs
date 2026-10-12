@@ -135,8 +135,8 @@ fn a_label_whose_first_character_cannot_be_a_key_needs_its_own_key() {
 }
 
 #[test]
-fn a_pick_key_must_be_exactly_one_printable_ascii_character() {
-    for rejected in ["", "ab", "é", " ", "\t"] {
+fn a_pick_key_must_be_exactly_one_printable_ascii_character_other_than_slash() {
+    for rejected in ["", "ab", "é", " ", "\t", "/"] {
         assert_eq!(
             jump_targets(vec![keyed("homelab", "/srv/homelab", rejected)]),
             Err(TargetError::UnusablePickKey {
@@ -146,6 +146,12 @@ fn a_pick_key_must_be_exactly_one_printable_ascii_character() {
             "{rejected:?} is not a usable pick key"
         );
     }
+    assert_eq!(
+        jump_targets(vec![declaration("/srv", "/srv")]),
+        Err(TargetError::LabelHasNoDefaultPickKey {
+            label: "/srv".to_string(),
+        })
+    );
 }
 
 #[test]

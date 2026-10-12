@@ -49,14 +49,15 @@ impl Screen for Notes {
         if let Some(failure) = self.failure {
             return Err(io::Error::other(failure));
         }
-        let line: Vec<String> = frame
-            .rows
+        let mut line: Vec<String> = frame
+            .search
             .iter()
-            .map(|row| {
-                let bar = if row.selected { ">" } else { "" };
-                format!("{bar}{}", row.target.label)
-            })
+            .map(|search| format!("/{}", search.text))
             .collect();
+        line.extend(frame.rows.iter().map(|row| {
+            let bar = if row.selected { ">" } else { "" };
+            format!("{bar}{}", row.target.label)
+        }));
         self.frames.push(line.join(" "));
         Ok(())
     }
