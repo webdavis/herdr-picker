@@ -5,9 +5,10 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    TerminalKeys, TerminalScreen, read_jump_targets, spawn_detached, wait_for_process_exit,
+    SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, read_jump_targets, spawn_detached,
+    wait_for_process_exit,
 };
-use herdr_workspace_jump_application::pick;
+use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
 use herdr_workspace_jump_domain::{JumpTarget, Menu};
 
 use crate::command::{CommandError, config_path, failed, log_path};
@@ -15,18 +16,33 @@ use crate::command::{CommandError, config_path, failed, log_path};
 /// How long a jump waits for the popup that spawned it to close.
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
+const CURRENT_MARKER_LOOKUP_CAP: Duration = Duration::from_secs(1);
+
 /// The flag carrying the popup's own pid to the jump it spawns.
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
 pub(crate) fn run() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
+    let current = current_label();
+    let menu = Menu::new(&targets, current.as_deref());
     let mut screen = TerminalScreen::stdout();
-    match pick(Menu::new(&targets), &mut TerminalKeys, &mut screen).map_err(failed)? {
+    match pick(menu, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&log_path()))
         }),
         None => Ok(()),
     }
+}
+
+fn current_label() -> Option<String> {
+    let active = env::var("HERDR_ACTIVE_WORKSPACE_ID").ok()?;
+    let socket = env::var("HERDR_SOCKET_PATH").ok()?;
+    SocketWorkspaceDirectory::at(Path::new(&socket), CURRENT_MARKER_LOOKUP_CAP)
+        .list()
+        .ok()?
+        .into_iter()
+        .find(|workspace| workspace.workspace_id == active)
+        .map(|workspace| workspace.label)
 }
 
 /// Hand the jump to a child that outlives this popup.

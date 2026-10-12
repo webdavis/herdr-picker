@@ -4,7 +4,7 @@ use super::*;
 #[test]
 fn showing_clears_the_popup_draws_the_frame_and_going_shows_the_cursor_again() {
     let workspaces = three_workspaces();
-    let frame = browsing(&workspaces, 0);
+    let frame = browsing(&workspaces, 0, None);
     let mut written = Vec::new();
 
     {

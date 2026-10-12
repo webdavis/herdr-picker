@@ -8,6 +8,7 @@ const RESET: &str = "\x1b[0m";
 const MARGIN: &str = " ";
 const KEY_COLUMN_WIDTH: usize = 3;
 const LABEL_INDENT: &str = "  ";
+const CURRENT_MARKER: &str = "current ";
 const KEYS_LEGEND: &str = "ctrl+n/p move  enter jump  esc close";
 
 pub(super) fn render(frame: &Frame<'_>, width: usize) -> String {
@@ -25,11 +26,18 @@ fn workspace_row(row: &Row<'_>, width: usize) -> String {
     let key = format!("{:>KEY_COLUMN_WIDTH$}", row.target.pick_key);
     let label = format!("{LABEL_INDENT}{}", row.target.label);
     let label_width = width.saturating_sub(MARGIN.len() + KEY_COLUMN_WIDTH);
-    if row.selected {
-        let rest = fill(&label, "", label_width);
-        format!("{GREY_BAR}{MARGIN}{BOLD_BLUE}{key}{RESET}{GREY_BAR}{rest}{RESET}")
-    } else {
-        format!("{MARGIN}{BOLD_BLUE}{key}{RESET}{label}")
+    let rest = match (row.selected, row.current) {
+        (false, false) => label,
+        (_, true) => fill(&label, CURRENT_MARKER, label_width),
+        (true, false) => fill(&label, "", label_width),
+    };
+    match (row.selected, row.current) {
+        (false, false) => format!("{MARGIN}{BOLD_BLUE}{key}{RESET}{rest}"),
+        (false, true) => format!("{FAINT}{MARGIN}{key}{rest}{RESET}"),
+        (true, false) => {
+            format!("{GREY_BAR}{MARGIN}{BOLD_BLUE}{key}{RESET}{GREY_BAR}{rest}{RESET}")
+        }
+        (true, true) => format!("{GREY_BAR}{FAINT}{MARGIN}{key}{rest}{RESET}"),
     }
 }
 

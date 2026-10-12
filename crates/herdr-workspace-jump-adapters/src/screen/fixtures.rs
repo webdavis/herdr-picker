@@ -17,7 +17,11 @@ pub(super) fn three_workspaces() -> Vec<JumpTarget> {
     ]
 }
 
-pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
+pub(super) fn browsing(
+    targets: &[JumpTarget],
+    selected: usize,
+    current: Option<usize>,
+) -> Frame<'_> {
     Frame {
         rows: targets
             .iter()
@@ -25,6 +29,7 @@ pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
             .map(|(index, target)| Row {
                 target,
                 selected: index == selected,
+                current: Some(index) == current,
             })
             .collect(),
     }

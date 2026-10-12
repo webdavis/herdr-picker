@@ -32,13 +32,17 @@ pub enum Pick<'a> {
 #[derive(Debug, Clone)]
 pub struct Menu<'a> {
     targets: &'a [JumpTarget],
+    current: Option<&'a JumpTarget>,
     selected_row: usize,
 }
 
 impl<'a> Menu<'a> {
-    pub fn new(targets: &'a [JumpTarget]) -> Self {
+    pub fn new(targets: &'a [JumpTarget], current_label: Option<&str>) -> Self {
         Self {
             targets,
+            current: targets
+                .iter()
+                .find(|target| Some(target.label.as_str()) == current_label),
             selected_row: 0,
         }
     }
@@ -51,6 +55,7 @@ impl<'a> Menu<'a> {
             .map(|(row, target)| Row {
                 target,
                 selected: row == self.selected_row,
+                current: self.current == Some(target),
             })
             .collect();
         Frame { rows }

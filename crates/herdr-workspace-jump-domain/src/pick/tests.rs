@@ -23,13 +23,18 @@ fn three_workspaces() -> Vec<JumpTarget> {
     ])
 }
 
+fn menu(workspaces: &[JumpTarget]) -> Menu<'_> {
+    Menu::new(workspaces, None)
+}
+
 fn shown(frame: &Frame<'_>) -> Vec<String> {
     frame
         .rows
         .iter()
         .map(|row| {
             let bar = if row.selected { ">" } else { "" };
-            format!("{bar}{}", row.target.label)
+            let current = if row.current { "*" } else { "" };
+            format!("{bar}{}{current}", row.target.label)
         })
         .collect()
 }

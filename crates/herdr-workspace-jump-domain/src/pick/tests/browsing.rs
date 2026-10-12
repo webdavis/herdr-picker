@@ -5,15 +5,26 @@ fn a_new_menu_shows_every_workspace_in_order_with_the_bar_on_the_first() {
     let workspaces = three_workspaces();
 
     assert_eq!(
-        shown(&Menu::new(&workspaces).frame()),
+        shown(&menu(&workspaces).frame()),
         [">Ivy", "homelab", "dotfiles"]
     );
 }
 
 #[test]
+fn the_workspace_the_popup_opened_from_is_marked_current_and_an_unknown_one_marks_nothing() {
+    let workspaces = three_workspaces();
+
+    let opened = Menu::new(&workspaces, Some("homelab"));
+    assert_eq!(shown(&opened.frame()), [">Ivy", "homelab*", "dotfiles"]);
+
+    let unknown = Menu::new(&workspaces, Some("elsewhere"));
+    assert_eq!(shown(&unknown.frame()), [">Ivy", "homelab", "dotfiles"]);
+}
+
+#[test]
 fn next_and_previous_move_the_bar_and_stop_at_the_ends_and_enter_picks_its_row() {
     let workspaces = three_workspaces();
-    let mut menu = Menu::new(&workspaces);
+    let mut menu = menu(&workspaces);
 
     assert_eq!(menu.decide(PickKey::Previous), Pick::Pending);
     assert_eq!(shown(&menu.frame())[0], ">Ivy");
@@ -28,7 +39,7 @@ fn next_and_previous_move_the_bar_and_stop_at_the_ends_and_enter_picks_its_row()
 #[test]
 fn a_workspace_key_picks_that_workspace_wherever_the_bar_is() {
     let workspaces = three_workspaces();
-    let mut menu = Menu::new(&workspaces);
+    let mut menu = menu(&workspaces);
     menu.decide(PickKey::Next);
 
     assert_eq!(
@@ -46,7 +57,7 @@ fn an_uppercase_press_does_not_pick_a_lowercase_key() {
     let workspaces = three_workspaces();
 
     assert_eq!(
-        Menu::new(&workspaces).decide(PickKey::Character('I')),
+        menu(&workspaces).decide(PickKey::Character('I')),
         Pick::Unbound
     );
 }
@@ -56,7 +67,7 @@ fn escape_q_and_an_interrupt_all_cancel() {
     let workspaces = three_workspaces();
 
     for cancelling in [PickKey::Escape, PickKey::Interrupt, PickKey::Character('q')] {
-        assert_eq!(Menu::new(&workspaces).decide(cancelling), Pick::Cancelled);
+        assert_eq!(menu(&workspaces).decide(cancelling), Pick::Cancelled);
     }
 }
 
@@ -65,7 +76,7 @@ fn an_unbound_character_and_an_unreadable_key_do_nothing() {
     let workspaces = three_workspaces();
 
     for unbound in [PickKey::Character('z'), PickKey::Other] {
-        assert_eq!(Menu::new(&workspaces).decide(unbound), Pick::Unbound);
+        assert_eq!(menu(&workspaces).decide(unbound), Pick::Unbound);
     }
 }
 
@@ -74,11 +85,8 @@ fn a_workspace_picking_on_q_is_reached_rather_than_shadowed_by_cancel() {
     let workspaces = targets(vec![("queue", None)]);
 
     assert_eq!(
-        Menu::new(&workspaces).decide(PickKey::Character('q')),
+        menu(&workspaces).decide(PickKey::Character('q')),
         Pick::Selected(&workspaces[0])
     );
-    assert_eq!(
-        Menu::new(&workspaces).decide(PickKey::Escape),
-        Pick::Cancelled
-    );
+    assert_eq!(menu(&workspaces).decide(PickKey::Escape), Pick::Cancelled);
 }

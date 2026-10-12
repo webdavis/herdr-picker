@@ -19,7 +19,7 @@ fn workspaces() -> Vec<JumpTarget> {
 }
 
 fn menu(targets: &[JumpTarget]) -> Menu<'_> {
-    Menu::new(targets)
+    Menu::new(targets, None)
 }
 
 struct Keys(VecDeque<PickKey>);
