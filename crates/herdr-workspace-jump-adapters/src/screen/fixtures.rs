@@ -1,4 +1,4 @@
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Row, SearchLine};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, Row, SearchLine};
 
 pub(super) const LEGEND: Legend = Legend {
     search: "/ find",
@@ -25,7 +25,14 @@ pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
             })
             .collect(),
         total: targets.len(),
+        refusal: None,
     }
+}
+
+pub(super) fn refused<'a>(offered: &'a [JumpTarget], current: &'a JumpTarget) -> Frame<'a> {
+    let mut frame = browsing(offered, 0);
+    frame.refusal = Some(Refusal::AlreadyCurrent(current));
+    frame
 }
 
 pub(super) fn searching<'a>(text: &str, cursor: usize, shown: &'a [JumpTarget]) -> Frame<'a> {

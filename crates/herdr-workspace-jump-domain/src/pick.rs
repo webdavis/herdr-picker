@@ -2,7 +2,7 @@ mod command;
 mod frame;
 
 pub use command::{Command, Mode, Pick};
-pub use frame::{Frame, Row, SearchLine};
+pub use frame::{Frame, Refusal, Row, SearchLine};
 
 use crate::JumpTarget;
 use crate::field::{Edit, TextField};
@@ -16,6 +16,7 @@ pub struct Menu<'a, M, F> {
     matcher: M,
     field: F,
     searching: bool,
+    refusal: Option<Refusal<'a>>,
 }
 
 impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
@@ -34,6 +35,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             matcher,
             field,
             searching: false,
+            refusal: None,
         }
     }
 
@@ -62,10 +64,12 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             }),
             rows,
             total: self.offered().count(),
+            refusal: self.refusal,
         }
     }
 
     pub fn apply(&mut self, command: Command) -> Pick<'a> {
+        self.refusal = None;
         match command {
             Command::Cancel => Pick::Cancelled,
             Command::Accept => match self.shown().get(self.selected_row) {
@@ -82,11 +86,12 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
                 Pick::Pending
             }
             Command::Key(character) => {
-                match self
-                    .targets
-                    .iter()
-                    .find(|target| target.pick_key == character)
+                if let Some(current) = self.current.filter(|current| current.pick_key == character)
                 {
+                    self.refusal = Some(Refusal::AlreadyCurrent(current));
+                    return Pick::Pending;
+                }
+                match self.offered().find(|target| target.pick_key == character) {
                     Some(target) => Pick::Selected(target),
                     None => Pick::Unbound,
                 }

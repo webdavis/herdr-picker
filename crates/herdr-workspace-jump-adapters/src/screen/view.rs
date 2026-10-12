@@ -1,8 +1,9 @@
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Row, SearchLine};
+use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, Row, SearchLine};
 
 const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
 const GREY_BAR: &str = "\x1b[48;5;236m";
+const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 
 const MARGIN: &str = " ";
@@ -10,6 +11,7 @@ const SEARCH_PROMPT: &str = " /";
 const MIN_GAP_BEFORE_COUNT: usize = 2;
 const KEY_COLUMN_WIDTH: usize = 3;
 const LABEL_INDENT: &str = "  ";
+const ALREADY_CURRENT: &str = "already in ";
 const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH;
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
@@ -18,7 +20,7 @@ const ELLIPSIS: char = '…';
 
 pub(super) fn render(frame: &Frame<'_>, legend: Legend, width: usize, height: usize) -> String {
     let above = [prompt_row(frame, legend, width), String::new()];
-    let below = [String::new(), faint_line(legend.keys, width)];
+    let below = [String::new(), bottom_row(frame, legend, width)];
     let room = height
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
@@ -33,18 +35,36 @@ pub(super) fn render(frame: &Frame<'_>, legend: Legend, width: usize, height: us
 
 pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
     let rows = targets.iter().map(|target| row_width(&target.label));
-    let faint_lines = [legend.search, legend.keys]
-        .into_iter()
-        .map(faint_line_width);
-    rows.chain(faint_lines).max().unwrap_or_default()
+    let refusals = targets
+        .iter()
+        .map(|target| line_width(&refusal_text(&target.label)));
+    let faint_lines = [legend.search, legend.keys].into_iter().map(line_width);
+    rows.chain(refusals)
+        .chain(faint_lines)
+        .max()
+        .unwrap_or_default()
 }
 
 fn row_width(label: &str) -> usize {
     BEFORE_LABEL + LABEL_INDENT.len() + label.chars().count()
 }
 
-fn faint_line_width(text: &str) -> usize {
+fn line_width(text: &str) -> usize {
     MARGIN.len() + text.chars().count()
+}
+
+fn refusal_text(label: &str) -> String {
+    format!("{ALREADY_CURRENT}{label}")
+}
+
+fn bottom_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
+    match frame.refusal {
+        Some(Refusal::AlreadyCurrent(target)) => {
+            let text = fit(&refusal_text(&target.label), room(width, MARGIN.len()));
+            format!("{RED}{MARGIN}{text}{RESET}")
+        }
+        None => faint_line(legend.keys, width),
+    }
 }
 
 fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {

@@ -36,6 +36,26 @@ fn the_workspace_the_popup_opened_from_is_left_out_and_an_unknown_one_leaves_the
 }
 
 #[test]
+fn the_key_of_the_workspace_the_popup_opened_from_keeps_the_menu_open_and_says_so_until_the_next_command()
+ {
+    let workspaces = three_workspaces();
+    let mut menu = Menu::new(
+        &workspaces,
+        Some("homelab"),
+        Contains,
+        ReadlineField::default(),
+    );
+
+    assert_eq!(menu.apply(Command::Key('h')), Pick::Pending);
+
+    let frame = menu.frame();
+    assert_eq!(frame.refusal, Some(Refusal::AlreadyCurrent(&workspaces[1])));
+    assert_eq!(shown(&frame), [">Ivy", "dotfiles"]);
+    assert_eq!(menu.apply(Command::Next), Pick::Pending);
+    assert_eq!(menu.frame().refusal, None);
+}
+
+#[test]
 fn next_and_previous_move_the_bar_and_stop_at_the_ends_and_accept_picks_its_row() {
     let workspaces = three_workspaces();
     let mut menu = menu(&workspaces);
