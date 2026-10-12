@@ -13,13 +13,12 @@ const LABEL_INDENT: &str = "  ";
 const CURRENT_MARKER: &str = "current ";
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
+const UNKNOWN_WIDTH: usize = 0;
+const ELLIPSIS: char = '…';
 
 pub(super) fn render(frame: &Frame<'_>, legend: Legend, width: usize, height: usize) -> String {
     let above = [prompt_row(frame, legend, width), String::new()];
-    let below = [
-        String::new(),
-        format!("{FAINT}{MARGIN}{}{RESET}", legend.keys),
-    ];
+    let below = [String::new(), faint_line(legend.keys, width)];
     let room = height
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
@@ -34,7 +33,7 @@ pub(super) fn render(frame: &Frame<'_>, legend: Legend, width: usize, height: us
 
 fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     let Some(search) = &frame.search else {
-        return format!("{FAINT}{MARGIN}{}{RESET}", legend.search);
+        return faint_line(legend.search, width);
     };
     let typed = format!("{SEARCH_PROMPT}{}", search.text);
     let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);
@@ -69,12 +68,18 @@ fn workspace_row(row: &Row<'_>, searching: bool, width: usize) -> String {
         row.target.pick_key.to_string()
     };
     let key = format!("{key:>KEY_COLUMN_WIDTH$}");
-    let label = format!("{LABEL_INDENT}{}", row.target.label);
-    let label_width = width.saturating_sub(MARGIN.len() + KEY_COLUMN_WIDTH);
+    let before_label = MARGIN.len() + KEY_COLUMN_WIDTH;
+    let label = fit(
+        &format!("{LABEL_INDENT}{}", row.target.label),
+        room(width, before_label),
+    );
+    let marked = row.current
+        && room(width, before_label + label.chars().count())
+            .is_none_or(|left| left >= CURRENT_MARKER.chars().count());
+    let marker = if marked { CURRENT_MARKER } else { "" };
     let rest = match (row.selected, row.current) {
         (false, false) => label,
-        (_, true) => fill(&label, CURRENT_MARKER, label_width),
-        (true, false) => fill(&label, "", label_width),
+        _ => fill(&label, marker, width.saturating_sub(before_label)),
     };
     match (row.selected, row.current) {
         (false, false) => format!("{MARGIN}{BOLD_BLUE}{key}{RESET}{rest}"),
@@ -84,6 +89,25 @@ fn workspace_row(row: &Row<'_>, searching: bool, width: usize) -> String {
         }
         (true, true) => format!("{GREY_BAR}{FAINT}{MARGIN}{key}{rest}{RESET}"),
     }
+}
+
+fn faint_line(text: &str, width: usize) -> String {
+    let text = fit(text, room(width, MARGIN.len()));
+    format!("{FAINT}{MARGIN}{text}{RESET}")
+}
+
+fn room(width: usize, used: usize) -> Option<usize> {
+    (width != UNKNOWN_WIDTH).then(|| width.saturating_sub(used))
+}
+
+fn fit(text: &str, room: Option<usize>) -> String {
+    let Some(room) = room.filter(|&room| text.chars().count() > room) else {
+        return text.to_string();
+    };
+    let Some(kept) = room.checked_sub(1) else {
+        return String::new();
+    };
+    text.chars().take(kept).chain([ELLIPSIS]).collect()
 }
 
 fn fill(text: &str, trailing: &str, width: usize) -> String {

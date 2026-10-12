@@ -129,7 +129,9 @@ which takes three columns and two rows, so a 40 by 16 popup gives the menu 37 co
 Four of those rows are the prompt, the legend and the blank rows around the list, which leaves ten
 for workspaces; a longer list scrolls, or the binding grows a row per workspace. Leave `width` and
 `height` out and herdr opens the popup at half its pane area each way, so in a large terminal the
-bar stretches and a gap opens above the legend.
+bar stretches and a gap opens above the legend. A label too long for its row is cut short with an
+ellipsis, and a row with no room for `current` leaves the mark off, so the list, the hint and the
+legend never wrap.
 
 `pick` is a popup command rather than a plugin action, so `generate` does not render it into the
 manifest and nothing needs regenerating when the binding changes. It reads the same config file the

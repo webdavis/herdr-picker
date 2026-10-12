@@ -1,0 +1,43 @@
+use super::*;
+
+#[test]
+fn a_search_holds_its_text_and_count_blanks_the_keys_and_parks_the_cursor_where_the_search_has_it()
+{
+    let workspaces = three_workspaces();
+
+    assert_eq!(
+        render(&searching("ol", 2, &workspaces[1..]), LEGEND, 0, 0),
+        format!(
+            " /ol  \x1b[2m2/3 \x1b[0m\n\
+             \n\
+             \x1b[48;5;236m \x1b[1;34m   \x1b[0m\x1b[48;5;236m  homelab\x1b[0m\n \
+             \x1b[1;34m   \x1b[0m  dotfiles\n\
+             \n\
+             {LEGEND_ROW}\x1b[1;5H"
+        )
+    );
+    assert!(render(&searching("hom", 1, &workspaces[1..2]), LEGEND, 0, 0).ends_with("\x1b[1;4H"));
+}
+
+#[test]
+fn the_match_count_sits_at_the_right_edge_of_a_prompt_that_knows_its_width() {
+    let workspaces = three_workspaces();
+
+    assert_eq!(
+        render(&searching("ol", 2, &workspaces[1..]), LEGEND, 20, 0)
+            .lines()
+            .next(),
+        Some(" /ol            \x1b[2m2/3 \x1b[0m")
+    );
+}
+
+#[test]
+fn a_search_nothing_matches_keeps_the_prompt_and_legend_where_they_are() {
+    let frame = searching("zz", 2, &[]);
+
+    assert_eq!(
+        render(&frame, LEGEND, 0, 0),
+        format!(" /zz  \x1b[2m0/3 \x1b[0m\n\n\n{LEGEND_ROW}\x1b[1;5H")
+    );
+    assert_eq!(render(&frame, LEGEND, 0, 7).lines().count(), 7);
+}
