@@ -1,8 +1,16 @@
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard};
 
 static NEXT_DIRECTORY: AtomicU64 = AtomicU64::new(0);
+static SPAWNING: Mutex<()> = Mutex::new(());
+
+pub(crate) fn spawning() -> MutexGuard<'static, ()> {
+    SPAWNING
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
 
 pub(crate) struct RecordedCli {
     directory: PathBuf,

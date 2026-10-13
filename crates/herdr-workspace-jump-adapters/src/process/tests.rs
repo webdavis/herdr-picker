@@ -2,6 +2,7 @@ use std::sync::mpsc;
 use std::thread;
 
 use super::*;
+use crate::cli_command::spawning;
 
 const LONGER_THAN_ANY_CAP: Duration = Duration::from_secs(5);
 
@@ -44,6 +45,7 @@ impl Drop for TempDirectory {
 
 #[test]
 fn the_wait_ends_at_once_for_a_process_that_is_already_gone() {
+    let _spawning = spawning();
     let elapsed = elapsed_waiting_off_the_test_thread(a_pid_that_is_gone(), Duration::from_secs(2));
 
     assert!(
@@ -54,6 +56,7 @@ fn the_wait_ends_at_once_for_a_process_that_is_already_gone() {
 
 #[test]
 fn the_wait_gives_up_at_the_cap_for_a_process_that_stays() {
+    let _spawning = spawning();
     let cap = Duration::from_millis(50);
 
     let elapsed = elapsed_waiting_off_the_test_thread(std::process::id(), cap);
@@ -67,6 +70,7 @@ fn the_wait_gives_up_at_the_cap_for_a_process_that_stays() {
 
 #[test]
 fn a_detached_child_runs_in_a_process_group_of_its_own() {
+    let _spawning = spawning();
     let sandbox = TempDirectory::new("detached");
     let marker = sandbox.0.join("marker");
 
@@ -95,11 +99,13 @@ fn a_detached_child_runs_in_a_process_group_of_its_own() {
 
 #[test]
 fn a_program_that_cannot_be_started_is_reported() {
+    let _spawning = spawning();
     assert!(spawn_detached(Path::new("/nonexistent/binary"), &[], None).is_err());
 }
 
 #[test]
 fn what_a_detached_child_writes_to_stderr_is_appended_to_the_log() {
+    let _spawning = spawning();
     let sandbox = TempDirectory::new("errors");
     let log_in_a_directory_no_run_has_made = sandbox.0.join("state").join("jump.log");
 

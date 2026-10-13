@@ -1,9 +1,11 @@
 use super::*;
+use crate::cli_command::spawning;
 
 const NO_CLI_TO_FALL_BACK_TO: &str = "/nonexistent/herdr-binary";
 
 #[test]
 fn run_completes_a_jump_over_the_socket_without_touching_the_cli() {
+    let _spawning = spawning();
     let list =
         r#"{"id":"req_1","result":{"workspaces":[{"workspace_id":"w11","label":"dotfiles"}]}}"#;
     let ok = r#"{"id":"req_2","result":{"type":"ok"}}"#;
@@ -24,6 +26,7 @@ fn run_completes_a_jump_over_the_socket_without_touching_the_cli() {
 }
 #[test]
 fn run_falls_back_to_the_cli_when_the_socket_path_is_absent() {
+    let _spawning = spawning();
     let failure = run(
         None,
         Some(NO_CLI_TO_FALL_BACK_TO.to_string()),
@@ -50,6 +53,7 @@ fn run_falls_back_to_the_cli_when_the_socket_path_is_absent() {
 }
 #[test]
 fn run_falls_back_to_the_cli_when_the_socket_cannot_be_opened() {
+    let _spawning = spawning();
     let absent = std::path::PathBuf::from("/nonexistent/hwj-run-no-socket");
     let failure = run(
         Some(absent.to_string_lossy().to_string()),
@@ -65,6 +69,7 @@ fn run_falls_back_to_the_cli_when_the_socket_cannot_be_opened() {
 }
 #[test]
 fn run_lists_and_focuses_through_the_cli_when_the_socket_is_absent() {
+    let _spawning = spawning();
     let fake = crate::cli_command::RecordedCli::answering(
         r#"{"result":{"workspaces":[{"workspace_id":"w11","label":"dotfiles"}]}}"#,
         "",
@@ -80,6 +85,7 @@ fn run_lists_and_focuses_through_the_cli_when_the_socket_is_absent() {
 }
 #[test]
 fn a_blank_socket_acknowledgment_retries_the_jump_through_the_actual_cli() {
+    let _spawning = spawning();
     let list = r#"{"result":{"workspaces":[{"workspace_id":"w11","label":"dotfiles"}]}}"#;
     let server = crate::socket_server::SocketServer::start(vec![
         crate::socket_server::Reply::Line(list.into()),
