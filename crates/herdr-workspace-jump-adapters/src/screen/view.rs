@@ -20,6 +20,7 @@ const MARGIN: &str = " ";
 const SEARCH_PROMPT: &str = " /";
 const MIN_GAP_BEFORE_COUNT: usize = 2;
 const ALREADY_CURRENT: &str = "already in ";
+const TYPE_TO_FILTER: &str = " type to filter";
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
 
@@ -81,15 +82,33 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     };
     let typed = format!("{SEARCH_PROMPT}{}", search.text);
     let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);
+    let hint = if search.text.is_empty() {
+        let left = width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT;
+        fit(TYPE_TO_FILTER, room(width, left))
+    } else {
+        String::new()
+    };
     let gap = width
-        .saturating_sub(width_of(&typed) + width_of(&count))
+        .saturating_sub(width_of(&typed) + width_of(&hint) + width_of(&count))
         .max(MIN_GAP_BEFORE_COUNT);
-    format!("{typed}{:gap$}{FAINT}{count}{RESET}", "")
+    format!(
+        "{typed}{}{:gap$}{FAINT}{count}{RESET}",
+        painted(FAINT, &hint),
+        ""
+    )
 }
 
 fn cursor_in_prompt(search: &SearchLine) -> String {
     let column = FIRST_COLUMN + width_of(SEARCH_PROMPT) + search.cursor;
     format!("\x1b[{PROMPT_ROW};{column}H")
+}
+
+fn painted(style: &str, text: &str) -> String {
+    if text.is_empty() {
+        String::new()
+    } else {
+        format!("{style}{text}{RESET}")
+    }
 }
 
 fn faint_line(text: &str, width: usize) -> String {
