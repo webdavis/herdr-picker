@@ -1,3 +1,5 @@
+pub(super) const BASE: &str = "\x1b[48;2;30;30;46m";
+pub(super) const TEXT: &str = "\x1b[22;38;2;205;214;244m";
 pub(super) const KEY: &str = "\x1b[1;38;2;137;180;250m";
 pub(super) const MATCHED: &str = KEY;
 pub(super) const OPEN: &str = "\x1b[38;2;166;227;161m";

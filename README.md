@@ -103,10 +103,10 @@ shaded. The selected row sits on a dark grey bar, the way fzf marks its current 
 workspace the popup opened from is left out, since there is nowhere to jump; its key puts `already
 in` and its name in red on the row above the legend until the next key; when herdr did not answer at
 all, a faint note says so on that row instead. The bottom row is a faint legend of the keys that
-move. The popup draws in Catppuccin Mocha whatever the terminal's own colors are, so its shades of
-grey are the same everywhere. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the
-arrow keys move the bar, enter jumps to the row under it, and a list taller than the popup scrolls
-to keep that row in view.
+move. The popup paints its own background and text in Catppuccin Mocha, whatever the terminal's
+own colors are, so it looks the same everywhere. A workspace's key jumps to it at once. `ctrl+n`,
+`ctrl+p` and the arrow keys move the bar, enter jumps to the row under it, and a list taller than
+the popup scrolls to keep that row in view.
 While searching, the key column goes blank and what is typed keeps only the workspaces whose labels
 hold those letters in that order, ignoring case, best match first, with the matched letters lit in
 bold blue: a run of the typed letters beats a scatter, an early match beats a late one and a short

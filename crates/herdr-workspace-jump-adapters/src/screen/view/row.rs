@@ -1,6 +1,6 @@
-use super::catppuccin_mocha::{BAR, FAINT, KEY, LEADER, MATCHED, OPEN, STRIPE};
+use super::catppuccin_mocha::{BAR, BASE, FAINT, KEY, LEADER, MATCHED, OPEN, STRIPE};
 use super::layout::{BEFORE_LABEL, LABEL_INDENT, Layout};
-use super::text::{Span, cut, pad, paint, room, span, width, width_of};
+use super::text::{Span, cut, line, room, span, width, width_of};
 use herdr_workspace_jump_domain::{Frame, Row, RowLook};
 
 const KEY_COLUMN_WIDTH: usize = 4;
@@ -49,12 +49,11 @@ fn workspace_row(
         left,
         FAINT,
     ));
-    let background = background(row.selected, index, layout.row_look());
-    if background.is_empty() {
-        paint(&spans, "")
-    } else {
-        paint(&pad(spans, width), background)
-    }
+    line(
+        spans,
+        background(row.selected, index, layout.row_look()),
+        width,
+    )
 }
 
 fn background(selected: bool, index: usize, look: RowLook) -> &'static str {
@@ -63,7 +62,7 @@ fn background(selected: bool, index: usize, look: RowLook) -> &'static str {
     } else if look.stripes && index % 2 == 1 {
         STRIPE
     } else {
-        ""
+        BASE
     }
 }
 
