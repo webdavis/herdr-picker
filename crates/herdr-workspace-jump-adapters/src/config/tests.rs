@@ -88,6 +88,22 @@ fn leaders_and_stripes_are_off_unless_a_pick_table_switches_either_on() {
 }
 
 #[test]
+fn the_theme_is_catppuccin_mocha_by_name_and_by_default() {
+    let sandbox = TempDirectory::new("theme");
+    let theme_of = |pick: &str| {
+        read_config(&sandbox.write(&format!("{pick}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
+            .expect("a readable config")
+            .theme
+    };
+
+    assert_eq!(theme_of(""), Theme::CatppuccinMocha);
+    assert_eq!(
+        theme_of("[pick]\ntheme = \"catppuccin-mocha\"\n"),
+        Theme::CatppuccinMocha
+    );
+}
+
+#[test]
 fn config_file_prefers_the_directory_herdr_hands_the_plugin() {
     assert_eq!(
         config_file(

@@ -1,5 +1,5 @@
-use super::catppuccin_mocha::{BAR, BASE, FAINT, KEY, LEADER, MATCHED, OPEN, STRIPE};
 use super::layout::{BEFORE_LABEL, LABEL_INDENT, Layout};
+use super::palette::Palette;
 use super::text::{Span, cut, line, room, span, width, width_of};
 use herdr_workspace_jump_domain::{Frame, Row, RowLook};
 
@@ -31,67 +31,66 @@ fn workspace_row(
     layout: &Layout,
     width: usize,
 ) -> String {
+    let palette = layout.palette();
     let mut spans = vec![
-        key_cell(row.target.pick_key, searching),
+        key_cell(row.target.pick_key, searching, palette),
         span("", LABEL_INDENT),
     ];
-    spans.extend(name(row));
+    spans.extend(name(row, palette));
     spans.push(filler(
         layout.row_look(),
         layout
             .directory_start()
             .saturating_sub(BEFORE_LABEL + width_of(&row.target.label)),
+        palette,
     ));
     let mut spans = cut(spans, room(width, 0), "");
     let left = room(width, self::width(&spans));
     spans.extend(cut(
-        vec![span(FAINT, row.target.directory.as_str())],
+        vec![span(palette.faint, row.target.directory.as_str())],
         left,
-        FAINT,
+        palette.faint,
     ));
-    line(
-        spans,
-        background(row.selected, index, layout.row_look()),
-        width,
-    )
+    let background = background(row.selected, index, layout.row_look(), palette);
+    line(spans, background, palette.text, width)
 }
 
-fn background(selected: bool, index: usize, look: RowLook) -> &'static str {
+fn background(selected: bool, index: usize, look: RowLook, palette: &Palette) -> &'static str {
     if selected {
-        BAR
+        palette.bar
     } else if look.stripes && index % 2 == 1 {
-        STRIPE
+        palette.stripe
     } else {
-        BASE
+        palette.base
     }
 }
 
-fn filler(look: RowLook, filler: usize) -> Span {
+fn filler(look: RowLook, filler: usize, palette: &Palette) -> Span {
     if look.leaders {
         let dots = "·".repeat(filler.saturating_sub(2));
-        span(LEADER, format!(" {dots} "))
+        span(palette.leader, format!(" {dots} "))
     } else {
         span("", " ".repeat(filler))
     }
 }
 
-fn key_cell(key: char, searching: bool) -> Span {
+fn key_cell(key: char, searching: bool, palette: &Palette) -> Span {
     if searching {
         span("", format!("{:>KEY_COLUMN_WIDTH$}", ""))
     } else {
-        span(KEY, format!("{key:>KEY_COLUMN_WIDTH$}"))
+        span(palette.key, format!("{key:>KEY_COLUMN_WIDTH$}"))
     }
 }
 
-fn name(row: &Row<'_>) -> Vec<Span> {
-    let plain = if row.open { OPEN } else { "" };
+fn name(row: &Row<'_>, palette: &Palette) -> Vec<Span> {
+    let plain = if row.open { palette.open } else { "" };
     row.target
         .label
         .chars()
         .enumerate()
         .map(|(at, character)| {
             let style = if row.matched.contains(&at) {
-                MATCHED
+                palette.matched
             } else {
                 plain
             };

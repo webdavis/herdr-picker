@@ -1,5 +1,3 @@
-use super::catppuccin_mocha::TEXT;
-
 const UNKNOWN_WIDTH: usize = 0;
 const RESET: &str = "\x1b[0m";
 pub(super) const ELLIPSIS: char = '…';
@@ -49,18 +47,18 @@ pub(super) fn cut(spans: Vec<Span>, room: Option<usize>, ellipsis: &'static str)
     kept
 }
 
-pub(super) fn line(spans: Vec<Span>, background: &str, width: usize) -> String {
+pub(super) fn line(spans: Vec<Span>, background: &str, plain: &str, width: usize) -> String {
     let runs: String = merged(&padded(spans, width))
         .iter()
         .map(|span| {
             if span.style.is_empty() {
                 span.text.clone()
             } else {
-                format!("{}{}{TEXT}", span.style, span.text)
+                format!("{}{}{plain}", span.style, span.text)
             }
         })
         .collect();
-    format!("{background}{TEXT}{runs}{RESET}")
+    format!("{background}{plain}{runs}{RESET}")
 }
 
 fn padded(mut spans: Vec<Span>, width: usize) -> Vec<Span> {
