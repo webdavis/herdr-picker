@@ -29,11 +29,17 @@ EOF
   chmod +x "$dir/shell"
 }
 
+pick_table() {
+  [ $# -gt 0 ] || return 0
+  printf '\n[pick]\n'
+  printf '%s = true\n' "${@#--}"
+}
+
 link_this_checkout() {
   [ -f "$users_workspaces" ] || { echo "no workspaces declared at $users_workspaces" >&2; exit 1; }
   mkdir -p "$(dirname "$preview_workspaces")"
   cp "$users_workspaces" "$preview_workspaces"
-  [ -z "${PREVIEW_PICK:-}" ] || printf '\n[pick]\n%s\n' "$PREVIEW_PICK" >>"$preview_workspaces"
+  pick_table "$@" >>"$preview_workspaces"
   "$bin" generate --output "$checkout" --config "$preview_workspaces"
   in_preview herdr plugin link "$checkout" >/dev/null
 }
@@ -112,7 +118,7 @@ teardown
 rm -rf "$registry"
 mkdir -p "$dir"
 write_shell_that_says_how_to_leave
-link_this_checkout
+link_this_checkout "$@"
 write_config
 trap teardown EXIT
 
