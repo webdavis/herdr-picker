@@ -1,6 +1,6 @@
 use super::text::width_of;
 use super::{ALREADY_CURRENT, MARGIN};
-use herdr_workspace_jump_domain::{JumpTarget, Legend};
+use herdr_workspace_jump_domain::{JumpTarget, Legend, RowStyle};
 
 const KEY_COLUMN_WIDTH: usize = 4;
 pub(super) const LABEL_INDENT: &str = "  ";
@@ -10,6 +10,7 @@ pub(super) const BEFORE_LABEL: usize = KEY_COLUMN_WIDTH + LABEL_INDENT.len();
 #[derive(Clone, Debug)]
 pub struct Layout {
     legend: Legend,
+    rows: RowStyle,
     labels: Vec<String>,
     hidden: Option<String>,
     notice: Option<&'static str>,
@@ -19,10 +20,15 @@ impl Layout {
     pub fn new(legend: Legend, targets: &[JumpTarget]) -> Self {
         Self {
             legend,
+            rows: RowStyle::default(),
             labels: targets.iter().map(|target| target.label.clone()).collect(),
             hidden: None,
             notice: None,
         }
+    }
+
+    pub fn rows(self, rows: RowStyle) -> Self {
+        Self { rows, ..self }
     }
 
     pub fn hiding(self, label: Option<&str>) -> Self {
@@ -54,6 +60,10 @@ impl Layout {
 
     pub(super) fn legend(&self) -> Legend {
         self.legend
+    }
+
+    pub(super) fn row_style(&self) -> RowStyle {
+        self.rows
     }
 
     pub(super) fn notice(&self) -> Option<&'static str> {

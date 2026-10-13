@@ -1,7 +1,7 @@
 use super::layout::{BEFORE_LABEL, LABEL_INDENT, Layout};
-use super::text::{Span, cut, paint, room, span, width, width_of};
-use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR, LEADER};
-use herdr_workspace_jump_domain::{Frame, Row};
+use super::text::{Span, cut, pad, paint, room, span, width, width_of};
+use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR, LEADER, STRIPE};
+use herdr_workspace_jump_domain::{Frame, Row, RowStyle};
 
 const KEY_COLUMN_WIDTH: usize = 4;
 
@@ -17,19 +17,27 @@ pub(super) fn workspace_rows(
     frame
         .rows
         .iter()
+        .enumerate()
         .skip(top)
         .take(room)
-        .map(|row| workspace_row(row, searching, layout, width))
+        .map(|(index, row)| workspace_row(row, index, searching, layout, width))
         .collect()
 }
 
-fn workspace_row(row: &Row<'_>, searching: bool, layout: &Layout, width: usize) -> String {
+fn workspace_row(
+    row: &Row<'_>,
+    index: usize,
+    searching: bool,
+    layout: &Layout,
+    width: usize,
+) -> String {
     let mut spans = vec![
         key_cell(row.target.pick_key, searching),
         span("", LABEL_INDENT),
     ];
     spans.extend(name(row));
-    spans.push(leaders(
+    spans.push(filler(
+        layout.row_style(),
         layout
             .directory_start()
             .saturating_sub(BEFORE_LABEL + width_of(&row.target.label)),
@@ -41,16 +49,30 @@ fn workspace_row(row: &Row<'_>, searching: bool, layout: &Layout, width: usize) 
         left,
         FAINT,
     ));
-    if row.selected {
-        paint(&super::text::pad(spans, width), GREY_BAR)
-    } else {
+    let background = background(row.selected, index, layout.row_style());
+    if background.is_empty() {
         paint(&spans, "")
+    } else {
+        paint(&pad(spans, width), background)
     }
 }
 
-fn leaders(filler: usize) -> Span {
-    let dots = "·".repeat(filler.saturating_sub(2));
-    span(LEADER, format!(" {dots} "))
+fn background(selected: bool, index: usize, style: RowStyle) -> &'static str {
+    match (selected, style, index % 2) {
+        (true, _, _) => GREY_BAR,
+        (false, RowStyle::Stripes, 1) => STRIPE,
+        _ => "",
+    }
+}
+
+fn filler(style: RowStyle, filler: usize) -> Span {
+    match style {
+        RowStyle::Leaders => {
+            let dots = "·".repeat(filler.saturating_sub(2));
+            span(LEADER, format!(" {dots} "))
+        }
+        RowStyle::Stripes => span("", " ".repeat(filler)),
+    }
 }
 
 fn key_cell(key: char, searching: bool) -> Span {

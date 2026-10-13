@@ -9,6 +9,7 @@ mod lit;
 mod open;
 mod refusal;
 mod search;
+mod stripes;
 mod width;
 
 const LEGEND_ROW: &str = "\x1b[2m the keys\x1b[0m";
