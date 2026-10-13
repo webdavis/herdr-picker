@@ -13,8 +13,10 @@ Two pieces of workspace navigation [herdr](https://herdr.dev) has no built-in fo
   to read its second key somewhere. `pick` reads it inside a herdr popup that sizes itself to the
   herdr window, and jumps to whichever workspace that letter names.
 
-It talks to herdr over `HERDR_SOCKET_PATH` with newline-delimited JSON, and falls back to the
-`herdr` CLI at `HERDR_BIN_PATH` whenever the socket fails.
+It talks to herdr over `HERDR_SOCKET_PATH` with newline-delimited JSON. A jump or a toggle falls
+back to the `herdr` CLI at `HERDR_BIN_PATH` when the socket fails. The pick popup only asks herdr
+which workspaces are open; when herdr does not answer, the popup still opens, marks nothing as open,
+and says so on the row above the legend.
 
 ## Install
 
@@ -88,16 +90,16 @@ come the workspaces, one per row: the key right-aligned in the terminal's bold b
 when herdr already has that workspace open, the name, and its directory in faint text in a column
 after the widest name. The selected row sits on a dark grey bar, the way fzf marks its current line.
 The workspace the popup opened from is left out, since there is nowhere to jump; its key puts
-`already in` and its name in red on the row above the legend until the next key. The bottom row is a
-faint legend of the keys that move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and
-the arrow keys move the bar, enter jumps to the row under it, and a list taller than the popup
-scrolls to keep that row in view. While searching, the key column goes blank, the dots stay, and
-what is typed keeps only the workspaces whose labels hold those letters in that order, ignoring
-case, best match first, with the matched letters lit in bold blue: a run of the typed letters beats
-a scatter, an early match beats a late one and a short label beats a long one. The search field
-edits like herdr's own fields, with the keys below, and backspace on an empty search ends it. `esc`,
-ctrl-c and ctrl-g always close the popup without jumping. Outside a search, so does any key no
-workspace claims, `q` included.
+`already in` and its name in red on the row above the legend until the next key; when herdr did not
+answer at all, a faint note says so on that row instead. The bottom row is a faint legend of the
+keys that move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the arrow keys move
+the bar, enter jumps to the row under it, and a list taller than the popup scrolls to keep that row
+in view. While searching, the key column goes blank, the dots stay, and what is typed keeps only the
+workspaces whose labels hold those letters in that order, ignoring case, best match first, with the
+matched letters lit in bold blue: a run of the typed letters beats a scatter, an early match beats a
+late one and a short label beats a long one. The search field edits like herdr's own fields, with
+the keys below, and backspace on an empty search ends it. `esc`, ctrl-c and ctrl-g always close the
+popup without jumping. Outside a search, so does any key no workspace claims, `q` included.
 
 | Search keys | What they do |
 | --- | --- |
@@ -128,12 +130,12 @@ description = "pick a workspace"
 
 The popup sizes itself, so the binding names no width or height. It takes 74% of the herdr window's
 width and 62% of its height, the share herdr-bar's popup takes, however many workspaces there are.
-It grows wider only when a workspace's name, or the message refusing its key, needs more room, and
-never past the window; a directory never widens it. Inside it, herdr's border takes three columns
-and two rows, and four rows go to the prompt, the legend and the blank rows around the list. A
-directory too long for what is left of its row is cut short with an ellipsis, or left out, and so is
-a label too long for its row or a message above the legend, so the list, the hint and the legend
-never wrap.
+It grows wider only when the message refusing a workspace's key, or the legend, needs more room, and
+never past the window; a name or a directory never widens it on its own. Inside it, herdr's border
+takes three columns and two rows, and four rows go to the prompt, the legend and the blank rows
+around the list. A directory too long for what is left of its row is cut short with an ellipsis, or
+left out, and so is a label too long for its row or a message above the legend, so the list, the
+hint and the legend never wrap.
 
 The action runs `herdr-workspace-jump popup`. That asks herdr for the window's size and opens the
 manifest's `pick` pane as a popup at the size worked out from it, telling the pane which workspace
