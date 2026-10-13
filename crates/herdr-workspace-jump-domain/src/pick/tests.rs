@@ -46,10 +46,11 @@ impl Matcher for Contains {
         items
             .iter()
             .filter_map(|item| {
-                let at = label(item).find(query)?;
+                let label = label(item);
+                let start = label[..label.find(query)?].chars().count();
                 Some(Match {
                     item,
-                    positions: (at..at + query.len()).collect(),
+                    positions: (start..start + query.chars().count()).collect(),
                 })
             })
             .collect()

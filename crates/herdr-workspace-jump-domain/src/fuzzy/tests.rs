@@ -4,7 +4,7 @@ fn order<'a>(query: &str, labels: &[&'a str]) -> Vec<&'a str> {
     Fuzzy
         .rank(query, labels, |label| label)
         .into_iter()
-        .map(|found| *found.item)
+        .map(|hit| *hit.item)
         .collect()
 }
 
@@ -13,8 +13,14 @@ fn positions(query: &str, label: &str) -> Vec<usize> {
         .rank(query, &[label], |label| label)
         .into_iter()
         .next()
-        .map(|found| found.positions)
+        .map(|hit| hit.positions)
         .unwrap_or_default()
+}
+
+#[test]
+fn positions_count_the_label_s_characters_as_written_even_when_lowercasing_adds_some() {
+    assert_eq!(positions("v", "İvy"), [1]);
+    assert_eq!(positions("y", "İvy"), [2]);
 }
 
 #[test]

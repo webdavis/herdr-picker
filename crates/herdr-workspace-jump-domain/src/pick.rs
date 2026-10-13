@@ -59,11 +59,11 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             .shown()
             .into_iter()
             .enumerate()
-            .map(|(row, found)| Row {
-                target: found.item,
+            .map(|(row, hit)| Row {
+                target: hit.item,
                 selected: row == self.selected_row,
-                open: self.is_open(found.item),
-                matched: found.positions,
+                open: self.is_open(hit.item),
+                matched: hit.positions,
             })
             .collect();
         Frame {
@@ -82,7 +82,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         match command {
             Command::Cancel => Pick::Cancelled,
             Command::Accept => match self.shown().get(self.selected_row) {
-                Some(found) => Pick::Selected(found.item),
+                Some(hit) => Pick::Selected(hit.item),
                 None => Pick::Pending,
             },
             Command::Next => {
@@ -129,7 +129,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             self.matcher
                 .rank(&self.field.text(), self.targets, |target| &target.label)
                 .into_iter()
-                .filter(|found| Some(found.item) != self.current)
+                .filter(|hit| Some(hit.item) != self.current)
                 .collect()
         } else {
             self.offered()
