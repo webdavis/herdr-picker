@@ -1,8 +1,10 @@
 use std::env;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    FileWorkspaceHistory, config_file, mru_file, read_config, spawned_jump_log_file,
+    FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, mru_file, read_config,
+    spawned_jump_log_file,
 };
 use herdr_workspace_jump_application::record;
 use herdr_workspace_jump_protocol::parse_focused_id;
@@ -63,6 +65,8 @@ fn jump_to(label: &str, raw_cwd: &str) -> Result<(), CommandError> {
     .map_err(|failure| CommandError::Failed(format!("could not jump to {label}: {failure}")))
 }
 
+const PICK_LOOKUP_CAP: Duration = Duration::from_secs(1);
+
 pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
     let words: Vec<&str> = arguments.iter().map(String::as_str).collect();
     match words.as_slice() {
@@ -72,7 +76,10 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             jump_to(label, raw_cwd)
         }
         ["pick"] => pick::run(
-            env::var(SOCKET_PATH_VARIABLE).ok(),
+            &mut SocketWorkspaceDirectory::at(
+                Path::new(&env::var(SOCKET_PATH_VARIABLE).unwrap_or_default()),
+                PICK_LOOKUP_CAP,
+            ),
             env::var(ACTIVE_WORKSPACE_VARIABLE).ok(),
             &read_config(&config_path()).map_err(failed)?,
         ),

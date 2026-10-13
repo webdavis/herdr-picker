@@ -66,7 +66,7 @@ impl Layout {
         self.look
     }
 
-    pub(super) fn notice(&self) -> Option<&'static str> {
+    pub fn notice(&self) -> Option<&'static str> {
         self.notice
     }
 
