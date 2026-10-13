@@ -8,12 +8,15 @@ fn a_search_holds_its_text_and_count_blanks_the_keys_and_parks_the_cursor_where_
     assert_eq!(
         render(&searching("ol", 2, &workspaces[1..]), &layout(), 0, 0),
         format!(
-            " /ol  \x1b[38;2;127;132;156m2/3 \x1b[0m\n\
-             \n\
-             \x1b[48;2;54;54;70m      homelab    \x1b[38;2;127;132;156m/opt/homelab\x1b[22;39m\x1b[0m\n\
-             \x20     dotfiles   \x1b[38;2;127;132;156m/opt/dotfiles\x1b[22;39m\n\
-             \n\
-             {LEGEND_ROW}\x1b[1;5H"
+            "{ON_BASE} /ol  {GREY}2/3 {PLAIN}{END}\n\
+             {}\n\
+             {ON_BAR}      homelab    {GREY}/opt/homelab{PLAIN}{END}\n\
+             {ON_BASE}      dotfiles   {GREY}/opt/dotfiles{PLAIN}{END}\n\
+             {}\n\
+             {}\x1b[1;5H",
+            blank_row(0),
+            blank_row(0),
+            legend_row(0)
         )
     );
     assert!(
@@ -29,18 +32,20 @@ fn an_empty_search_hints_what_to_type_after_the_cursor_cell_and_keeps_the_count_
 
     assert_eq!(
         drawn.lines().next(),
-        Some(
-            " /\x1b[38;2;127;132;156m type to filter\x1b[22;39m         \x1b[38;2;127;132;156m3/3 \x1b[0m"
-        )
+        Some(format!(
+            "{ON_BASE} /{GREY} type to filter{PLAIN}         {GREY}3/3 {PLAIN}{END}"
+        ))
+        .as_deref()
     );
     assert!(drawn.ends_with("\x1b[1;3H"), "{drawn:?}");
     assert_eq!(
         render(&searching("", 0, &workspaces), &layout(), 0, 0)
             .lines()
             .next(),
-        Some(
-            " /\x1b[38;2;127;132;156m type to filter\x1b[22;39m  \x1b[38;2;127;132;156m3/3 \x1b[0m"
-        )
+        Some(format!(
+            "{ON_BASE} /{GREY} type to filter{PLAIN}  {GREY}3/3 {PLAIN}{END}"
+        ))
+        .as_deref()
     );
 }
 
@@ -52,13 +57,16 @@ fn the_hint_is_cut_before_the_count_in_a_narrow_popup_and_goes_once_a_letter_is_
         render(&searching("", 0, &workspaces), &layout(), 12, 0)
             .lines()
             .next(),
-        Some(" /\x1b[38;2;127;132;156m ty…\x1b[22;39m  \x1b[38;2;127;132;156m3/3 \x1b[0m")
+        Some(format!(
+            "{ON_BASE} /{GREY} ty…{PLAIN}  {GREY}3/3 {PLAIN}{END}"
+        ))
+        .as_deref()
     );
     assert_eq!(
         render(&searching("h", 1, &workspaces[1..2]), &layout(), 12, 0)
             .lines()
             .next(),
-        Some(" /h     \x1b[38;2;127;132;156m1/3 \x1b[0m")
+        Some(format!("{ON_BASE} /h     {GREY}1/3 {PLAIN}{END}")).as_deref()
     );
 }
 
@@ -70,7 +78,7 @@ fn the_match_count_sits_at_the_right_edge_of_a_prompt_that_knows_its_width() {
         render(&searching("ol", 2, &workspaces[1..]), &layout(), 20, 0)
             .lines()
             .next(),
-        Some(" /ol            \x1b[38;2;127;132;156m2/3 \x1b[0m")
+        Some(format!("{ON_BASE} /ol            {GREY}2/3 {PLAIN}{END}")).as_deref()
     );
 }
 
@@ -80,7 +88,12 @@ fn a_search_nothing_matches_keeps_the_prompt_and_legend_where_they_are() {
 
     assert_eq!(
         render(&frame, &layout(), 0, 0),
-        format!(" /zz  \x1b[38;2;127;132;156m0/3 \x1b[0m\n\n\n{LEGEND_ROW}\x1b[1;5H")
+        format!(
+            "{ON_BASE} /zz  {GREY}0/3 {PLAIN}{END}\n{}\n{}\n{}\x1b[1;5H",
+            blank_row(0),
+            blank_row(0),
+            legend_row(0)
+        )
     );
     assert_eq!(render(&frame, &layout(), 0, 7).lines().count(), 7);
 }

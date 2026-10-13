@@ -61,7 +61,10 @@ fn one_column_fewer_cuts_the_widest_refusal() {
 
     assert_eq!(
         drawn.lines().rev().nth(1),
-        Some("\x1b[38;2;243;139;168m already in dotfil\u{2026}\x1b[0m")
+        Some(format!(
+            "{ON_BASE}{RED} already in dotfil\u{2026}{PLAIN}{END}"
+        ))
+        .as_deref()
     );
 }
 

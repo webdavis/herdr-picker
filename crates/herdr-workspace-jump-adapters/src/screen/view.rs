@@ -5,12 +5,10 @@ mod layout;
 mod row;
 mod text;
 
-use catppuccin_mocha::{FAINT, REFUSAL};
+use catppuccin_mocha::{BASE, FAINT, REFUSAL};
 pub use layout::Layout;
 use row::workspace_rows;
-use text::{fit, paint, room, span, width_of};
-
-const RESET: &str = "\x1b[0m";
+use text::{cut, line, room, span, width_of};
 
 const MARGIN: &str = " ";
 const SEARCH_PROMPT: &str = " /";
@@ -22,7 +20,7 @@ const FIRST_COLUMN: usize = 1;
 
 pub(super) fn render(frame: &Frame<'_>, layout: &Layout, width: usize, height: usize) -> String {
     let legend = layout.legend();
-    let above = [prompt_row(frame, legend, width), String::new()];
+    let above = [prompt_row(frame, legend, width), blank(width)];
     let below = [
         message_row(frame, layout.notice(), width),
         faint_line(legend.keys, width),
@@ -31,7 +29,7 @@ pub(super) fn render(frame: &Frame<'_>, layout: &Layout, width: usize, height: u
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
     let mut workspaces = workspace_rows(frame, layout, room, width);
-    workspaces.resize(room, String::new());
+    workspaces.resize(room, blank(width));
     let mut drawn = [above.as_slice(), &workspaces, &below].concat().join("\n");
     if let Some(search) = &frame.search {
         drawn.push_str(&cursor_in_prompt(search));
@@ -46,11 +44,10 @@ fn refusal_text(label: &str) -> String {
 fn message_row(frame: &Frame<'_>, notice: Option<&str>, width: usize) -> String {
     match (frame.refusal, notice) {
         (Some(Refusal::AlreadyCurrent(target)), _) => {
-            let text = fit(&refusal_text(&target.label), room(width, MARGIN.len()));
-            format!("{REFUSAL}{MARGIN}{text}{RESET}")
+            margin_line(REFUSAL, &refusal_text(&target.label), width)
         }
         (None, Some(notice)) => faint_line(notice, width),
-        (None, None) => String::new(),
+        (None, None) => blank(width),
     }
 }
 
@@ -65,21 +62,22 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     } else {
         ""
     };
-    let hint = fit(
-        hint,
+    let hint = cut(
+        vec![span(FAINT, hint)],
         room(
             width,
             width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT,
         ),
+        FAINT,
     );
     let gap = width
-        .saturating_sub(width_of(&typed) + width_of(&hint) + width_of(&count))
+        .saturating_sub(width_of(&typed) + text::width(&hint) + width_of(&count))
         .max(MIN_GAP_BEFORE_COUNT);
-    format!(
-        "{typed}{}{:gap$}{FAINT}{count}{RESET}",
-        paint(&[span(FAINT, hint)], ""),
-        ""
-    )
+    let mut spans = vec![span("", typed)];
+    spans.extend(hint);
+    spans.push(span("", " ".repeat(gap)));
+    spans.push(span(FAINT, count));
+    line(spans, BASE, width)
 }
 
 fn cursor_in_prompt(search: &SearchLine) -> String {
@@ -88,8 +86,20 @@ fn cursor_in_prompt(search: &SearchLine) -> String {
 }
 
 fn faint_line(text: &str, width: usize) -> String {
-    let text = fit(text, room(width, MARGIN.len()));
-    format!("{FAINT}{MARGIN}{text}{RESET}")
+    margin_line(FAINT, text, width)
+}
+
+fn margin_line(style: &'static str, text: &str, width: usize) -> String {
+    let spans = cut(
+        vec![span(style, format!("{MARGIN}{text}"))],
+        room(width, 0),
+        style,
+    );
+    line(spans, BASE, width)
+}
+
+fn blank(width: usize) -> String {
+    line(Vec::new(), BASE, width)
 }
 
 #[cfg(test)]

@@ -1,16 +1,17 @@
 use super::*;
 
 #[test]
-fn an_unknown_width_fills_no_bar_and_cuts_nothing_but_still_aligns_the_directories() {
+fn an_unknown_width_pads_no_row_and_cuts_nothing_but_still_aligns_the_directories() {
     let workspaces = three_workspaces();
 
     assert_eq!(
         render(&browsing(&workspaces, 0), &layout(), 0, 0)
             .lines()
             .nth(2),
-        Some(
-            "\x1b[48;2;54;54;70m\x1b[1;38;2;137;180;250m   i\x1b[22;39m  Ivy        \x1b[38;2;127;132;156m/opt/Ivy\x1b[22;39m\x1b[0m"
-        )
+        Some(format!(
+            "{ON_BAR}{BOLD_BLUE}   i{PLAIN}  Ivy        {GREY}/opt/Ivy{PLAIN}{END}"
+        ))
+        .as_deref()
     );
 }
 
@@ -22,7 +23,7 @@ fn a_label_too_long_for_its_row_is_cut_with_an_ellipsis_and_shows_no_directory()
         render(&browsing(&workspaces, 0), &layout(), 12, 0)
             .lines()
             .nth(3),
-        Some("\x1b[1;38;2;137;180;250m   h\x1b[22;39m  homel…")
+        Some(format!("{ON_BASE}{BOLD_BLUE}   h{PLAIN}  homel…{END}")).as_deref()
     );
 }
 
@@ -34,9 +35,10 @@ fn a_directory_too_long_for_what_is_left_of_its_row_is_cut_with_an_ellipsis() {
         render(&browsing(&workspaces, 0), &layout(), 23, 0)
             .lines()
             .nth(3),
-        Some(
-            "\x1b[1;38;2;137;180;250m   h\x1b[22;39m  homelab    \x1b[38;2;127;132;156m/opt/…\x1b[22;39m"
-        )
+        Some(format!(
+            "{ON_BASE}{BOLD_BLUE}   h{PLAIN}  homelab    {GREY}/opt/…{PLAIN}{END}"
+        ))
+        .as_deref()
     );
 }
 
@@ -47,11 +49,11 @@ fn the_hint_and_the_legend_are_cut_to_a_narrow_popup() {
 
     assert_eq!(
         drawn.lines().next(),
-        Some("\x1b[38;2;127;132;156m / fi…\x1b[0m")
+        Some(format!("{ON_BASE}{GREY} / fi…{PLAIN}{END}")).as_deref()
     );
     assert_eq!(
         drawn.lines().last(),
-        Some("\x1b[38;2;127;132;156m the …\x1b[0m")
+        Some(format!("{ON_BASE}{GREY} the …{PLAIN}{END}")).as_deref()
     );
 }
 

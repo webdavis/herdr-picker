@@ -15,9 +15,10 @@ fn leaders_switched_on_run_from_each_name_to_the_directory_column_with_a_space_e
 
     assert_eq!(
         drawn.lines().nth(3),
-        Some(
-            "\x1b[1;38;2;137;180;250m   h\x1b[22;39m  homelab\x1b[38;2;69;71;90m ·· \x1b[22;39m\x1b[38;2;127;132;156m/opt/homelab\x1b[22;39m"
-        )
+        Some(format!(
+            "{ON_BASE}{BOLD_BLUE}   h{PLAIN}  homelab{DARK_GREY} ·· {PLAIN}{GREY}/opt/homelab{PLAIN}{END}"
+        ))
+        .as_deref()
     );
     assert_eq!(
         visible_rows(&drawn)[1..4],

@@ -1,7 +1,7 @@
-use super::RESET;
+use super::catppuccin_mocha::TEXT;
 
 const UNKNOWN_WIDTH: usize = 0;
-const UNSTYLE: &str = "\x1b[22;39m";
+const RESET: &str = "\x1b[0m";
 pub(super) const ELLIPSIS: char = '…';
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,32 +49,24 @@ pub(super) fn cut(spans: Vec<Span>, room: Option<usize>, ellipsis: &'static str)
     kept
 }
 
-pub(super) fn pad(mut spans: Vec<Span>, width: usize) -> Vec<Span> {
-    let missing = width.saturating_sub(self::width(&spans));
-    spans.push(span("", " ".repeat(missing)));
-    spans
-}
-
-pub(super) fn paint(spans: &[Span], bar: &str) -> String {
-    let runs: String = merged(spans)
+pub(super) fn line(spans: Vec<Span>, background: &str, width: usize) -> String {
+    let runs: String = merged(&padded(spans, width))
         .iter()
         .map(|span| {
             if span.style.is_empty() {
                 span.text.clone()
             } else {
-                format!("{}{}{UNSTYLE}", span.style, span.text)
+                format!("{}{}{TEXT}", span.style, span.text)
             }
         })
         .collect();
-    if bar.is_empty() {
-        runs
-    } else {
-        format!("{bar}{runs}{RESET}")
-    }
+    format!("{background}{TEXT}{runs}{RESET}")
 }
 
-pub(super) fn fit(text: &str, room: Option<usize>) -> String {
-    paint(&cut(vec![span("", text)], room, ""), "")
+fn padded(mut spans: Vec<Span>, width: usize) -> Vec<Span> {
+    let missing = width.saturating_sub(self::width(&spans));
+    spans.push(span("", " ".repeat(missing)));
+    spans
 }
 
 fn merged(spans: &[Span]) -> Vec<Span> {

@@ -11,21 +11,24 @@ fn a_workspace_herdr_has_open_is_named_in_green_on_a_plain_row_and_on_the_bar() 
 
     assert_eq!(
         drawn.lines().nth(2),
-        Some(
-            "\x1b[48;2;54;54;70m\x1b[1;38;2;137;180;250m   i\x1b[22;39m  \x1b[38;2;166;227;161mIvy\x1b[22;39m        \x1b[38;2;127;132;156m/opt/Ivy\x1b[22;39m\x1b[0m"
-        )
+        Some(format!(
+            "{ON_BAR}{BOLD_BLUE}   i{PLAIN}  {GREEN}Ivy{PLAIN}        {GREY}/opt/Ivy{PLAIN}{END}"
+        ))
+        .as_deref()
     );
     assert_eq!(
         drawn.lines().nth(3),
-        Some(
-            "\x1b[1;38;2;137;180;250m   h\x1b[22;39m  \x1b[38;2;166;227;161mhomelab\x1b[22;39m    \x1b[38;2;127;132;156m/opt/homelab\x1b[22;39m"
-        )
+        Some(format!(
+            "{ON_BASE}{BOLD_BLUE}   h{PLAIN}  {GREEN}homelab{PLAIN}    {GREY}/opt/homelab{PLAIN}{END}"
+        ))
+        .as_deref()
     );
     assert_eq!(
         drawn.lines().nth(4),
-        Some(
-            "\x1b[1;38;2;137;180;250m   f\x1b[22;39m  dotfiles   \x1b[38;2;127;132;156m/opt/dotfiles\x1b[22;39m"
-        )
+        Some(format!(
+            "{ON_BASE}{BOLD_BLUE}   f{PLAIN}  dotfiles   {GREY}/opt/dotfiles{PLAIN}{END}"
+        ))
+        .as_deref()
     );
 }
 
@@ -40,8 +43,9 @@ fn an_open_name_stays_green_while_a_search_blanks_the_keys_and_lights_its_letter
 
     assert_eq!(
         drawn.lines().nth(3),
-        Some(
-            "      \x1b[38;2;166;227;161md\x1b[22;39m\x1b[1;38;2;137;180;250mo\x1b[22;39m\x1b[38;2;166;227;161mtfi\x1b[22;39m\x1b[1;38;2;137;180;250ml\x1b[22;39m\x1b[38;2;166;227;161mes\x1b[22;39m   \x1b[38;2;127;132;156m/opt/dotfiles\x1b[22;39m"
-        )
+        Some(format!(
+            "{ON_BASE}      {GREEN}d{PLAIN}{BOLD_BLUE}o{PLAIN}{GREEN}tfi{PLAIN}{BOLD_BLUE}l{PLAIN}{GREEN}es{PLAIN}   {GREY}/opt/dotfiles{PLAIN}{END}"
+        ))
+        .as_deref()
     );
 }
