@@ -163,9 +163,10 @@ before it asks herdr for anything, and gives up waiting after two seconds.
 ## Developing
 
 `just preview` builds the plugin and opens the picker in a throwaway herdr with your theme and
-workspaces, so a change is seen in a real popup before it ships. Run it from a herdr pane.
-`ctrl+x ctrl+o` reopens the popup; `exit` or `ctrl+x q` leaves. Your real config and registry are
-only read; everything it writes goes under `target/`.
+workspaces, so a change is seen in a real popup before it ships. Run it from a herdr pane. `ctrl+x
+ctrl+o` reopens the popup; `exit` or `ctrl+x q` leaves. Your real config and registry are only read;
+everything it writes goes under `target/`. `just preview "stripes = true"` tries a `[pick]` setting
+without changing your config.
 
 The pick popup is put together from parts that each sit behind a trait, so each is tested alone with
 a small fake, and any one can be replaced where the parts are chosen, in the CLI's `pick` and

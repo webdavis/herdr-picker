@@ -33,6 +33,7 @@ link_this_checkout() {
   [ -f "$users_workspaces" ] || { echo "no workspaces declared at $users_workspaces" >&2; exit 1; }
   mkdir -p "$(dirname "$preview_workspaces")"
   cp "$users_workspaces" "$preview_workspaces"
+  [ -z "${PREVIEW_PICK:-}" ] || printf '\n[pick]\n%s\n' "$PREVIEW_PICK" >>"$preview_workspaces"
   "$bin" generate --output "$checkout" --config "$preview_workspaces"
   in_preview herdr plugin link "$checkout" >/dev/null
 }
