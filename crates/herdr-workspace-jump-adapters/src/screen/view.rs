@@ -49,8 +49,7 @@ pub(super) fn render(
 }
 
 pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
-    let columns = Columns::for_targets(targets);
-    let rows = targets.iter().map(|target| columns.row_width(target));
+    let rows = targets.iter().map(Columns::row_width);
     let refusals = targets
         .iter()
         .map(|target| line_width(&refusal_text(&target.label)));

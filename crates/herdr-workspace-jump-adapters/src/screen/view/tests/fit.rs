@@ -1,8 +1,8 @@
 use super::*;
 
 #[test]
-fn the_columns_to_fit_are_the_widest_row_with_its_directory() {
-    assert_eq!(columns_to_fit(&three_workspaces(), LEGEND), 31);
+fn the_columns_to_fit_count_the_names_and_refusals_and_never_a_directory() {
+    assert_eq!(columns_to_fit(&three_workspaces(), LEGEND), 20);
 }
 
 #[test]
@@ -16,18 +16,34 @@ fn a_legend_wider_than_every_workspace_sets_the_columns_to_fit() {
 }
 
 #[test]
-fn at_the_columns_to_fit_every_label_and_directory_shows_whole() {
+fn at_the_columns_to_fit_every_label_shows_whole_and_the_directories_give_way() {
     let workspaces = three_workspaces();
     let width = columns_to_fit(&workspaces, LEGEND);
 
     let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), width, 0);
+
+    for workspace in &workspaces {
+        assert!(
+            visible_rows(&drawn)
+                .iter()
+                .any(|row| row.contains(&format!("{} ", workspace.label))),
+            "{drawn:?}"
+        );
+    }
+}
+
+#[test]
+fn a_popup_wider_than_the_columns_to_fit_shows_the_directories_whole() {
+    let workspaces = three_workspaces();
+
+    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), 31, 0);
 
     assert!(!drawn.contains(ELLIPSIS), "{drawn:?}");
     for workspace in &workspaces {
         assert!(
             visible_rows(&drawn)
                 .iter()
-                .any(|row| row.contains(&workspace.label) && row.ends_with(&workspace.directory)),
+                .any(|row| row.ends_with(&workspace.directory)),
             "{drawn:?}"
         );
     }
@@ -51,6 +67,9 @@ fn at_the_columns_to_fit_every_refusal_shows_whole() {
     for current in &workspaces {
         let drawn = render(&refused(&workspaces, current), LEGEND, columns(), width, 0);
 
-        assert!(!drawn.contains(ELLIPSIS), "{drawn:?}");
+        assert!(
+            drawn.contains(&format!("already in {}\x1b", current.label)),
+            "{drawn:?}"
+        );
     }
 }

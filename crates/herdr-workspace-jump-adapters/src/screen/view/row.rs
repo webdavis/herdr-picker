@@ -27,8 +27,8 @@ impl Columns {
         }
     }
 
-    pub(super) fn row_width(self, target: &JumpTarget) -> usize {
-        BEFORE_LABEL + self.name_column() + width_of(&target.directory)
+    pub(super) fn row_width(target: &JumpTarget) -> usize {
+        BEFORE_LABEL + LABEL_INDENT.len() + width_of(&target.label)
     }
 
     pub(super) fn name_column(self) -> usize {
