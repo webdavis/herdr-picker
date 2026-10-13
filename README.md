@@ -46,12 +46,14 @@ A leading `~` is expanded when the jump runs, so it can stay in the file.
 
 A `[pick]` table switches on two ways of drawing the rows, both off without it. `leaders` runs faint
 dots from each name to its directory, and `stripes` shades every other row. Each is `true` or
-`false`, and either or both can be on:
+`false`, and either or both can be on. `theme` names the popup's colors; `catppuccin-mocha` is the
+only one so far and the default:
 
 ```toml
 [pick]
 leaders = true
 stripes = true
+theme = "catppuccin-mocha"
 ```
 
 `key` defaults to the label's first character lowercased, which is why `homelab` picks on `h` and
@@ -187,8 +189,8 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
   `TerminalScreen::columns_to_fit` measures. `SocketPopupHost` is the host in use, over herdr's
   socket.
 
-The colors are the `catppuccin_mocha` module beside the view, one constant per role; another theme
-is a pull request adding a module like it.
+The colors are one `Palette` per theme in `palette.rs` beside the view. Another theme is a pull
+request adding a palette there, its name to the domain's `Theme`, and its `[pick]` value.
 
 ## License
 

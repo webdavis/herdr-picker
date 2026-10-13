@@ -1,5 +1,7 @@
 use super::*;
 
+mod pick;
+
 #[test]
 fn read_config_refuses_a_missing_file() {
     let sandbox = TempDirectory::new("missing");
@@ -26,37 +28,6 @@ fn read_config_refuses_unparseable_toml_and_names_the_line() {
         ConfigError::Unparseable { line: Some(3), .. }
     ));
     assert!(rendered.contains("at line 3"), "{rendered}");
-}
-
-#[test]
-fn read_config_refuses_a_look_switch_that_is_not_true_or_false_naming_the_line() {
-    let (refusal, rendered) = refusal_for(
-        "look-not-boolean",
-        "[pick]\nleaders = \"yes\"\n[workspaces]\nnetpulse = \"/opt/netpulse\"\n",
-    );
-
-    assert!(
-        matches!(refusal, ConfigError::Unparseable { line: Some(2), .. }),
-        "{rendered}"
-    );
-    assert!(rendered.contains("boolean"), "{rendered}");
-}
-
-#[test]
-fn read_config_refuses_a_pick_key_it_does_not_know_naming_the_switches() {
-    let (refusal, rendered) = refusal_for(
-        "look-unknown",
-        "[pick]\nrows = \"stripes\"\n[workspaces]\nnetpulse = \"/opt/netpulse\"\n",
-    );
-
-    assert!(
-        matches!(refusal, ConfigError::Unparseable { .. }),
-        "{rendered}"
-    );
-    assert!(
-        rendered.contains("leaders") && rendered.contains("stripes"),
-        "{rendered}"
-    );
 }
 
 #[test]

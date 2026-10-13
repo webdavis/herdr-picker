@@ -25,7 +25,9 @@ pub(crate) fn run(
     active_id: Option<String>,
     config: &PluginConfig,
 ) -> Result<(), CommandError> {
-    let layout = Layout::new(ReadlineKeymap::LEGEND, &config.targets).look(config.look);
+    let layout = Layout::new(ReadlineKeymap::LEGEND, &config.targets)
+        .look(config.look)
+        .theme(config.theme);
     let (live, layout) = open_workspaces(herdr, layout);
     let menu = Menu::new(
         &config.targets,

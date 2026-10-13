@@ -1,12 +1,12 @@
 use herdr_workspace_jump_domain::{Frame, Legend, Refusal, SearchLine};
 
-mod catppuccin_mocha;
 mod layout;
+mod palette;
 mod row;
 mod text;
 
-use catppuccin_mocha::{BASE, FAINT, REFUSAL};
 pub use layout::Layout;
+use palette::Palette;
 use row::workspace_rows;
 use text::{cut, line, room, span, width_of};
 
@@ -20,16 +20,20 @@ const FIRST_COLUMN: usize = 1;
 
 pub(super) fn render(frame: &Frame<'_>, layout: &Layout, width: usize, height: usize) -> String {
     let legend = layout.legend();
-    let above = [prompt_row(frame, legend, width), blank(width)];
+    let palette = layout.palette();
+    let above = [
+        prompt_row(frame, legend, palette, width),
+        blank(palette, width),
+    ];
     let below = [
-        message_row(frame, layout.notice(), width),
-        faint_line(legend.keys, width),
+        message_row(frame, layout.notice(), palette, width),
+        faint_line(legend.keys, palette, width),
     ];
     let room = height
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
     let mut workspaces = workspace_rows(frame, layout, room, width);
-    workspaces.resize(room, blank(width));
+    workspaces.resize(room, blank(palette, width));
     let mut drawn = [above.as_slice(), &workspaces, &below].concat().join("\n");
     if let Some(search) = &frame.search {
         drawn.push_str(&cursor_in_prompt(search));
@@ -41,19 +45,22 @@ fn refusal_text(label: &str) -> String {
     format!("{ALREADY_CURRENT}{label}")
 }
 
-fn message_row(frame: &Frame<'_>, notice: Option<&str>, width: usize) -> String {
+fn message_row(frame: &Frame<'_>, notice: Option<&str>, palette: &Palette, width: usize) -> String {
     match (frame.refusal, notice) {
-        (Some(Refusal::AlreadyCurrent(target)), _) => {
-            margin_line(REFUSAL, &refusal_text(&target.label), width)
-        }
-        (None, Some(notice)) => faint_line(notice, width),
-        (None, None) => blank(width),
+        (Some(Refusal::AlreadyCurrent(target)), _) => margin_line(
+            palette.refusal,
+            &refusal_text(&target.label),
+            palette,
+            width,
+        ),
+        (None, Some(notice)) => faint_line(notice, palette, width),
+        (None, None) => blank(palette, width),
     }
 }
 
-fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
+fn prompt_row(frame: &Frame<'_>, legend: Legend, palette: &Palette, width: usize) -> String {
     let Some(search) = &frame.search else {
-        return faint_line(legend.search, width);
+        return faint_line(legend.search, palette, width);
     };
     let typed = format!("{SEARCH_PROMPT}{}", search.text);
     let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);
@@ -63,12 +70,12 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
         ""
     };
     let hint = cut(
-        vec![span(FAINT, hint)],
+        vec![span(palette.faint, hint)],
         room(
             width,
             width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT,
         ),
-        FAINT,
+        palette.faint,
     );
     let gap = width
         .saturating_sub(width_of(&typed) + text::width(&hint) + width_of(&count))
@@ -76,8 +83,8 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     let mut spans = vec![span("", typed)];
     spans.extend(hint);
     spans.push(span("", " ".repeat(gap)));
-    spans.push(span(FAINT, count));
-    line(spans, BASE, width)
+    spans.push(span(palette.faint, count));
+    line(spans, palette.base, palette.text, width)
 }
 
 fn cursor_in_prompt(search: &SearchLine) -> String {
@@ -85,21 +92,21 @@ fn cursor_in_prompt(search: &SearchLine) -> String {
     format!("\x1b[{PROMPT_ROW};{column}H")
 }
 
-fn faint_line(text: &str, width: usize) -> String {
-    margin_line(FAINT, text, width)
+fn faint_line(text: &str, palette: &Palette, width: usize) -> String {
+    margin_line(palette.faint, text, palette, width)
 }
 
-fn margin_line(style: &'static str, text: &str, width: usize) -> String {
+fn margin_line(style: &'static str, text: &str, palette: &Palette, width: usize) -> String {
     let spans = cut(
         vec![span(style, format!("{MARGIN}{text}"))],
         room(width, 0),
         style,
     );
-    line(spans, BASE, width)
+    line(spans, palette.base, palette.text, width)
 }
 
-fn blank(width: usize) -> String {
-    line(Vec::new(), BASE, width)
+fn blank(palette: &Palette, width: usize) -> String {
+    line(Vec::new(), palette.base, palette.text, width)
 }
 
 #[cfg(test)]

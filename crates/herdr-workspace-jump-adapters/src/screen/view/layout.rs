@@ -1,6 +1,7 @@
+use super::palette::{Palette, palette};
 use super::text::width_of;
 use super::{ALREADY_CURRENT, MARGIN};
-use herdr_workspace_jump_domain::{JumpTarget, Legend, RowLook};
+use herdr_workspace_jump_domain::{JumpTarget, Legend, RowLook, Theme};
 
 const KEY_COLUMN_WIDTH: usize = 4;
 pub(super) const LABEL_INDENT: &str = "  ";
@@ -11,6 +12,7 @@ pub(super) const BEFORE_LABEL: usize = KEY_COLUMN_WIDTH + LABEL_INDENT.len();
 pub struct Layout {
     legend: Legend,
     look: RowLook,
+    theme: Theme,
     labels: Vec<String>,
     hidden: Option<String>,
     notice: Option<&'static str>,
@@ -21,6 +23,7 @@ impl Layout {
         Self {
             legend,
             look: RowLook::default(),
+            theme: Theme::default(),
             labels: targets.iter().map(|target| target.label.clone()).collect(),
             hidden: None,
             notice: None,
@@ -29,6 +32,10 @@ impl Layout {
 
     pub fn look(self, look: RowLook) -> Self {
         Self { look, ..self }
+    }
+
+    pub fn theme(self, theme: Theme) -> Self {
+        Self { theme, ..self }
     }
 
     pub fn hiding(self, label: Option<&str>) -> Self {
@@ -64,6 +71,10 @@ impl Layout {
 
     pub(super) fn row_look(&self) -> RowLook {
         self.look
+    }
+
+    pub(super) fn palette(&self) -> &'static Palette {
+        palette(self.theme)
     }
 
     pub fn notice(&self) -> Option<&'static str> {

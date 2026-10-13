@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use herdr_workspace_jump_domain::{
-    JumpTarget, RowLook, TargetError, WorkspaceDeclaration, jump_targets,
+    JumpTarget, RowLook, TargetError, Theme, WorkspaceDeclaration, jump_targets,
 };
 use serde::Deserialize;
 
@@ -12,6 +12,7 @@ use serde::Deserialize;
 pub struct PluginConfig {
     pub targets: Vec<JumpTarget>,
     pub look: RowLook,
+    pub theme: Theme,
 }
 
 #[derive(Deserialize)]
@@ -29,13 +30,21 @@ struct PickTable {
     leaders: bool,
     #[serde(default)]
     stripes: bool,
+    #[serde(default)]
+    theme: ThemeName,
 }
 
-impl From<PickTable> for RowLook {
-    fn from(pick: PickTable) -> Self {
-        Self {
-            leaders: pick.leaders,
-            stripes: pick.stripes,
+#[derive(Deserialize, Default, Clone, Copy)]
+#[serde(rename_all = "kebab-case")]
+enum ThemeName {
+    #[default]
+    CatppuccinMocha,
+}
+
+impl From<ThemeName> for Theme {
+    fn from(name: ThemeName) -> Self {
+        match name {
+            ThemeName::CatppuccinMocha => Self::CatppuccinMocha,
         }
     }
 }
@@ -148,9 +157,15 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
         path: path.to_owned(),
         cause,
     })?;
+    let PickTable {
+        leaders,
+        stripes,
+        theme,
+    } = file.pick;
     Ok(PluginConfig {
         targets,
-        look: file.pick.into(),
+        look: RowLook { leaders, stripes },
+        theme: theme.into(),
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {
