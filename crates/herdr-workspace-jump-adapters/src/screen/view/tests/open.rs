@@ -12,16 +12,18 @@ fn a_workspace_herdr_has_open_wears_a_green_dot_before_its_name_on_a_plain_row_a
     assert_eq!(
         drawn.lines().nth(2),
         Some(
-            "\x1b[48;5;236m \x1b[1;34m  i\x1b[0m\x1b[48;5;236m\x1b[32m  ●\x1b[0m\x1b[48;5;236m Ivy       \x1b[0m\x1b[48;5;236m\x1b[2m/opt/Ivy\x1b[0m"
+            "\x1b[48;5;236m\x1b[1;34m   i\x1b[22;39m\x1b[32m  ● \x1b[22;39mIvy       \x1b[2m/opt/Ivy\x1b[22;39m\x1b[0m"
         )
     );
     assert_eq!(
         drawn.lines().nth(3),
-        Some(" \x1b[1;34m  h\x1b[0m\x1b[32m  ●\x1b[0m homelab   \x1b[2m/opt/homelab\x1b[0m")
+        Some(
+            "\x1b[1;34m   h\x1b[22;39m\x1b[32m  ● \x1b[22;39mhomelab   \x1b[2m/opt/homelab\x1b[22;39m"
+        )
     );
     assert_eq!(
         drawn.lines().nth(4),
-        Some(" \x1b[1;34m  f\x1b[0m    dotfiles  \x1b[2m/opt/dotfiles\x1b[0m")
+        Some("\x1b[1;34m   f\x1b[22;39m    dotfiles  \x1b[2m/opt/dotfiles\x1b[22;39m")
     );
 }
 

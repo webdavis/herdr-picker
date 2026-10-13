@@ -1,3 +1,4 @@
+use super::text::ELLIPSIS;
 use super::*;
 use crate::screen::fixtures::{LEGEND, browsing, columns, refused, searching, three_workspaces};
 

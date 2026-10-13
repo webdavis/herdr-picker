@@ -9,7 +9,7 @@ fn an_unknown_width_fills_no_bar_and_cuts_nothing_but_still_aligns_the_directori
             .lines()
             .nth(2),
         Some(
-            "\x1b[48;5;236m \x1b[1;34m  i\x1b[0m\x1b[48;5;236m   \x1b[0m\x1b[48;5;236m Ivy       \x1b[0m\x1b[48;5;236m\x1b[2m/opt/Ivy\x1b[0m"
+            "\x1b[48;5;236m\x1b[1;34m   i\x1b[22;39m    Ivy       \x1b[2m/opt/Ivy\x1b[22;39m\x1b[0m"
         )
     );
 }
@@ -22,7 +22,7 @@ fn a_label_too_long_for_its_row_is_cut_with_an_ellipsis_and_shows_no_directory()
         render(&browsing(&workspaces, 0), LEGEND, columns(), None, 12, 0)
             .lines()
             .nth(3),
-        Some(" \x1b[1;34m  h\x1b[0m    hom…")
+        Some("\x1b[1;34m   h\x1b[22;39m    hom…")
     );
 }
 
@@ -34,7 +34,7 @@ fn a_directory_too_long_for_what_is_left_of_its_row_is_cut_with_an_ellipsis() {
         render(&browsing(&workspaces, 0), LEGEND, columns(), None, 23, 0)
             .lines()
             .nth(3),
-        Some(" \x1b[1;34m  h\x1b[0m    homelab   \x1b[2m/opt…\x1b[0m")
+        Some("\x1b[1;34m   h\x1b[22;39m    homelab   \x1b[2m/opt…\x1b[22;39m")
     );
 }
 

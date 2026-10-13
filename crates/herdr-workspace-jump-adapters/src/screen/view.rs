@@ -1,16 +1,11 @@
 use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, SearchLine};
 
-mod name;
-mod paint;
 mod row;
 mod text;
 
-use paint::Paint;
 pub(super) use row::Columns;
 use row::workspace_rows;
-#[cfg(test)]
-use text::ELLIPSIS;
-use text::{fit, room, width_of};
+use text::{fit, paint, room, span, width_of};
 
 const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
@@ -53,7 +48,7 @@ pub(super) fn render(
 }
 
 pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
-    let rows = targets.iter().map(Columns::row_width);
+    let rows = targets.iter().map(row::row_width);
     let refusals = targets
         .iter()
         .map(|target| line_width(&refusal_text(&target.label)));
@@ -100,7 +95,7 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
         .max(MIN_GAP_BEFORE_COUNT);
     format!(
         "{typed}{}{:gap$}{FAINT}{count}{RESET}",
-        Paint::plain().cell(FAINT, &hint),
+        paint(&[span(FAINT, hint)], ""),
         ""
     )
 }
