@@ -1,44 +1,15 @@
-use super::name::{self, LABEL_INDENT};
-use super::paint::Paint;
-use super::text::{fill, fit, room, width_of};
-use super::{BOLD_BLUE, FAINT, GREEN, MARGIN, RESET};
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Row};
+use super::layout::Layout;
+use super::text::{Span, cut, pad, paint, room, span, width};
+use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR};
+use herdr_workspace_jump_domain::{Frame, Row};
 
-const KEY_COLUMN_WIDTH: usize = 3;
-const OPEN_MARK: &str = "  ●";
-const NO_MARK: &str = "   ";
-const MARK_COLUMN_WIDTH: usize = 3;
-const GAP_BEFORE_DIRECTORY: &str = "  ";
-pub(super) const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH + MARK_COLUMN_WIDTH;
-
-#[derive(Clone, Copy, Debug)]
-pub struct Columns {
-    name: usize,
-}
-
-impl Columns {
-    pub fn for_targets(targets: &[JumpTarget]) -> Self {
-        Self {
-            name: targets
-                .iter()
-                .map(|target| width_of(&target.label))
-                .max()
-                .unwrap_or_default(),
-        }
-    }
-
-    pub(super) fn row_width(target: &JumpTarget) -> usize {
-        BEFORE_LABEL + LABEL_INDENT.len() + width_of(&target.label)
-    }
-
-    pub(super) fn name_column(self) -> usize {
-        LABEL_INDENT.len() + self.name + GAP_BEFORE_DIRECTORY.len()
-    }
-}
+const KEY_COLUMN_WIDTH: usize = 4;
+const OPEN_MARK: &str = "  ● ";
+const NO_MARK: &str = "    ";
 
 pub(super) fn workspace_rows(
     frame: &Frame<'_>,
-    columns: Columns,
+    layout: &Layout,
     room: usize,
     width: usize,
 ) -> Vec<String> {
@@ -50,40 +21,50 @@ pub(super) fn workspace_rows(
         .iter()
         .skip(top)
         .take(room)
-        .map(|row| workspace_row(row, searching, columns, width))
+        .map(|row| workspace_row(row, searching, layout, width))
         .collect()
 }
 
-fn workspace_row(row: &Row<'_>, searching: bool, columns: Columns, width: usize) -> String {
-    let paint = Paint::for_row(row.selected);
-    let key = key_cell(row.target.pick_key, searching);
-    let mark = if row.open { OPEN_MARK } else { NO_MARK };
-    let name = name::padded(&row.target.label, columns, width);
-    let directory = fit(
-        &row.target.directory,
-        room(width, BEFORE_LABEL + width_of(&name)),
-    );
-    let shown = BEFORE_LABEL + width_of(&name) + width_of(&directory);
-    let pad = if row.selected {
-        fill("", width.saturating_sub(shown))
+fn workspace_row(row: &Row<'_>, searching: bool, layout: &Layout, width: usize) -> String {
+    let mut spans = vec![key_cell(row.target.pick_key, searching), mark(row.open)];
+    spans.extend(lit_name(&row.target.label, &row.matched));
+    let mut spans = cut(pad(spans, layout.directory_start()), room(width, 0), "");
+    let left = room(width, self::width(&spans));
+    spans.extend(cut(
+        vec![span(FAINT, row.target.directory.as_str())],
+        left,
+        FAINT,
+    ));
+    if row.selected {
+        paint(&pad(spans, width), GREY_BAR)
     } else {
-        String::new()
-    };
-    format!(
-        "{}{MARGIN}{BOLD_BLUE}{key}{RESET}{}{}{}{}",
-        paint.bar,
-        paint.cell(if row.open { GREEN } else { "" }, mark),
-        name::lit(&name, &row.matched, &paint),
-        paint.cell(FAINT, &directory),
-        paint.cell("", &pad)
-    )
+        paint(&spans, "")
+    }
 }
 
-fn key_cell(key: char, searching: bool) -> String {
-    let key = if searching {
-        String::new()
+fn key_cell(key: char, searching: bool) -> Span {
+    if searching {
+        span("", format!("{:>KEY_COLUMN_WIDTH$}", ""))
     } else {
-        key.to_string()
-    };
-    format!("{key:>KEY_COLUMN_WIDTH$}")
+        span(BOLD_BLUE, format!("{key:>KEY_COLUMN_WIDTH$}"))
+    }
+}
+
+fn mark(open: bool) -> Span {
+    if open {
+        span(GREEN, OPEN_MARK)
+    } else {
+        span("", NO_MARK)
+    }
+}
+
+fn lit_name(label: &str, matched: &[usize]) -> Vec<Span> {
+    label
+        .chars()
+        .enumerate()
+        .map(|(at, character)| {
+            let style = if matched.contains(&at) { BOLD_BLUE } else { "" };
+            span(style, character)
+        })
+        .collect()
 }

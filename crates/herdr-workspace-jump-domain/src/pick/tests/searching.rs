@@ -60,7 +60,7 @@ fn a_search_lights_the_letters_the_matcher_found_and_browsing_lights_none() {
 #[test]
 fn a_search_never_offers_the_workspace_the_popup_opened_from() {
     let workspaces = three_workspaces();
-    let live = open(&["homelab"]);
+    let live = herdr_has(&["homelab"]);
     let mut menu = Menu::new(
         &workspaces,
         &live,

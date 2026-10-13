@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Match<'t, T> {
     pub item: &'t T,
-    pub positions: Vec<usize>,
+    pub matched: Vec<usize>,
 }
 
 pub trait Matcher {
@@ -23,17 +23,13 @@ impl Matcher for Fuzzy {
         items: &'t [T],
         label: impl Fn(&T) -> &str,
     ) -> Vec<Match<'t, T>> {
-        let mut found: Vec<_> = items
+        let mut hits: Vec<_> = items
             .iter()
             .filter_map(|item| Some((find(query, label(item))?, item)))
             .collect();
-        found.sort_by_key(|(found, _)| found.score);
-        found
-            .into_iter()
-            .map(|(found, item)| Match {
-                item,
-                positions: found.positions,
-            })
+        hits.sort_by_key(|((score, _), _)| *score);
+        hits.into_iter()
+            .map(|((_, matched), item)| Match { item, matched })
             .collect()
     }
 }
@@ -45,32 +41,24 @@ struct Score {
     length: usize,
 }
 
-struct Found {
-    score: Score,
-    positions: Vec<usize>,
-}
-
-fn find(query: &str, label: &str) -> Option<Found> {
-    let query = lowercase(query);
-    let label = lowercase(label);
+fn find(query: &str, label: &str) -> Option<(Score, Vec<usize>)> {
+    let query: Vec<char> = query.chars().collect();
+    let label: Vec<char> = label.chars().collect();
     let Some((first, rest)) = query.split_first() else {
-        return Some(Found {
-            score: Score::default(),
-            positions: Vec::new(),
-        });
+        return Some((Score::default(), Vec::new()));
     };
     (0..label.len())
-        .filter(|&start| label[start] == *first)
+        .filter(|&start| same_letter(label[start], *first))
         .map_while(|start| positions_from(start, rest, &label))
-        .map(|positions| Found {
-            score: Score {
+        .map(|positions| {
+            let score = Score {
                 span: positions.last().map_or(0, |end| end - positions[0] + 1),
                 start: positions[0],
                 length: label.len(),
-            },
-            positions,
+            };
+            (score, positions)
         })
-        .min_by_key(|found| found.score)
+        .min_by_key(|(score, _)| *score)
 }
 
 fn positions_from(start: usize, rest: &[char], label: &[char]) -> Option<Vec<usize>> {
@@ -80,14 +68,14 @@ fn positions_from(start: usize, rest: &[char], label: &[char]) -> Option<Vec<usi
         end += 1 + label
             .get(end + 1..)?
             .iter()
-            .position(|found| found == wanted)?;
+            .position(|found| same_letter(*found, *wanted))?;
         positions.push(end);
     }
     Some(positions)
 }
 
-fn lowercase(text: &str) -> Vec<char> {
-    text.chars().flat_map(char::to_lowercase).collect()
+fn same_letter(found: char, wanted: char) -> bool {
+    found.to_lowercase().eq(wanted.to_lowercase())
 }
 
 #[cfg(test)]

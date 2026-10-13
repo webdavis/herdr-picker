@@ -19,7 +19,7 @@ pub use keyboard::TerminalKeys;
 pub use manifest::{ManifestError, write_manifest};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
-pub use screen::TerminalScreen;
+pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
 pub use state::{mru_file, spawned_jump_log_file};
 

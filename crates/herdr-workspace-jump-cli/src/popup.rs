@@ -1,10 +1,11 @@
 use std::path::Path;
 
-use herdr_workspace_jump_adapters::{DEADLINE, SocketPopupHost, TerminalScreen};
+use herdr_workspace_jump_adapters::{DEADLINE, Layout, SocketPopupHost};
 use herdr_workspace_jump_application::open_picker;
 use herdr_workspace_jump_domain::{JumpTarget, ReadlineKeymap};
 
 use crate::command::{CommandError, failed};
+use herdr_workspace_jump_protocol::SOCKET_PATH_VARIABLE;
 
 pub(crate) fn run(
     socket_path: Option<String>,
@@ -12,7 +13,7 @@ pub(crate) fn run(
     current_workspace: Option<String>,
     targets: &[JumpTarget],
 ) -> Result<(), CommandError> {
-    let socket_path = present(socket_path, "HERDR_SOCKET_PATH")?;
+    let socket_path = present(socket_path, SOCKET_PATH_VARIABLE)?;
     let plugin_id = present(plugin_id, "HERDR_PLUGIN_ID")?;
     let mut host = SocketPopupHost::at(
         Path::new(&socket_path),
@@ -22,7 +23,7 @@ pub(crate) fn run(
     );
     open_picker(
         &mut host,
-        TerminalScreen::columns_to_fit(targets, ReadlineKeymap::LEGEND),
+        Layout::new(ReadlineKeymap::LEGEND, targets).columns_to_fit(),
     )
     .map_err(|failure| failed(format!("could not open the picker: {failure}")))
 }

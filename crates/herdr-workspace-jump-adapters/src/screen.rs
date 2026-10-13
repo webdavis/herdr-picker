@@ -2,11 +2,11 @@ use std::io::{self, Write};
 
 use crossterm::terminal::size;
 use herdr_workspace_jump_application::Screen;
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend};
+use herdr_workspace_jump_domain::Frame;
 
 mod view;
 
-use view::Columns;
+pub use view::Layout;
 
 const HIDE_CURSOR_AND_CLEAR: &str = "\x1b[?25l\x1b[H\x1b[2J";
 const SHOW_CURSOR: &str = "\x1b[?25h";
@@ -15,40 +15,25 @@ const UNKNOWN_SIZE: (usize, usize) = (0, 0);
 pub struct TerminalScreen<W: Write> {
     out: W,
     size: fn() -> (usize, usize),
-    legend: Legend,
-    columns: Columns,
+    layout: Layout,
 }
 
 impl TerminalScreen<io::Stdout> {
-    pub fn stdout(legend: Legend, targets: &[JumpTarget]) -> Self {
-        Self::new(
-            io::stdout(),
-            terminal_size,
-            legend,
-            Columns::for_targets(targets),
-        )
-    }
-
-    pub fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
-        view::columns_to_fit(targets, legend)
+    pub fn stdout(layout: Layout) -> Self {
+        Self::new(io::stdout(), terminal_size, layout)
     }
 }
 
 impl<W: Write> TerminalScreen<W> {
-    fn new(out: W, size: fn() -> (usize, usize), legend: Legend, columns: Columns) -> Self {
-        Self {
-            out,
-            size,
-            legend,
-            columns,
-        }
+    fn new(out: W, size: fn() -> (usize, usize), layout: Layout) -> Self {
+        Self { out, size, layout }
     }
 }
 
 impl<W: Write> Screen for TerminalScreen<W> {
     fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
         let (width, height) = (self.size)();
-        let drawn = view::render(frame, self.legend, self.columns, width, height);
+        let drawn = view::render(frame, &self.layout, width, height);
         let prompt_cursor = if frame.search.is_some() {
             SHOW_CURSOR
         } else {

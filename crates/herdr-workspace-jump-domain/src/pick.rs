@@ -10,8 +10,7 @@ use crate::{JumpTarget, Workspace};
 
 #[derive(Debug, Clone)]
 pub struct Menu<'a, M, F> {
-    targets: &'a [JumpTarget],
-    live: &'a [Workspace],
+    offered: Vec<Offered<'a>>,
     current: Option<&'a JumpTarget>,
     selected_row: usize,
     matcher: M,
@@ -20,24 +19,37 @@ pub struct Menu<'a, M, F> {
     refusal: Option<Refusal<'a>>,
 }
 
+#[derive(Debug, Clone)]
+struct Offered<'a> {
+    target: &'a JumpTarget,
+    open: bool,
+}
+
 impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
     pub fn new(
         targets: &'a [JumpTarget],
-        live: &'a [Workspace],
+        live: &[Workspace],
         active_id: Option<&str>,
         matcher: M,
         field: F,
     ) -> Self {
-        let current_label = live
+        let active = live
             .iter()
-            .find(|workspace| Some(workspace.workspace_id.as_str()) == active_id)
-            .map(|workspace| workspace.label.as_str());
+            .find(|workspace| Some(workspace.workspace_id.as_str()) == active_id);
+        let current = targets
+            .iter()
+            .find(|target| active.is_some_and(|workspace| workspace.label == target.label));
+        let offered = targets
+            .iter()
+            .filter(|target| Some(*target) != current)
+            .map(|target| Offered {
+                target,
+                open: live.iter().any(|workspace| workspace.label == target.label),
+            })
+            .collect();
         Self {
-            targets,
-            live,
-            current: targets
-                .iter()
-                .find(|target| Some(target.label.as_str()) == current_label),
+            offered,
+            current,
             selected_row: 0,
             matcher,
             field,
@@ -59,11 +71,11 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             .shown()
             .into_iter()
             .enumerate()
-            .map(|(row, found)| Row {
-                target: found.item,
+            .map(|(row, hit)| Row {
+                target: hit.item.target,
                 selected: row == self.selected_row,
-                open: self.is_open(found.item),
-                matched: found.positions,
+                open: hit.item.open,
+                matched: hit.matched,
             })
             .collect();
         Frame {
@@ -72,7 +84,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
                 cursor: self.field.cursor(),
             }),
             rows,
-            total: self.offered().count(),
+            total: self.offered.len(),
             refusal: self.refusal,
         }
     }
@@ -82,7 +94,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         match command {
             Command::Cancel => Pick::Cancelled,
             Command::Accept => match self.shown().get(self.selected_row) {
-                Some(found) => Pick::Selected(found.item),
+                Some(hit) => Pick::Selected(hit.item.target),
                 None => Pick::Pending,
             },
             Command::Next => {
@@ -100,8 +112,12 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
                     self.refusal = Some(Refusal::AlreadyCurrent(current));
                     return Pick::Pending;
                 }
-                match self.offered().find(|target| target.pick_key == character) {
-                    Some(target) => Pick::Selected(target),
+                match self
+                    .offered
+                    .iter()
+                    .find(|offered| offered.target.pick_key == character)
+                {
+                    Some(offered) => Pick::Selected(offered.target),
                     None => Pick::Unbound,
                 }
             }
@@ -124,33 +140,21 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         }
     }
 
-    fn shown(&self) -> Vec<Match<'a, JumpTarget>> {
+    fn shown(&self) -> Vec<Match<'_, Offered<'a>>> {
         if self.searching {
             self.matcher
-                .rank(&self.field.text(), self.targets, |target| &target.label)
-                .into_iter()
-                .filter(|found| Some(found.item) != self.current)
-                .collect()
+                .rank(&self.field.text(), &self.offered, |offered| {
+                    &offered.target.label
+                })
         } else {
-            self.offered()
+            self.offered
+                .iter()
                 .map(|item| Match {
                     item,
-                    positions: Vec::new(),
+                    matched: Vec::new(),
                 })
                 .collect()
         }
-    }
-
-    fn is_open(&self, target: &JumpTarget) -> bool {
-        self.live
-            .iter()
-            .any(|workspace| workspace.label == target.label)
-    }
-
-    fn offered(&self) -> impl Iterator<Item = &'a JumpTarget> {
-        self.targets
-            .iter()
-            .filter(move |target| Some(*target) != self.current)
     }
 
     fn edit(&mut self, edit: Edit) -> Pick<'a> {

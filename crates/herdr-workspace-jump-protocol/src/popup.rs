@@ -3,6 +3,7 @@ use serde_json::{Map, Value, json};
 
 use crate::wire::{ProtocolError, request_line};
 
+pub const SOCKET_PATH_VARIABLE: &str = "HERDR_SOCKET_PATH";
 pub const ACTIVE_WORKSPACE_VARIABLE: &str = "HERDR_ACTIVE_WORKSPACE_ID";
 pub(crate) const PICKER_PANE: &str = "pick";
 

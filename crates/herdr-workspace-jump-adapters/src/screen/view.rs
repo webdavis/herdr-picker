@@ -1,16 +1,12 @@
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, SearchLine};
+use herdr_workspace_jump_domain::{Frame, Legend, Refusal, SearchLine};
 
-mod name;
-mod paint;
+mod layout;
 mod row;
 mod text;
 
-use paint::Paint;
-pub(super) use row::Columns;
+pub use layout::Layout;
 use row::workspace_rows;
-#[cfg(test)]
-use text::ELLIPSIS;
-use text::{fit, room, width_of};
+use text::{fit, paint, room, span, width_of};
 
 const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
@@ -27,19 +23,17 @@ const TYPE_TO_FILTER: &str = " type to filter";
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
 
-pub(super) fn render(
-    frame: &Frame<'_>,
-    legend: Legend,
-    columns: Columns,
-    width: usize,
-    height: usize,
-) -> String {
+pub(super) fn render(frame: &Frame<'_>, layout: &Layout, width: usize, height: usize) -> String {
+    let legend = layout.legend();
     let above = [prompt_row(frame, legend, width), String::new()];
-    let below = [refusal_row(frame, width), faint_line(legend.keys, width)];
+    let below = [
+        message_row(frame, layout.notice(), width),
+        faint_line(legend.keys, width),
+    ];
     let room = height
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
-    let mut workspaces = workspace_rows(frame, columns, room, width);
+    let mut workspaces = workspace_rows(frame, layout, room, width);
     workspaces.resize(room, String::new());
     let mut drawn = [above.as_slice(), &workspaces, &below].concat().join("\n");
     if let Some(search) = &frame.search {
@@ -48,33 +42,18 @@ pub(super) fn render(
     drawn
 }
 
-pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
-    let rows = targets.iter().map(Columns::row_width);
-    let refusals = targets
-        .iter()
-        .map(|target| line_width(&refusal_text(&target.label)));
-    let faint_lines = [legend.search, legend.keys].into_iter().map(line_width);
-    rows.chain(refusals)
-        .chain(faint_lines)
-        .max()
-        .unwrap_or_default()
-}
-
-fn line_width(text: &str) -> usize {
-    MARGIN.len() + width_of(text)
-}
-
 fn refusal_text(label: &str) -> String {
     format!("{ALREADY_CURRENT}{label}")
 }
 
-fn refusal_row(frame: &Frame<'_>, width: usize) -> String {
-    match frame.refusal {
-        Some(Refusal::AlreadyCurrent(target)) => {
+fn message_row(frame: &Frame<'_>, notice: Option<&str>, width: usize) -> String {
+    match (frame.refusal, notice) {
+        (Some(Refusal::AlreadyCurrent(target)), _) => {
             let text = fit(&refusal_text(&target.label), room(width, MARGIN.len()));
             format!("{RED}{MARGIN}{text}{RESET}")
         }
-        None => String::new(),
+        (None, Some(notice)) => faint_line(notice, width),
+        (None, None) => String::new(),
     }
 }
 
@@ -85,17 +64,23 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     let typed = format!("{SEARCH_PROMPT}{}", search.text);
     let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);
     let hint = if search.text.is_empty() {
-        let left = width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT;
-        fit(TYPE_TO_FILTER, room(width, left))
+        TYPE_TO_FILTER
     } else {
-        String::new()
+        ""
     };
+    let hint = fit(
+        hint,
+        room(
+            width,
+            width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT,
+        ),
+    );
     let gap = width
         .saturating_sub(width_of(&typed) + width_of(&hint) + width_of(&count))
         .max(MIN_GAP_BEFORE_COUNT);
     format!(
         "{typed}{}{:gap$}{FAINT}{count}{RESET}",
-        Paint::plain().cell(FAINT, &hint),
+        paint(&[span(FAINT, hint)], ""),
         ""
     )
 }
