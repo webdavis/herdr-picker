@@ -4,6 +4,7 @@ use crate::screen::fixtures::{browsing, layout, refused, searching, three_worksp
 
 mod fit;
 mod layout;
+mod leaders;
 mod lit;
 mod open;
 mod refusal;

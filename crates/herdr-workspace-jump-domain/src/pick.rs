@@ -58,6 +58,10 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         }
     }
 
+    pub fn current_label(&self) -> Option<&'a str> {
+        self.current.map(|current| current.label.as_str())
+    }
+
     pub fn mode(&self) -> Mode {
         if self.searching {
             Mode::Searching

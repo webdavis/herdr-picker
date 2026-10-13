@@ -74,7 +74,7 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ["pick"] => pick::run(
             env::var(SOCKET_PATH_VARIABLE).ok(),
             env::var(ACTIVE_WORKSPACE_VARIABLE).ok(),
-            &read_config(&config_path()).map_err(failed)?.targets,
+            &read_config(&config_path()).map_err(failed)?,
         ),
         ["popup"] => popup::run(
             env::var(SOCKET_PATH_VARIABLE).ok(),

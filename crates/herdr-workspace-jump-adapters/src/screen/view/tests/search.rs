@@ -10,8 +10,8 @@ fn a_search_holds_its_text_and_count_blanks_the_keys_and_parks_the_cursor_where_
         format!(
             " /ol  \x1b[2m2/3 \x1b[0m\n\
              \n\
-             \x1b[48;5;236m      homelab   \x1b[2m/opt/homelab\x1b[22;39m\x1b[0m\n\
-             \x20     dotfiles  \x1b[2m/opt/dotfiles\x1b[22;39m\n\
+             \x1b[48;5;236m      homelab\x1b[38;5;239m ·· \x1b[22;39m\x1b[2m/opt/homelab\x1b[22;39m\x1b[0m\n\
+             \x20     dotfiles\x1b[38;5;239m · \x1b[22;39m\x1b[2m/opt/dotfiles\x1b[22;39m\n\
              \n\
              {LEGEND_ROW}\x1b[1;5H"
         )

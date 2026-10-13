@@ -5,7 +5,7 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    Layout, SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, spawn_detached,
+    Layout, PluginConfig, SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, spawn_detached,
     wait_for_process_exit,
 };
 use herdr_workspace_jump_application::{JumpError, WorkspaceDirectory, pick};
@@ -27,21 +27,21 @@ const HERDR_DID_NOT_ANSWER: &str = "herdr did not answer, so open workspaces are
 pub(crate) fn run(
     socket_path: Option<String>,
     active_id: Option<String>,
-    targets: &[JumpTarget],
+    config: &PluginConfig,
 ) -> Result<(), CommandError> {
-    let layout = Layout::new(ReadlineKeymap::LEGEND, targets);
+    let layout = Layout::new(ReadlineKeymap::LEGEND, &config.targets);
     let (live, layout) = match live_workspaces(socket_path.as_deref()) {
         Ok(live) => (live, layout),
         Err(_) => (Vec::new(), layout.noting(HERDR_DID_NOT_ANSWER)),
     };
     let menu = Menu::new(
-        targets,
+        &config.targets,
         &live,
         active_id.as_deref(),
         Fuzzy,
         ReadlineField::default(),
     );
-    let mut screen = TerminalScreen::stdout(layout);
+    let mut screen = TerminalScreen::stdout(layout.hiding(menu.current_label()));
     match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))

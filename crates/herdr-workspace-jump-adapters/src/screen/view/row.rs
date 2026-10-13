@@ -1,6 +1,6 @@
-use super::layout::{LABEL_INDENT, Layout};
-use super::text::{Span, cut, pad, paint, room, span, width};
-use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR};
+use super::layout::{BEFORE_LABEL, LABEL_INDENT, Layout};
+use super::text::{Span, cut, paint, room, span, width, width_of};
+use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR, LEADER};
 use herdr_workspace_jump_domain::{Frame, Row};
 
 const KEY_COLUMN_WIDTH: usize = 4;
@@ -29,7 +29,12 @@ fn workspace_row(row: &Row<'_>, searching: bool, layout: &Layout, width: usize) 
         span("", LABEL_INDENT),
     ];
     spans.extend(name(row));
-    let mut spans = cut(pad(spans, layout.directory_start()), room(width, 0), "");
+    spans.push(leaders(
+        layout
+            .directory_start()
+            .saturating_sub(BEFORE_LABEL + width_of(&row.target.label)),
+    ));
+    let mut spans = cut(spans, room(width, 0), "");
     let left = room(width, self::width(&spans));
     spans.extend(cut(
         vec![span(FAINT, row.target.directory.as_str())],
@@ -37,10 +42,15 @@ fn workspace_row(row: &Row<'_>, searching: bool, layout: &Layout, width: usize) 
         FAINT,
     ));
     if row.selected {
-        paint(&pad(spans, width), GREY_BAR)
+        paint(&super::text::pad(spans, width), GREY_BAR)
     } else {
         paint(&spans, "")
     }
+}
+
+fn leaders(filler: usize) -> Span {
+    let dots = "·".repeat(filler.saturating_sub(2));
+    span(LEADER, format!(" {dots} "))
 }
 
 fn key_cell(key: char, searching: bool) -> Span {
