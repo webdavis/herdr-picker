@@ -29,7 +29,7 @@ pub(crate) fn run() -> Result<(), CommandError> {
         Fuzzy,
         ReadlineField::default(),
     );
-    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND);
+    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND, &targets);
     match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))

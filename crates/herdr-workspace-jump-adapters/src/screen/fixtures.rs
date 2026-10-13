@@ -1,9 +1,14 @@
+use super::view::Columns;
 use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, Row, SearchLine};
 
 pub(super) const LEGEND: Legend = Legend {
     search: "/ find",
     keys: "the keys",
 };
+
+pub(super) fn columns() -> Columns {
+    Columns::for_targets(&three_workspaces())
+}
 
 pub(super) fn three_workspaces() -> Vec<JumpTarget> {
     vec![
