@@ -49,10 +49,10 @@ fn refusal_for(name: &str, content: &str) -> (ConfigError, String) {
 }
 
 #[test]
-fn leaders_and_stripes_are_off_unless_a_pick_table_switches_either_on() {
+fn leaders_and_stripes_are_off_unless_a_picker_table_switches_either_on() {
     let sandbox = TempDirectory::new("look");
-    let look_of = |pick: &str| {
-        read_config(&sandbox.write(&format!("{pick}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
+    let look_of = |picker: &str| {
+        read_config(&sandbox.write(&format!("{picker}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
             .expect("a readable config")
             .look
     };
@@ -65,21 +65,21 @@ fn leaders_and_stripes_are_off_unless_a_pick_table_switches_either_on() {
         }
     );
     assert_eq!(
-        look_of("[pick]\nleaders = true\n"),
+        look_of("[picker]\nleaders = true\n"),
         RowLook {
             leaders: true,
             stripes: false
         }
     );
     assert_eq!(
-        look_of("[pick]\nstripes = true\n"),
+        look_of("[picker]\nstripes = true\n"),
         RowLook {
             leaders: false,
             stripes: true
         }
     );
     assert_eq!(
-        look_of("[pick]\nleaders = true\nstripes = true\n"),
+        look_of("[picker]\nleaders = true\nstripes = true\n"),
         RowLook {
             leaders: true,
             stripes: true
@@ -90,15 +90,15 @@ fn leaders_and_stripes_are_off_unless_a_pick_table_switches_either_on() {
 #[test]
 fn the_theme_is_catppuccin_mocha_by_name_and_by_default() {
     let sandbox = TempDirectory::new("theme");
-    let theme_of = |pick: &str| {
-        read_config(&sandbox.write(&format!("{pick}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
+    let theme_of = |picker: &str| {
+        read_config(&sandbox.write(&format!("{picker}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
             .expect("a readable config")
             .theme
     };
 
     assert_eq!(theme_of(""), Theme::CatppuccinMocha);
     assert_eq!(
-        theme_of("[pick]\ntheme = \"catppuccin-mocha\"\n"),
+        theme_of("[picker]\ntheme = \"catppuccin-mocha\"\n"),
         Theme::CatppuccinMocha
     );
 }
