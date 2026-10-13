@@ -49,18 +49,36 @@ fn refusal_for(name: &str, content: &str) -> (ConfigError, String) {
 }
 
 #[test]
-fn rows_are_leaders_unless_a_pick_table_chooses_stripes() {
-    let sandbox = TempDirectory::new("rows");
+fn leaders_are_on_and_stripes_off_unless_a_pick_table_switches_either() {
+    let sandbox = TempDirectory::new("look");
+    let look_of = |pick: &str| {
+        read_config(&sandbox.write(&format!("{pick}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
+            .expect("a readable config")
+            .look
+    };
 
-    let unsaid = read_config(&sandbox.write(FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER))
-        .expect("a readable config");
-    assert_eq!(unsaid.rows, RowStyle::Leaders);
-
-    let stripes = read_config(&sandbox.write(&format!(
-        "[pick]\nrows = \"stripes\"\n{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}"
-    )))
-    .expect("a readable config");
-    assert_eq!(stripes.rows, RowStyle::Stripes);
+    assert_eq!(look_of(""), RowLook::default());
+    assert_eq!(
+        look_of("[pick]\nstripes = true\n"),
+        RowLook {
+            leaders: true,
+            stripes: true
+        }
+    );
+    assert_eq!(
+        look_of("[pick]\nleaders = false\n"),
+        RowLook {
+            leaders: false,
+            stripes: false
+        }
+    );
+    assert_eq!(
+        look_of("[pick]\nleaders = false\nstripes = true\n"),
+        RowLook {
+            leaders: false,
+            stripes: true
+        }
+    );
 }
 
 #[test]

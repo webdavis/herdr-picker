@@ -29,7 +29,7 @@ pub(crate) fn run(
     active_id: Option<String>,
     config: &PluginConfig,
 ) -> Result<(), CommandError> {
-    let layout = Layout::new(ReadlineKeymap::LEGEND, &config.targets).rows(config.rows);
+    let layout = Layout::new(ReadlineKeymap::LEGEND, &config.targets).look(config.look);
     let (live, layout) = match live_workspaces(socket_path.as_deref()) {
         Ok(live) => (live, layout),
         Err(_) => (Vec::new(), layout.noting(HERDR_DID_NOT_ANSWER)),

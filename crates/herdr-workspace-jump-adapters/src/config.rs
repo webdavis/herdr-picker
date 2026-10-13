@@ -4,14 +4,14 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use herdr_workspace_jump_domain::{
-    JumpTarget, RowStyle, TargetError, WorkspaceDeclaration, jump_targets,
+    JumpTarget, RowLook, TargetError, WorkspaceDeclaration, jump_targets,
 };
 use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginConfig {
     pub targets: Vec<JumpTarget>,
-    pub rows: RowStyle,
+    pub look: RowLook,
 }
 
 #[derive(Deserialize)]
@@ -22,26 +22,33 @@ struct ConfigFile {
     pick: PickTable,
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct PickTable {
+    #[serde(default = "on")]
+    leaders: bool,
     #[serde(default)]
-    rows: Rows,
+    stripes: bool,
 }
 
-#[derive(Deserialize, Default, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-enum Rows {
-    #[default]
-    Leaders,
-    Stripes,
+impl Default for PickTable {
+    fn default() -> Self {
+        Self {
+            leaders: on(),
+            stripes: false,
+        }
+    }
 }
 
-impl From<Rows> for RowStyle {
-    fn from(rows: Rows) -> Self {
-        match rows {
-            Rows::Leaders => Self::Leaders,
-            Rows::Stripes => Self::Stripes,
+fn on() -> bool {
+    true
+}
+
+impl From<PickTable> for RowLook {
+    fn from(pick: PickTable) -> Self {
+        Self {
+            leaders: pick.leaders,
+            stripes: pick.stripes,
         }
     }
 }
@@ -156,7 +163,7 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
     })?;
     Ok(PluginConfig {
         targets,
-        rows: file.pick.rows.into(),
+        look: file.pick.into(),
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {
