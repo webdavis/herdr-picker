@@ -1,8 +1,11 @@
 use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, SearchLine};
 
+mod name;
+mod paint;
 mod row;
 mod text;
 
+use paint::Paint;
 pub(super) use row::Columns;
 use row::workspace_rows;
 #[cfg(test)]
@@ -93,7 +96,7 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
         .max(MIN_GAP_BEFORE_COUNT);
     format!(
         "{typed}{}{:gap$}{FAINT}{count}{RESET}",
-        painted(FAINT, &hint),
+        Paint::plain().cell(FAINT, &hint),
         ""
     )
 }
@@ -101,14 +104,6 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
 fn cursor_in_prompt(search: &SearchLine) -> String {
     let column = FIRST_COLUMN + width_of(SEARCH_PROMPT) + search.cursor;
     format!("\x1b[{PROMPT_ROW};{column}H")
-}
-
-fn painted(style: &str, text: &str) -> String {
-    if text.is_empty() {
-        String::new()
-    } else {
-        format!("{style}{text}{RESET}")
-    }
 }
 
 fn faint_line(text: &str, width: usize) -> String {

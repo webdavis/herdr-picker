@@ -8,7 +8,7 @@ mod popup;
 mod target;
 
 pub use field::{Edit, ReadlineField, TextField};
-pub use fuzzy::{Fuzzy, Matcher};
+pub use fuzzy::{Fuzzy, Match, Matcher};
 pub use jump::{Jump, Workspace, decide};
 pub use keymap::{Keymap, Legend, PickKey, ReadlineKeymap};
 pub use mru::{Bounce, Mru, decide_bounce, next_mru};

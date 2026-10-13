@@ -1,14 +1,15 @@
+use super::name::{self, LABEL_INDENT};
+use super::paint::Paint;
 use super::text::{fill, fit, room, width_of};
-use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR, MARGIN, RESET};
+use super::{BOLD_BLUE, FAINT, GREEN, MARGIN, RESET};
 use herdr_workspace_jump_domain::{Frame, JumpTarget, Row};
 
 const KEY_COLUMN_WIDTH: usize = 3;
 const OPEN_MARK: &str = "  ●";
 const NO_MARK: &str = "   ";
 const MARK_COLUMN_WIDTH: usize = 3;
-const LABEL_INDENT: &str = " ";
 const GAP_BEFORE_DIRECTORY: &str = "  ";
-const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH + MARK_COLUMN_WIDTH;
+pub(super) const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH + MARK_COLUMN_WIDTH;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Columns {
@@ -30,7 +31,7 @@ impl Columns {
         BEFORE_LABEL + self.name_column() + width_of(&target.directory)
     }
 
-    fn name_column(self) -> usize {
+    pub(super) fn name_column(self) -> usize {
         LABEL_INDENT.len() + self.name + GAP_BEFORE_DIRECTORY.len()
     }
 }
@@ -54,10 +55,10 @@ pub(super) fn workspace_rows(
 }
 
 fn workspace_row(row: &Row<'_>, searching: bool, columns: Columns, width: usize) -> String {
-    let paint = Paint::for_row(row);
+    let paint = Paint::for_row(row.selected);
     let key = key_cell(row.target.pick_key, searching);
     let mark = if row.open { OPEN_MARK } else { NO_MARK };
-    let name = name_cell(&row.target.label, columns, width);
+    let name = name::padded(&row.target.label, columns, width);
     let directory = fit(
         &row.target.directory,
         room(width, BEFORE_LABEL + width_of(&name)),
@@ -72,7 +73,7 @@ fn workspace_row(row: &Row<'_>, searching: bool, columns: Columns, width: usize)
         "{}{MARGIN}{BOLD_BLUE}{key}{RESET}{}{}{}{}",
         paint.bar,
         paint.cell(if row.open { GREEN } else { "" }, mark),
-        paint.cell("", &name),
+        name::lit(&name, &row.matched, &paint),
         paint.cell(FAINT, &directory),
         paint.cell("", &pad)
     )
@@ -85,32 +86,4 @@ fn key_cell(key: char, searching: bool) -> String {
         key.to_string()
     };
     format!("{key:>KEY_COLUMN_WIDTH$}")
-}
-
-fn name_cell(label: &str, columns: Columns, width: usize) -> String {
-    let name = fit(&format!("{LABEL_INDENT}{label}"), room(width, BEFORE_LABEL));
-    let column = room(width, BEFORE_LABEL).map_or(columns.name_column(), |left| {
-        columns.name_column().min(left)
-    });
-    fill(&name, column)
-}
-
-struct Paint {
-    bar: &'static str,
-}
-
-impl Paint {
-    fn for_row(row: &Row<'_>) -> Self {
-        Self {
-            bar: if row.selected { GREY_BAR } else { "" },
-        }
-    }
-
-    fn cell(&self, style: &str, text: &str) -> String {
-        if text.is_empty() || (self.bar.is_empty() && style.is_empty()) {
-            text.to_string()
-        } else {
-            format!("{}{style}{text}{RESET}", self.bar)
-        }
-    }
 }

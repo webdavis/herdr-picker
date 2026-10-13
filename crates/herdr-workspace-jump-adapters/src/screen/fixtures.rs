@@ -28,6 +28,7 @@ pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
                 target,
                 selected: index == selected,
                 open: false,
+                matched: Vec::new(),
             })
             .collect(),
         total: targets.len(),

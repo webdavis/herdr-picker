@@ -5,7 +5,7 @@ pub use command::{Command, Mode, Pick};
 pub use frame::{Frame, Refusal, Row, SearchLine};
 
 use crate::field::{Edit, TextField};
-use crate::fuzzy::Matcher;
+use crate::fuzzy::{Match, Matcher};
 use crate::{JumpTarget, Workspace};
 
 #[derive(Debug, Clone)]
@@ -59,10 +59,11 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             .shown()
             .into_iter()
             .enumerate()
-            .map(|(row, target)| Row {
-                target,
+            .map(|(row, found)| Row {
+                target: found.item,
                 selected: row == self.selected_row,
-                open: self.is_open(target),
+                open: self.is_open(found.item),
+                matched: found.positions,
             })
             .collect();
         Frame {
@@ -81,7 +82,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         match command {
             Command::Cancel => Pick::Cancelled,
             Command::Accept => match self.shown().get(self.selected_row) {
-                Some(&target) => Pick::Selected(target),
+                Some(found) => Pick::Selected(found.item),
                 None => Pick::Pending,
             },
             Command::Next => {
@@ -123,15 +124,20 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         }
     }
 
-    fn shown(&self) -> Vec<&'a JumpTarget> {
+    fn shown(&self) -> Vec<Match<'a, JumpTarget>> {
         if self.searching {
             self.matcher
                 .rank(&self.field.text(), self.targets, |target| &target.label)
                 .into_iter()
-                .filter(|target| Some(*target) != self.current)
+                .filter(|found| Some(found.item) != self.current)
                 .collect()
         } else {
-            self.offered().collect()
+            self.offered()
+                .map(|item| Match {
+                    item,
+                    positions: Vec::new(),
+                })
+                .collect()
         }
     }
 

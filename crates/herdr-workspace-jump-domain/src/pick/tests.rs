@@ -37,10 +37,21 @@ fn three_workspaces() -> Vec<JumpTarget> {
 struct Contains;
 
 impl Matcher for Contains {
-    fn rank<'t, T>(&self, query: &str, items: &'t [T], label: impl Fn(&T) -> &str) -> Vec<&'t T> {
+    fn rank<'t, T>(
+        &self,
+        query: &str,
+        items: &'t [T],
+        label: impl Fn(&T) -> &str,
+    ) -> Vec<Match<'t, T>> {
         items
             .iter()
-            .filter(|item| label(item).contains(query))
+            .filter_map(|item| {
+                let at = label(item).find(query)?;
+                Some(Match {
+                    item,
+                    positions: (at..at + query.len()).collect(),
+                })
+            })
             .collect()
     }
 }
@@ -48,8 +59,15 @@ impl Matcher for Contains {
 struct Reversed;
 
 impl Matcher for Reversed {
-    fn rank<'t, T>(&self, _: &str, items: &'t [T], _: impl Fn(&T) -> &str) -> Vec<&'t T> {
-        items.iter().rev().collect()
+    fn rank<'t, T>(&self, _: &str, items: &'t [T], _: impl Fn(&T) -> &str) -> Vec<Match<'t, T>> {
+        items
+            .iter()
+            .rev()
+            .map(|item| Match {
+                item,
+                positions: Vec::new(),
+            })
+            .collect()
     }
 }
 

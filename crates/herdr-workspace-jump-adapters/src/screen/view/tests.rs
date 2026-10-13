@@ -3,6 +3,7 @@ use crate::screen::fixtures::{LEGEND, browsing, columns, refused, searching, thr
 
 mod fit;
 mod layout;
+mod lit;
 mod open;
 mod refusal;
 mod search;
