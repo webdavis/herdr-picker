@@ -7,7 +7,7 @@ fn the_letters_a_search_matched_are_lit_in_bold_blue_on_a_plain_row_and_on_the_b
     frame.rows[0].matched = vec![1, 4];
     frame.rows[1].matched = vec![1, 5];
 
-    let drawn = render(&frame, LEGEND, columns(), None, 0, 0);
+    let drawn = render(&frame, &layout(), 0, 0);
 
     assert_eq!(
         drawn.lines().nth(2),
@@ -29,7 +29,7 @@ fn the_ellipsis_of_a_cut_name_is_never_lit() {
     let mut frame = searching("hom", 3, &workspaces[1..2]);
     frame.rows[0].matched = vec![0, 1, 2, 3];
 
-    let drawn = render(&frame, LEGEND, columns(), None, 12, 0);
+    let drawn = render(&frame, &layout(), 12, 0);
     let row = drawn.lines().nth(2).expect("a row");
 
     assert!(row.contains("\x1b[1;34mhom\x1b[22;39m"), "{row:?}");

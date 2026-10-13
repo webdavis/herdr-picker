@@ -5,7 +5,8 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, spawn_detached, wait_for_process_exit,
+    Layout, SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, spawn_detached,
+    wait_for_process_exit,
 };
 use herdr_workspace_jump_application::{JumpError, WorkspaceDirectory, pick};
 use herdr_workspace_jump_domain::{
@@ -27,9 +28,10 @@ pub(crate) fn run(
     active_id: Option<String>,
     targets: &[JumpTarget],
 ) -> Result<(), CommandError> {
-    let (live, notice) = match live_workspaces(socket_path.as_deref()) {
-        Ok(live) => (live, None),
-        Err(_) => (Vec::new(), Some(HERDR_DID_NOT_ANSWER)),
+    let layout = Layout::new(ReadlineKeymap::LEGEND, targets);
+    let (live, layout) = match live_workspaces(socket_path.as_deref()) {
+        Ok(live) => (live, layout),
+        Err(_) => (Vec::new(), layout.noting(HERDR_DID_NOT_ANSWER)),
     };
     let menu = Menu::new(
         targets,
@@ -38,7 +40,7 @@ pub(crate) fn run(
         Fuzzy,
         ReadlineField::default(),
     );
-    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND, targets, notice);
+    let mut screen = TerminalScreen::stdout(layout);
     match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))

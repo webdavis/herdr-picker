@@ -1,6 +1,6 @@
 use super::text::ELLIPSIS;
 use super::*;
-use crate::screen::fixtures::{LEGEND, browsing, columns, refused, searching, three_workspaces};
+use crate::screen::fixtures::{browsing, layout, refused, searching, three_workspaces};
 
 mod fit;
 mod layout;

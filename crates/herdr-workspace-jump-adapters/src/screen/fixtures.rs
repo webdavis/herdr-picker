@@ -1,4 +1,4 @@
-use super::view::Columns;
+use super::view::Layout;
 use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, Row, SearchLine};
 
 pub(super) const LEGEND: Legend = Legend {
@@ -6,8 +6,8 @@ pub(super) const LEGEND: Legend = Legend {
     keys: "the keys",
 };
 
-pub(super) fn columns() -> Columns {
-    Columns::for_targets(&three_workspaces())
+pub(super) fn layout() -> Layout {
+    Layout::new(LEGEND, &three_workspaces())
 }
 
 pub(super) fn three_workspaces() -> Vec<JumpTarget> {

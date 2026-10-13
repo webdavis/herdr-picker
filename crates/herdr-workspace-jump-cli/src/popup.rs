@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use herdr_workspace_jump_adapters::{DEADLINE, SocketPopupHost, TerminalScreen};
+use herdr_workspace_jump_adapters::{DEADLINE, Layout, SocketPopupHost};
 use herdr_workspace_jump_application::open_picker;
 use herdr_workspace_jump_domain::{JumpTarget, ReadlineKeymap};
 
@@ -22,7 +22,7 @@ pub(crate) fn run(
     );
     open_picker(
         &mut host,
-        TerminalScreen::columns_to_fit(targets, ReadlineKeymap::LEGEND),
+        Layout::new(ReadlineKeymap::LEGEND, targets).columns_to_fit(),
     )
     .map_err(|failure| failed(format!("could not open the picker: {failure}")))
 }

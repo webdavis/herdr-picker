@@ -1,9 +1,10 @@
-use herdr_workspace_jump_domain::{Frame, JumpTarget, Legend, Refusal, SearchLine};
+use herdr_workspace_jump_domain::{Frame, Legend, Refusal, SearchLine};
 
+mod layout;
 mod row;
 mod text;
 
-pub(super) use row::Columns;
+pub use layout::Layout;
 use row::workspace_rows;
 use text::{fit, paint, room, span, width_of};
 
@@ -22,45 +23,23 @@ const TYPE_TO_FILTER: &str = " type to filter";
 const PROMPT_ROW: usize = 1;
 const FIRST_COLUMN: usize = 1;
 
-pub(super) fn render(
-    frame: &Frame<'_>,
-    legend: Legend,
-    columns: Columns,
-    notice: Option<&str>,
-    width: usize,
-    height: usize,
-) -> String {
+pub(super) fn render(frame: &Frame<'_>, layout: &Layout, width: usize, height: usize) -> String {
+    let legend = layout.legend();
     let above = [prompt_row(frame, legend, width), String::new()];
     let below = [
-        message_row(frame, notice, width),
+        message_row(frame, layout.notice(), width),
         faint_line(legend.keys, width),
     ];
     let room = height
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
-    let mut workspaces = workspace_rows(frame, columns, room, width);
+    let mut workspaces = workspace_rows(frame, layout, room, width);
     workspaces.resize(room, String::new());
     let mut drawn = [above.as_slice(), &workspaces, &below].concat().join("\n");
     if let Some(search) = &frame.search {
         drawn.push_str(&cursor_in_prompt(search));
     }
     drawn
-}
-
-pub(super) fn columns_to_fit(targets: &[JumpTarget], legend: Legend) -> usize {
-    let rows = targets.iter().map(row::row_width);
-    let refusals = targets
-        .iter()
-        .map(|target| line_width(&refusal_text(&target.label)));
-    let faint_lines = [legend.search, legend.keys].into_iter().map(line_width);
-    rows.chain(refusals)
-        .chain(faint_lines)
-        .max()
-        .unwrap_or_default()
-}
-
-fn line_width(text: &str) -> usize {
-    MARGIN.len() + width_of(text)
 }
 
 fn refusal_text(label: &str) -> String {
