@@ -44,12 +44,14 @@ Ivy = { dir = "~/workspaces/Ivy", key = "v" }
 
 A leading `~` is expanded when the jump runs, so it can stay in the file.
 
-A `[pick]` table chooses how the popup draws its rows. `rows = "leaders"`, the default, runs faint
-dots from each name to its directory; `rows = "stripes"` shades every other row instead:
+A `[pick]` table switches how the popup draws its rows. `leaders` runs faint dots from each name to
+its directory, and `stripes` shades every other row. Each is `true` or `false`, either or both can
+be on, and leaders on with stripes off is what you get without the table:
 
 ```toml
 [pick]
-rows = "stripes"
+leaders = true
+stripes = false
 ```
 
 `key` defaults to the label's first character lowercased, which is why `homelab` picks on `h` and
@@ -96,19 +98,19 @@ search` until `/` is pressed, then what has been typed, with how many workspaces
 right edge; until a letter is typed it hints `type to filter` after the cursor. Below a blank row
 come the workspaces, one per row: the key right-aligned in the terminal's bold blue, the name, in
 green when herdr already has that workspace open, and its directory in faint text in a column after
-the widest name offered, with dark leaders running across the gap or, with `rows = "stripes"`, every
-other row shaded instead. The selected row sits on a dark grey bar, the way fzf marks its current
-line. The workspace the popup opened from is left out, since there is nowhere to jump; its key puts
-`already in` and its name in red on the row above the legend until the next key; when herdr did not
-answer at all, a faint note says so on that row instead. The bottom row is a faint legend of the
-keys that move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the arrow keys move
-the bar, enter jumps to the row under it, and a list taller than the popup scrolls to keep that row
-in view. While searching, the key column goes blank and what is typed keeps only the workspaces
-whose labels hold those letters in that order, ignoring case, best match first, with the matched
-letters lit in bold blue: a run of the typed letters beats a scatter, an early match beats a late
-one and a short label beats a long one. The search field edits like herdr's own fields, with the
-keys below, and backspace on an empty search ends it. `esc`, ctrl-c and ctrl-g always close the
-popup without jumping. Outside a search, so does any key no workspace claims, `q` included.
+the widest name offered, with dark leaders running across the gap and, if switched on, every other
+row shaded. The selected row sits on a dark grey bar, the way fzf marks its current line. The
+workspace the popup opened from is left out, since there is nowhere to jump; its key puts `already
+in` and its name in red on the row above the legend until the next key; when herdr did not answer at
+all, a faint note says so on that row instead. The bottom row is a faint legend of the keys that
+move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the arrow keys move the bar,
+enter jumps to the row under it, and a list taller than the popup scrolls to keep that row in view.
+While searching, the key column goes blank and what is typed keeps only the workspaces whose labels
+hold those letters in that order, ignoring case, best match first, with the matched letters lit in
+bold blue: a run of the typed letters beats a scatter, an early match beats a late one and a short
+label beats a long one. The search field edits like herdr's own fields, with the keys below, and
+backspace on an empty search ends it. `esc`, ctrl-c and ctrl-g always close the popup without
+jumping. Outside a search, so does any key no workspace claims, `q` included.
 
 | Search keys | What they do |
 | --- | --- |
