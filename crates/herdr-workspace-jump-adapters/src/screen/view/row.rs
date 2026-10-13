@@ -1,11 +1,9 @@
-use super::layout::Layout;
+use super::layout::{LABEL_INDENT, Layout};
 use super::text::{Span, cut, pad, paint, room, span, width};
 use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR};
 use herdr_workspace_jump_domain::{Frame, Row};
 
 const KEY_COLUMN_WIDTH: usize = 4;
-const OPEN_MARK: &str = "  ● ";
-const NO_MARK: &str = "    ";
 
 pub(super) fn workspace_rows(
     frame: &Frame<'_>,
@@ -26,8 +24,11 @@ pub(super) fn workspace_rows(
 }
 
 fn workspace_row(row: &Row<'_>, searching: bool, layout: &Layout, width: usize) -> String {
-    let mut spans = vec![key_cell(row.target.pick_key, searching), mark(row.open)];
-    spans.extend(lit_name(&row.target.label, &row.matched));
+    let mut spans = vec![
+        key_cell(row.target.pick_key, searching),
+        span("", LABEL_INDENT),
+    ];
+    spans.extend(name(row));
     let mut spans = cut(pad(spans, layout.directory_start()), room(width, 0), "");
     let left = room(width, self::width(&spans));
     spans.extend(cut(
@@ -50,20 +51,18 @@ fn key_cell(key: char, searching: bool) -> Span {
     }
 }
 
-fn mark(open: bool) -> Span {
-    if open {
-        span(GREEN, OPEN_MARK)
-    } else {
-        span("", NO_MARK)
-    }
-}
-
-fn lit_name(label: &str, matched: &[usize]) -> Vec<Span> {
-    label
+fn name(row: &Row<'_>) -> Vec<Span> {
+    let plain = if row.open { GREEN } else { "" };
+    row.target
+        .label
         .chars()
         .enumerate()
         .map(|(at, character)| {
-            let style = if matched.contains(&at) { BOLD_BLUE } else { "" };
+            let style = if row.matched.contains(&at) {
+                BOLD_BLUE
+            } else {
+                plain
+            };
             span(style, character)
         })
         .collect()

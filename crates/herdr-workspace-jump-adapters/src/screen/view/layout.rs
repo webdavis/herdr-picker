@@ -3,9 +3,9 @@ use super::{ALREADY_CURRENT, MARGIN};
 use herdr_workspace_jump_domain::{JumpTarget, Legend};
 
 const KEY_COLUMN_WIDTH: usize = 4;
-const MARK_COLUMN_WIDTH: usize = 4;
+pub(super) const LABEL_INDENT: &str = "  ";
 const GAP_BEFORE_DIRECTORY: usize = 2;
-pub(super) const BEFORE_LABEL: usize = KEY_COLUMN_WIDTH + MARK_COLUMN_WIDTH;
+pub(super) const BEFORE_LABEL: usize = KEY_COLUMN_WIDTH + LABEL_INDENT.len();
 
 #[derive(Clone, Copy, Debug)]
 pub struct Layout {
