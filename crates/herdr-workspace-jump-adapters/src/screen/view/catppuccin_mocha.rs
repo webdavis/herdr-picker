@@ -1,0 +1,8 @@
+pub(super) const KEY: &str = "\x1b[1;38;2;137;180;250m";
+pub(super) const MATCHED: &str = KEY;
+pub(super) const OPEN: &str = "\x1b[38;2;166;227;161m";
+pub(super) const FAINT: &str = "\x1b[38;2;127;132;156m";
+pub(super) const LEADER: &str = "\x1b[38;2;69;71;90m";
+pub(super) const STRIPE: &str = "\x1b[48;2;33;33;52m";
+pub(super) const BAR: &str = "\x1b[48;2;54;54;70m";
+pub(super) const REFUSAL: &str = "\x1b[38;2;243;139;168m";

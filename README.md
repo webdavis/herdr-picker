@@ -96,15 +96,17 @@ command = "herdr-workspace-jump.last_workspace"
 `pick` is laid out so nothing moves while you use it. The top row is the search prompt, a faint `/
 search` until `/` is pressed, then what has been typed, with how many workspaces it kept at the
 right edge; until a letter is typed it hints `type to filter` after the cursor. Below a blank row
-come the workspaces, one per row: the key right-aligned in the terminal's bold blue, the name, in
+come the workspaces, one per row: the key right-aligned in bold blue, the name, in
 green when herdr already has that workspace open, and its directory in faint text in a column after
 the widest name offered, and, if switched on, leaders running across the gap or every other row
 shaded. The selected row sits on a dark grey bar, the way fzf marks its current line. The
 workspace the popup opened from is left out, since there is nowhere to jump; its key puts `already
 in` and its name in red on the row above the legend until the next key; when herdr did not answer at
 all, a faint note says so on that row instead. The bottom row is a faint legend of the keys that
-move. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the arrow keys move the bar,
-enter jumps to the row under it, and a list taller than the popup scrolls to keep that row in view.
+move. The popup draws in Catppuccin Mocha whatever the terminal's own colors are, so its shades of
+grey are the same everywhere. A workspace's key jumps to it at once. `ctrl+n`, `ctrl+p` and the
+arrow keys move the bar, enter jumps to the row under it, and a list taller than the popup scrolls
+to keep that row in view.
 While searching, the key column goes blank and what is typed keeps only the workspaces whose labels
 hold those letters in that order, ignoring case, best match first, with the matched letters lit in
 bold blue: a run of the typed letters beats a scatter, an early match beats a late one and a short
@@ -184,6 +186,9 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
   domain's `popup_size` gives for the host's window and the columns
   `TerminalScreen::columns_to_fit` measures. `SocketPopupHost` is the host in use, over herdr's
   socket.
+
+The colors are the `catppuccin_mocha` module beside the view, one constant per role; another theme
+is a pull request adding a module like it.
 
 ## License
 

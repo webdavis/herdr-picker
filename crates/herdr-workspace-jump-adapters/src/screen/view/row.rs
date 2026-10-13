@@ -1,6 +1,6 @@
+use super::catppuccin_mocha::{BAR, FAINT, KEY, LEADER, MATCHED, OPEN, STRIPE};
 use super::layout::{BEFORE_LABEL, LABEL_INDENT, Layout};
 use super::text::{Span, cut, pad, paint, room, span, width, width_of};
-use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR, LEADER, STRIPE};
 use herdr_workspace_jump_domain::{Frame, Row, RowLook};
 
 const KEY_COLUMN_WIDTH: usize = 4;
@@ -59,7 +59,7 @@ fn workspace_row(
 
 fn background(selected: bool, index: usize, look: RowLook) -> &'static str {
     if selected {
-        GREY_BAR
+        BAR
     } else if look.stripes && index % 2 == 1 {
         STRIPE
     } else {
@@ -80,19 +80,19 @@ fn key_cell(key: char, searching: bool) -> Span {
     if searching {
         span("", format!("{:>KEY_COLUMN_WIDTH$}", ""))
     } else {
-        span(BOLD_BLUE, format!("{key:>KEY_COLUMN_WIDTH$}"))
+        span(KEY, format!("{key:>KEY_COLUMN_WIDTH$}"))
     }
 }
 
 fn name(row: &Row<'_>) -> Vec<Span> {
-    let plain = if row.open { GREEN } else { "" };
+    let plain = if row.open { OPEN } else { "" };
     row.target
         .label
         .chars()
         .enumerate()
         .map(|(at, character)| {
             let style = if row.matched.contains(&at) {
-                BOLD_BLUE
+                MATCHED
             } else {
                 plain
             };
