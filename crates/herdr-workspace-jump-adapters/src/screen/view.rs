@@ -31,11 +31,15 @@ pub(super) fn render(
     frame: &Frame<'_>,
     legend: Legend,
     columns: Columns,
+    notice: Option<&str>,
     width: usize,
     height: usize,
 ) -> String {
     let above = [prompt_row(frame, legend, width), String::new()];
-    let below = [refusal_row(frame, width), faint_line(legend.keys, width)];
+    let below = [
+        message_row(frame, notice, width),
+        faint_line(legend.keys, width),
+    ];
     let room = height
         .checked_sub(above.len() + below.len())
         .unwrap_or(frame.rows.len());
@@ -68,13 +72,14 @@ fn refusal_text(label: &str) -> String {
     format!("{ALREADY_CURRENT}{label}")
 }
 
-fn refusal_row(frame: &Frame<'_>, width: usize) -> String {
-    match frame.refusal {
-        Some(Refusal::AlreadyCurrent(target)) => {
+fn message_row(frame: &Frame<'_>, notice: Option<&str>, width: usize) -> String {
+    match (frame.refusal, notice) {
+        (Some(Refusal::AlreadyCurrent(target)), _) => {
             let text = fit(&refusal_text(&target.label), room(width, MARGIN.len()));
             format!("{RED}{MARGIN}{text}{RESET}")
         }
-        None => String::new(),
+        (None, Some(notice)) => faint_line(notice, width),
+        (None, None) => String::new(),
     }
 }
 

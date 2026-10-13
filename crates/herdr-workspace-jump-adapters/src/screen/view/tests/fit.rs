@@ -20,7 +20,7 @@ fn at_the_columns_to_fit_every_label_shows_whole_and_the_directories_give_way() 
     let workspaces = three_workspaces();
     let width = columns_to_fit(&workspaces, LEGEND);
 
-    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), width, 0);
+    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), None, width, 0);
 
     for workspace in &workspaces {
         assert!(
@@ -36,7 +36,7 @@ fn at_the_columns_to_fit_every_label_shows_whole_and_the_directories_give_way() 
 fn a_popup_wider_than_the_columns_to_fit_shows_the_directories_whole() {
     let workspaces = three_workspaces();
 
-    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), 31, 0);
+    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), None, 31, 0);
 
     assert!(!drawn.contains(ELLIPSIS), "{drawn:?}");
     for workspace in &workspaces {
@@ -54,7 +54,7 @@ fn one_column_fewer_cuts_the_widest_row() {
     let workspaces = three_workspaces();
     let width = columns_to_fit(&workspaces, LEGEND) - 1;
 
-    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), width, 0);
+    let drawn = render(&browsing(&workspaces, 2), LEGEND, columns(), None, width, 0);
 
     assert!(drawn.contains(ELLIPSIS), "{drawn:?}");
 }
@@ -65,7 +65,14 @@ fn at_the_columns_to_fit_every_refusal_shows_whole() {
     let width = columns_to_fit(&workspaces, LEGEND);
 
     for current in &workspaces {
-        let drawn = render(&refused(&workspaces, current), LEGEND, columns(), width, 0);
+        let drawn = render(
+            &refused(&workspaces, current),
+            LEGEND,
+            columns(),
+            None,
+            width,
+            0,
+        );
 
         assert!(
             drawn.contains(&format!("already in {}\x1b", current.label)),

@@ -17,15 +17,17 @@ pub struct TerminalScreen<W: Write> {
     size: fn() -> (usize, usize),
     legend: Legend,
     columns: Columns,
+    notice: Option<&'static str>,
 }
 
 impl TerminalScreen<io::Stdout> {
-    pub fn stdout(legend: Legend, targets: &[JumpTarget]) -> Self {
+    pub fn stdout(legend: Legend, targets: &[JumpTarget], notice: Option<&'static str>) -> Self {
         Self::new(
             io::stdout(),
             terminal_size,
             legend,
             Columns::for_targets(targets),
+            notice,
         )
     }
 
@@ -35,12 +37,19 @@ impl TerminalScreen<io::Stdout> {
 }
 
 impl<W: Write> TerminalScreen<W> {
-    fn new(out: W, size: fn() -> (usize, usize), legend: Legend, columns: Columns) -> Self {
+    fn new(
+        out: W,
+        size: fn() -> (usize, usize),
+        legend: Legend,
+        columns: Columns,
+        notice: Option<&'static str>,
+    ) -> Self {
         Self {
             out,
             size,
             legend,
             columns,
+            notice,
         }
     }
 }
@@ -48,7 +57,7 @@ impl<W: Write> TerminalScreen<W> {
 impl<W: Write> Screen for TerminalScreen<W> {
     fn show(&mut self, frame: &Frame<'_>) -> io::Result<()> {
         let (width, height) = (self.size)();
-        let drawn = view::render(frame, self.legend, self.columns, width, height);
+        let drawn = view::render(frame, self.legend, self.columns, self.notice, width, height);
         let prompt_cursor = if frame.search.is_some() {
             SHOW_CURSOR
         } else {

@@ -5,16 +5,14 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, read_jump_targets, spawn_detached,
-    wait_for_process_exit,
+    SocketWorkspaceDirectory, TerminalKeys, TerminalScreen, spawn_detached, wait_for_process_exit,
 };
-use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
+use herdr_workspace_jump_application::{JumpError, WorkspaceDirectory, pick};
 use herdr_workspace_jump_domain::{
     Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap, Workspace,
 };
-use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 
-use crate::command::{CommandError, config_path, failed, spawned_jump_log_path};
+use crate::command::{CommandError, failed, spawned_jump_log_path};
 
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
@@ -22,18 +20,25 @@ const LIVE_WORKSPACES_LOOKUP_CAP: Duration = Duration::from_secs(1);
 
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
-pub(crate) fn run() -> Result<(), CommandError> {
-    let targets = read_jump_targets(&config_path()).map_err(failed)?;
-    let live = live_workspaces();
-    let active = env::var(ACTIVE_WORKSPACE_VARIABLE).ok();
+const HERDR_DID_NOT_ANSWER: &str = "herdr did not answer, so open workspaces are not marked";
+
+pub(crate) fn run(
+    socket_path: Option<String>,
+    active_id: Option<String>,
+    targets: &[JumpTarget],
+) -> Result<(), CommandError> {
+    let (live, notice) = match live_workspaces(socket_path.as_deref()) {
+        Ok(live) => (live, None),
+        Err(_) => (Vec::new(), Some(HERDR_DID_NOT_ANSWER)),
+    };
     let menu = Menu::new(
-        &targets,
+        targets,
         &live,
-        active.as_deref(),
+        active_id.as_deref(),
         Fuzzy,
         ReadlineField::default(),
     );
-    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND, &targets);
+    let mut screen = TerminalScreen::stdout(ReadlineKeymap::LEGEND, targets, notice);
     match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))
@@ -42,13 +47,11 @@ pub(crate) fn run() -> Result<(), CommandError> {
     }
 }
 
-fn live_workspaces() -> Vec<Workspace> {
-    let Ok(socket) = env::var("HERDR_SOCKET_PATH") else {
-        return Vec::new();
-    };
-    SocketWorkspaceDirectory::at(Path::new(&socket), LIVE_WORKSPACES_LOOKUP_CAP)
-        .list()
-        .unwrap_or_default()
+fn live_workspaces(socket_path: Option<&str>) -> Result<Vec<Workspace>, JumpError> {
+    let socket = socket_path
+        .filter(|path| !path.is_empty())
+        .ok_or_else(|| JumpError::Unreachable("HERDR_SOCKET_PATH is unset".to_string()))?;
+    SocketWorkspaceDirectory::at(Path::new(socket), LIVE_WORKSPACES_LOOKUP_CAP).list()
 }
 
 fn spawn_jump(
@@ -73,6 +76,37 @@ pub(crate) fn wait_for_spawner(pid: u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::socket_server::{Reply, SocketServer};
+
+    const LIST: &str =
+        r#"{"id":"req_1","result":{"workspaces":[{"workspace_id":"w11","label":"dotfiles"}]}}"#;
+
+    #[test]
+    fn the_live_workspaces_come_from_herdr_over_the_socket() {
+        let server = SocketServer::start(vec![Reply::Line(LIST.to_string())]);
+
+        let live = live_workspaces(Some(&server.path.to_string_lossy()));
+
+        assert_eq!(
+            live,
+            Ok(vec![Workspace {
+                workspace_id: "w11".to_string(),
+                label: "dotfiles".to_string(),
+            }])
+        );
+    }
+
+    #[test]
+    fn an_unset_or_dead_socket_is_reported_rather_than_read_as_nothing_open() {
+        let unset = live_workspaces(None);
+        let dead = live_workspaces(Some("/nonexistent/hwj.sock"));
+
+        assert!(
+            matches!(&unset, Err(JumpError::Unreachable(reason)) if reason.contains("HERDR_SOCKET_PATH")),
+            "{unset:?}"
+        );
+        assert!(dead.is_err(), "{dead:?}");
+    }
 
     fn target() -> JumpTarget {
         JumpTarget {

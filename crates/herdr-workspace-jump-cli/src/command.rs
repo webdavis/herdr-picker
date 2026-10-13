@@ -5,6 +5,7 @@ use herdr_workspace_jump_adapters::{
     FileWorkspaceHistory, config_file, mru_file, read_jump_targets, spawned_jump_log_file,
 };
 use herdr_workspace_jump_application::record;
+use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 use herdr_workspace_jump_protocol::parse_focused_id;
 
 use crate::{generate, last_workspace, path::expand_tilde, pick, popup, run};
@@ -70,7 +71,11 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             pick::wait_for_spawner(spawner.parse().map_err(|_| CommandError::Usage)?);
             jump_to(label, raw_cwd)
         }
-        ["pick"] => pick::run(),
+        ["pick"] => pick::run(
+            env::var("HERDR_SOCKET_PATH").ok(),
+            env::var(ACTIVE_WORKSPACE_VARIABLE).ok(),
+            &read_jump_targets(&config_path()).map_err(failed)?,
+        ),
         ["popup"] => popup::run(
             env::var("HERDR_SOCKET_PATH").ok(),
             env::var("HERDR_PLUGIN_ID").ok(),

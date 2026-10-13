@@ -7,7 +7,7 @@ fn a_workspace_herdr_has_open_wears_a_green_dot_before_its_name_on_a_plain_row_a
     frame.rows[0].open = true;
     frame.rows[1].open = true;
 
-    let drawn = render(&frame, LEGEND, columns(), 0, 0);
+    let drawn = render(&frame, LEGEND, columns(), None, 0, 0);
 
     assert_eq!(
         drawn.lines().nth(2),
@@ -32,7 +32,7 @@ fn the_dot_column_stays_while_a_search_blanks_the_keys() {
     frame.rows[1].open = true;
 
     assert_eq!(
-        visible_rows(&render(&frame, LEGEND, columns(), 0, 0))[1..3],
+        visible_rows(&render(&frame, LEGEND, columns(), None, 0, 0))[1..3],
         ["homelab   /opt/homelab", "● dotfiles  /opt/dotfiles"]
     );
 }
