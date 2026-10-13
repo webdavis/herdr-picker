@@ -12,7 +12,7 @@ mod search;
 mod stripes;
 mod width;
 
-const LEGEND_ROW: &str = "\x1b[2m the keys\x1b[0m";
+const LEGEND_ROW: &str = "\x1b[38;2;127;132;156m the keys\x1b[0m";
 
 fn visible_rows(drawn: &str) -> Vec<String> {
     drawn

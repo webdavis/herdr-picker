@@ -1,20 +1,15 @@
 use herdr_workspace_jump_domain::{Frame, Legend, Refusal, SearchLine};
 
+mod catppuccin_mocha;
 mod layout;
 mod row;
 mod text;
 
+use catppuccin_mocha::{FAINT, REFUSAL};
 pub use layout::Layout;
 use row::workspace_rows;
 use text::{fit, paint, room, span, width_of};
 
-const BOLD_BLUE: &str = "\x1b[1;34m";
-const FAINT: &str = "\x1b[2m";
-const GREEN: &str = "\x1b[32m";
-const GREY_BAR: &str = "\x1b[48;5;236m";
-const LEADER: &str = "\x1b[38;5;239m";
-const STRIPE: &str = "\x1b[48;5;235m";
-const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 
 const MARGIN: &str = " ";
@@ -52,7 +47,7 @@ fn message_row(frame: &Frame<'_>, notice: Option<&str>, width: usize) -> String 
     match (frame.refusal, notice) {
         (Some(Refusal::AlreadyCurrent(target)), _) => {
             let text = fit(&refusal_text(&target.label), room(width, MARGIN.len()));
-            format!("{RED}{MARGIN}{text}{RESET}")
+            format!("{REFUSAL}{MARGIN}{text}{RESET}")
         }
         (None, Some(notice)) => faint_line(notice, width),
         (None, None) => String::new(),

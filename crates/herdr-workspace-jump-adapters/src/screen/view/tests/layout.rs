@@ -8,11 +8,11 @@ fn a_frame_is_the_hint_a_blank_every_row_with_its_directory_and_a_bar_on_the_sel
     assert_eq!(
         render(&browsing(&workspaces, 0), &layout(), 32, 0),
         format!(
-            "\x1b[2m / find\x1b[0m\n\
+            "\x1b[38;2;127;132;156m / find\x1b[0m\n\
              \n\
-             \x1b[48;5;236m\x1b[1;34m   i\x1b[22;39m  Ivy        \x1b[2m/opt/Ivy\x1b[22;39m       \x1b[0m\n\
-             \x1b[1;34m   h\x1b[22;39m  homelab    \x1b[2m/opt/homelab\x1b[22;39m\n\
-             \x1b[1;34m   f\x1b[22;39m  dotfiles   \x1b[2m/opt/dotfiles\x1b[22;39m\n\
+             \x1b[48;2;54;54;70m\x1b[1;38;2;137;180;250m   i\x1b[22;39m  Ivy        \x1b[38;2;127;132;156m/opt/Ivy\x1b[22;39m       \x1b[0m\n\
+             \x1b[1;38;2;137;180;250m   h\x1b[22;39m  homelab    \x1b[38;2;127;132;156m/opt/homelab\x1b[22;39m\n\
+             \x1b[1;38;2;137;180;250m   f\x1b[22;39m  dotfiles   \x1b[38;2;127;132;156m/opt/dotfiles\x1b[22;39m\n\
              \n\
              {LEGEND_ROW}"
         )
@@ -71,7 +71,7 @@ fn a_list_taller_than_its_space_scrolls_to_keep_the_bar_in_view() {
         ]
     );
     assert!(
-        scrolled.contains("\x1b[48;5;236m\x1b[1;34m   f"),
+        scrolled.contains("\x1b[48;2;54;54;70m\x1b[1;38;2;137;180;250m   f"),
         "the bar did not follow the selected row"
     );
 }
