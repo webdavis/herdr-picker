@@ -44,14 +44,14 @@ Ivy = { dir = "~/workspaces/Ivy", key = "v" }
 
 A leading `~` is expanded when the jump runs, so it can stay in the file.
 
-A `[pick]` table switches how the popup draws its rows. `leaders` runs faint dots from each name to
-its directory, and `stripes` shades every other row. Each is `true` or `false`, either or both can
-be on, and leaders on with stripes off is what you get without the table:
+A `[pick]` table switches on two ways of drawing the rows, both off without it. `leaders` runs faint
+dots from each name to its directory, and `stripes` shades every other row. Each is `true` or
+`false`, and either or both can be on:
 
 ```toml
 [pick]
 leaders = true
-stripes = false
+stripes = true
 ```
 
 `key` defaults to the label's first character lowercased, which is why `homelab` picks on `h` and
@@ -98,8 +98,8 @@ search` until `/` is pressed, then what has been typed, with how many workspaces
 right edge; until a letter is typed it hints `type to filter` after the cursor. Below a blank row
 come the workspaces, one per row: the key right-aligned in the terminal's bold blue, the name, in
 green when herdr already has that workspace open, and its directory in faint text in a column after
-the widest name offered, with dark leaders running across the gap and, if switched on, every other
-row shaded. The selected row sits on a dark grey bar, the way fzf marks its current line. The
+the widest name offered, and, if switched on, leaders running across the gap or every other row
+shaded. The selected row sits on a dark grey bar, the way fzf marks its current line. The
 workspace the popup opened from is left out, since there is nowhere to jump; its key puts `already
 in` and its name in red on the row above the legend until the next key; when herdr did not answer at
 all, a faint note says so on that row instead. The bottom row is a faint legend of the keys that

@@ -22,26 +22,13 @@ struct ConfigFile {
     pick: PickTable,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 struct PickTable {
-    #[serde(default = "on")]
+    #[serde(default)]
     leaders: bool,
     #[serde(default)]
     stripes: bool,
-}
-
-impl Default for PickTable {
-    fn default() -> Self {
-        Self {
-            leaders: on(),
-            stripes: false,
-        }
-    }
-}
-
-fn on() -> bool {
-    true
 }
 
 impl From<PickTable> for RowLook {
