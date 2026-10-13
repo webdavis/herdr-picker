@@ -49,7 +49,7 @@ fn refusal_for(name: &str, content: &str) -> (ConfigError, String) {
 }
 
 #[test]
-fn leaders_are_on_and_stripes_off_unless_a_pick_table_switches_either() {
+fn leaders_and_stripes_are_off_unless_a_pick_table_switches_either_on() {
     let sandbox = TempDirectory::new("look");
     let look_of = |pick: &str| {
         read_config(&sandbox.write(&format!("{pick}{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}")))
@@ -57,25 +57,31 @@ fn leaders_are_on_and_stripes_off_unless_a_pick_table_switches_either() {
             .look
     };
 
-    assert_eq!(look_of(""), RowLook::default());
     assert_eq!(
-        look_of("[pick]\nstripes = true\n"),
-        RowLook {
-            leaders: true,
-            stripes: true
-        }
-    );
-    assert_eq!(
-        look_of("[pick]\nleaders = false\n"),
+        look_of(""),
         RowLook {
             leaders: false,
             stripes: false
         }
     );
     assert_eq!(
-        look_of("[pick]\nleaders = false\nstripes = true\n"),
+        look_of("[pick]\nleaders = true\n"),
+        RowLook {
+            leaders: true,
+            stripes: false
+        }
+    );
+    assert_eq!(
+        look_of("[pick]\nstripes = true\n"),
         RowLook {
             leaders: false,
+            stripes: true
+        }
+    );
+    assert_eq!(
+        look_of("[pick]\nleaders = true\nstripes = true\n"),
+        RowLook {
+            leaders: true,
             stripes: true
         }
     );
