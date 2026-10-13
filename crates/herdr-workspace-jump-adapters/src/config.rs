@@ -20,12 +20,12 @@ pub struct PluginConfig {
 struct ConfigFile {
     workspaces: BTreeMap<String, Declaration>,
     #[serde(default)]
-    pick: PickTable,
+    picker: PickerTable,
 }
 
 #[derive(Deserialize, Default)]
 #[serde(deny_unknown_fields)]
-struct PickTable {
+struct PickerTable {
     #[serde(default)]
     leaders: bool,
     #[serde(default)]
@@ -157,11 +157,11 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
         path: path.to_owned(),
         cause,
     })?;
-    let PickTable {
+    let PickerTable {
         leaders,
         stripes,
         theme,
-    } = file.pick;
+    } = file.picker;
     Ok(PluginConfig {
         targets,
         look: RowLook { leaders, stripes },

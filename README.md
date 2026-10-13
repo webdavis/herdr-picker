@@ -44,13 +44,13 @@ Ivy = { dir = "~/workspaces/Ivy", key = "v" }
 
 A leading `~` is expanded when the jump runs, so it can stay in the file.
 
-A `[pick]` table switches on two ways of drawing the rows, both off without it. `leaders` runs faint
-dots from each name to its directory, and `stripes` shades every other row. Each is `true` or
+A `[picker]` table switches on two ways of drawing the rows, both off without it. `leaders` runs
+faint dots from each name to its directory, and `stripes` shades every other row. Each is `true` or
 `false`, and either or both can be on. `theme` names the popup's colors; `catppuccin-mocha` is the
 only one so far and the default:
 
 ```toml
-[pick]
+[picker]
 leaders = true
 stripes = true
 theme = "catppuccin-mocha"
@@ -169,7 +169,7 @@ before it asks herdr for anything, and gives up waiting after two seconds.
 `just preview` builds the plugin and opens the picker in a throwaway herdr with your theme and
 workspaces, so a change is seen in a real popup before it ships. Run it from a herdr pane. `ctrl+x
 ctrl+o` reopens the popup; `exit` or `ctrl+x q` leaves. Your real config and registry are only read;
-everything it writes goes under `target/`. `just preview --stripes` turns a `[pick]` switch on
+everything it writes goes under `target/`. `just preview --stripes` turns a `[picker]` switch on
 without changing your config.
 
 The pick popup is put together from parts that each sit behind a trait, so each is tested alone with
@@ -190,7 +190,7 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
   socket.
 
 The colors are one `Palette` per theme in `palette.rs` beside the view. Another theme is a pull
-request adding a palette there, its name to the domain's `Theme`, and its `[pick]` value.
+request adding a palette there, its name to the domain's `Theme`, and its `[picker]` value.
 
 ## License
 

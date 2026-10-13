@@ -1,6 +1,6 @@
 use super::*;
 
-mod pick;
+mod picker;
 
 #[test]
 fn read_config_refuses_a_missing_file() {
