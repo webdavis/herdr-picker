@@ -1,4 +1,5 @@
 use super::*;
+use crate::cli_command::spawning;
 use std::path::PathBuf;
 
 use herdr_workspace_jump_adapters::FileWorkspaceHistory;
@@ -23,6 +24,7 @@ fn fixture(answer: bool) -> (SocketServer, RecordedCli, FileWorkspaceHistory) {
 
 #[test]
 fn a_lost_focus_reply_retries_the_same_toggle_target_after_record_changes() {
+    let _spawning = spawning();
     let (server, fake, mut history) = fixture(false);
     assert_eq!(
         history.read(),
@@ -54,6 +56,7 @@ fn a_lost_focus_reply_retries_the_same_toggle_target_after_record_changes() {
 
 #[test]
 fn an_acknowledged_toggle_records_focus_without_trying_the_cli() {
+    let _spawning = spawning();
     let (server, _fake, mut history) = fixture(true);
     assert_eq!(
         run(

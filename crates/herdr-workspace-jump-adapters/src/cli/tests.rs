@@ -1,5 +1,6 @@
 use super::*;
 use crate::cli_command::RecordedCli;
+use crate::cli_command::spawning;
 
 fn a_herdr_that_died_before_answering() -> CliWorkspaceDirectory {
     CliWorkspaceDirectory::using(Some("false".to_string()))
@@ -15,6 +16,7 @@ fn a_herdr_that_acknowledges_silently() -> CliWorkspaceDirectory {
 
 #[test]
 fn using_prefers_the_injected_path_and_falls_back_to_the_bare_name() {
+    let _spawning = spawning();
     assert_eq!(
         CliWorkspaceDirectory::using(Some("/opt/herdr".to_string())).binary,
         "/opt/herdr"
@@ -28,6 +30,7 @@ fn using_prefers_the_injected_path_and_falls_back_to_the_bare_name() {
 
 #[test]
 fn a_binary_that_cannot_be_spawned_is_unreachable() {
+    let _spawning = spawning();
     let mut directory = CliWorkspaceDirectory::using(Some("/nonexistent/herdr-binary".to_string()));
 
     assert!(matches!(directory.list(), Err(JumpError::Unreachable(_))));
@@ -35,6 +38,7 @@ fn a_binary_that_cannot_be_spawned_is_unreachable() {
 
 #[test]
 fn a_non_zero_exit_with_no_envelope_is_a_transport_failure() {
+    let _spawning = spawning();
     let mut directory = a_herdr_that_died_before_answering();
 
     assert!(matches!(directory.list(), Err(JumpError::Transport(_))));
@@ -42,6 +46,7 @@ fn a_non_zero_exit_with_no_envelope_is_a_transport_failure() {
 
 #[test]
 fn an_error_envelope_is_reported_even_when_the_command_exits_zero() {
+    let _spawning = spawning();
     let failure = a_herdr_that_answers_with_its_arguments()
         .run(&[r#"{"error":{"code":"not_found","message":"gone"}}"#]);
 
@@ -56,6 +61,7 @@ fn an_error_envelope_is_reported_even_when_the_command_exits_zero() {
 
 #[test]
 fn a_silent_successful_cli_acknowledgment_is_accepted() {
+    let _spawning = spawning();
     assert_eq!(
         a_herdr_that_acknowledges_silently().run(&["workspace", "focus", "wA"]),
         Ok(json!({}))
@@ -64,6 +70,7 @@ fn a_silent_successful_cli_acknowledgment_is_accepted() {
 
 #[test]
 fn a_successful_envelope_is_parsed_into_workspaces() {
+    let _spawning = spawning();
     let replayed = a_herdr_that_answers_with_its_arguments()
         .run(&[r#"{"result":{"workspaces":[{"workspace_id":"wA","label":"netpulse"}]}}"#]);
 
@@ -82,6 +89,7 @@ fn a_successful_envelope_is_parsed_into_workspaces() {
 
 #[test]
 fn list_executes_the_actual_cli_and_maps_its_workspace_records() {
+    let _spawning = spawning();
     let fake = RecordedCli::answering(
         r#"{"result":{"workspaces":[{"workspace_id":"wA","label":"Ivy vault "}]}}"#,
         "",
@@ -100,6 +108,7 @@ fn list_executes_the_actual_cli_and_maps_its_workspace_records() {
 
 #[test]
 fn focus_executes_the_actual_cli_with_the_exact_workspace_id() {
+    let _spawning = spawning();
     let fake = RecordedCli::answering("", "");
     let mut directory = CliWorkspaceDirectory::using(Some(fake.binary.clone()));
 
@@ -109,6 +118,7 @@ fn focus_executes_the_actual_cli_with_the_exact_workspace_id() {
 
 #[test]
 fn create_executes_the_actual_cli_with_distinct_cwd_label_and_focus_arguments() {
+    let _spawning = spawning();
     let fake = RecordedCli::answering("", "");
     let mut directory = CliWorkspaceDirectory::using(Some(fake.binary.clone()));
 
