@@ -75,7 +75,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
                 target: hit.item.target,
                 selected: row == self.selected_row,
                 open: hit.item.open,
-                matched: hit.positions,
+                matched: hit.matched,
             })
             .collect();
         Frame {
@@ -151,7 +151,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
                 .iter()
                 .map(|item| Match {
                     item,
-                    positions: Vec::new(),
+                    matched: Vec::new(),
                 })
                 .collect()
         }

@@ -5,8 +5,8 @@ use herdr_workspace_jump_adapters::{
     FileWorkspaceHistory, config_file, mru_file, read_jump_targets, spawned_jump_log_file,
 };
 use herdr_workspace_jump_application::record;
-use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 use herdr_workspace_jump_protocol::parse_focused_id;
+use herdr_workspace_jump_protocol::{ACTIVE_WORKSPACE_VARIABLE, SOCKET_PATH_VARIABLE};
 
 use crate::{generate, last_workspace, path::expand_tilde, pick, popup, run};
 
@@ -54,7 +54,7 @@ fn jump_to(label: &str, raw_cwd: &str) -> Result<(), CommandError> {
     let cwd =
         expand_tilde(raw_cwd, env::var("HOME").ok().as_deref()).map_err(CommandError::Failed)?;
     run::run(
-        env::var("HERDR_SOCKET_PATH").ok(),
+        env::var(SOCKET_PATH_VARIABLE).ok(),
         env::var("HERDR_BIN_PATH").ok(),
         label,
         &cwd.to_string_lossy(),
@@ -72,18 +72,18 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             jump_to(label, raw_cwd)
         }
         ["pick"] => pick::run(
-            env::var("HERDR_SOCKET_PATH").ok(),
+            env::var(SOCKET_PATH_VARIABLE).ok(),
             env::var(ACTIVE_WORKSPACE_VARIABLE).ok(),
             &read_jump_targets(&config_path()).map_err(failed)?,
         ),
         ["popup"] => popup::run(
-            env::var("HERDR_SOCKET_PATH").ok(),
+            env::var(SOCKET_PATH_VARIABLE).ok(),
             env::var("HERDR_PLUGIN_ID").ok(),
             env::var("HERDR_WORKSPACE_ID").ok(),
             &read_jump_targets(&config_path()).map_err(failed)?,
         ),
         ["last-workspace"] => last_workspace::run(
-            env::var("HERDR_SOCKET_PATH").ok(),
+            env::var(SOCKET_PATH_VARIABLE).ok(),
             env::var("HERDR_BIN_PATH").ok(),
             &mut FileWorkspaceHistory::at(&mru_path()),
         )

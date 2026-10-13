@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Match<'t, T> {
     pub item: &'t T,
-    pub positions: Vec<usize>,
+    pub matched: Vec<usize>,
 }
 
 pub trait Matcher {
@@ -29,7 +29,7 @@ impl Matcher for Fuzzy {
             .collect();
         hits.sort_by_key(|((score, _), _)| *score);
         hits.into_iter()
-            .map(|((_, positions), item)| Match { item, positions })
+            .map(|((_, matched), item)| Match { item, matched })
             .collect()
     }
 }

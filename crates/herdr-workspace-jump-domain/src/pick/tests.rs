@@ -16,7 +16,7 @@ fn targets(declarations: Vec<(&str, Option<&str>)>) -> Vec<JumpTarget> {
     jump_targets(declared).expect("well formed workspaces")
 }
 
-fn open(labels: &[&str]) -> Vec<Workspace> {
+fn herdr_has(labels: &[&str]) -> Vec<Workspace> {
     labels
         .iter()
         .map(|label| Workspace {
@@ -50,7 +50,7 @@ impl Matcher for Contains {
                 let start = label[..label.find(query)?].chars().count();
                 Some(Match {
                     item,
-                    positions: (start..start + query.chars().count()).collect(),
+                    matched: (start..start + query.chars().count()).collect(),
                 })
             })
             .collect()
@@ -66,7 +66,7 @@ impl Matcher for Reversed {
             .rev()
             .map(|item| Match {
                 item,
-                positions: Vec::new(),
+                matched: Vec::new(),
             })
             .collect()
     }

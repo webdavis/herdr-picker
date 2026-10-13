@@ -3,6 +3,7 @@ use std::path::Path;
 use herdr_workspace_jump_adapters::{CliWorkspaceDirectory, DEADLINE, SocketWorkspaceDirectory};
 use herdr_workspace_jump_application::{JumpError, jump};
 use herdr_workspace_jump_domain::Jump;
+use herdr_workspace_jump_protocol::SOCKET_PATH_VARIABLE;
 
 pub(crate) fn run(
     socket_path: Option<String>,
@@ -12,9 +13,9 @@ pub(crate) fn run(
 ) -> Result<Jump, JumpError> {
     let over_socket = match socket_path.filter(|path| !path.is_empty()) {
         Some(path) => attempt_socket(Path::new(&path), label, cwd),
-        None => Err(JumpError::Unreachable(
-            "HERDR_SOCKET_PATH is unset".to_string(),
-        )),
+        None => Err(JumpError::Unreachable(format!(
+            "{SOCKET_PATH_VARIABLE} is unset"
+        ))),
     };
     let socket_failure = match over_socket {
         Ok(outcome) => return Ok(outcome),

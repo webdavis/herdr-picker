@@ -14,6 +14,7 @@ use herdr_workspace_jump_domain::{
 };
 
 use crate::command::{CommandError, failed, spawned_jump_log_path};
+use herdr_workspace_jump_protocol::SOCKET_PATH_VARIABLE;
 
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
@@ -52,7 +53,7 @@ pub(crate) fn run(
 fn live_workspaces(socket_path: Option<&str>) -> Result<Vec<Workspace>, JumpError> {
     let socket = socket_path
         .filter(|path| !path.is_empty())
-        .ok_or_else(|| JumpError::Unreachable("HERDR_SOCKET_PATH is unset".to_string()))?;
+        .ok_or_else(|| JumpError::Unreachable(format!("{SOCKET_PATH_VARIABLE} is unset")))?;
     SocketWorkspaceDirectory::at(Path::new(socket), LIVE_WORKSPACES_LOOKUP_CAP).list()
 }
 
@@ -104,7 +105,7 @@ mod tests {
         let dead = live_workspaces(Some("/nonexistent/hwj.sock"));
 
         assert!(
-            matches!(&unset, Err(JumpError::Unreachable(reason)) if reason.contains("HERDR_SOCKET_PATH")),
+            matches!(&unset, Err(JumpError::Unreachable(reason)) if reason.contains(SOCKET_PATH_VARIABLE)),
             "{unset:?}"
         );
         assert!(dead.is_err(), "{dead:?}");

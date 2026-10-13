@@ -64,11 +64,17 @@ fn prompt_row(frame: &Frame<'_>, legend: Legend, width: usize) -> String {
     let typed = format!("{SEARCH_PROMPT}{}", search.text);
     let count = format!("{}/{}{MARGIN}", frame.rows.len(), frame.total);
     let hint = if search.text.is_empty() {
-        let left = width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT;
-        fit(TYPE_TO_FILTER, room(width, left))
+        TYPE_TO_FILTER
     } else {
-        String::new()
+        ""
     };
+    let hint = fit(
+        hint,
+        room(
+            width,
+            width_of(&typed) + width_of(&count) + MIN_GAP_BEFORE_COUNT,
+        ),
+    );
     let gap = width
         .saturating_sub(width_of(&typed) + width_of(&hint) + width_of(&count))
         .max(MIN_GAP_BEFORE_COUNT);

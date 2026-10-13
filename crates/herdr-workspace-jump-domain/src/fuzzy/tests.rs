@@ -13,7 +13,7 @@ fn positions(query: &str, label: &str) -> Vec<usize> {
         .rank(query, &[label], |label| label)
         .into_iter()
         .next()
-        .map(|hit| hit.positions)
+        .map(|hit| hit.matched)
         .unwrap_or_default()
 }
 
