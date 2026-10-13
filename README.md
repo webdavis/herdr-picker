@@ -162,19 +162,10 @@ before it asks herdr for anything, and gives up waiting after two seconds.
 
 ## Developing
 
-`just preview` builds the release binary and opens the picker from this checkout in a throwaway
-herdr, with your own theme, so a change to the popup is seen in a real popup before it is pushed and
-the installed clone rebuilt. That herdr keeps a plugin registry of its own under `target/preview`,
-links this checkout there as the plugin with a copy of your declared workspaces, and binds `ctrl+x
-ctrl+o` to `herdr-workspace-jump.pick`, so the popup opens and sizes itself just as an installed one
-does. Run it from a herdr pane and the popup opens by itself; outside herdr it prints the chord. The
-prefix is `ctrl+x`, so it neither collides with yours nor takes `ctrl+b` from the search: `ctrl+x
-ctrl+o` reopens the popup, and typing `exit` or `ctrl+x q` leaves and tears the session down, which
-the shell inside says as it opens. A pick inside it jumps within that throwaway herdr, which
-exercises the whole flow without touching the real one. Your own registry and config are only read.
-It writes under `target/`, jump history included, apart from the ignored `herdr-plugin.toml` that
-`generate` puts in the checkout. The recipe runs `scripts/preview-popup`; the command stays the same
-if the script ever moves or changes.
+`just preview` builds the plugin and opens the picker in a throwaway herdr with your theme and
+workspaces, so a change is seen in a real popup before it ships. Run it from a herdr pane.
+`ctrl+x ctrl+o` reopens the popup; `exit` or `ctrl+x q` leaves. Your real config and registry are
+only read; everything it writes goes under `target/`.
 
 The pick popup is put together from parts that each sit behind a trait, so each is tested alone with
 a small fake, and any one can be replaced where the parts are chosen, in the CLI's `pick` and
