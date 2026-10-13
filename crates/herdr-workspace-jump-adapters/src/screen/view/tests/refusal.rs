@@ -4,7 +4,13 @@ use super::*;
 fn a_refused_key_says_so_in_red_on_the_row_above_the_legend_which_stays_put() {
     let workspaces = three_workspaces();
 
-    let drawn = render(&refused(&workspaces[..2], &workspaces[2]), LEGEND, 0, 0);
+    let drawn = render(
+        &refused(&workspaces[..2], &workspaces[2]),
+        LEGEND,
+        columns(),
+        0,
+        0,
+    );
 
     let mut rows = drawn.lines().rev();
     assert_eq!(rows.next(), Some(LEGEND_ROW));
@@ -16,7 +22,13 @@ fn a_refused_key_says_so_in_red_on_the_row_above_the_legend_which_stays_put() {
 fn a_refusal_is_cut_to_a_narrow_popup_like_the_legend() {
     let workspaces = three_workspaces();
 
-    let drawn = render(&refused(&workspaces[..2], &workspaces[2]), LEGEND, 12, 0);
+    let drawn = render(
+        &refused(&workspaces[..2], &workspaces[2]),
+        LEGEND,
+        columns(),
+        12,
+        0,
+    );
 
     assert_eq!(
         drawn.lines().rev().nth(1),

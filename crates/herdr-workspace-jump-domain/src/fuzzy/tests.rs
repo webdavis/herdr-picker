@@ -4,8 +4,25 @@ fn order<'a>(query: &str, labels: &[&'a str]) -> Vec<&'a str> {
     Fuzzy
         .rank(query, labels, |label| label)
         .into_iter()
-        .copied()
+        .map(|found| *found.item)
         .collect()
+}
+
+fn positions(query: &str, label: &str) -> Vec<usize> {
+    Fuzzy
+        .rank(query, &[label], |label| label)
+        .into_iter()
+        .next()
+        .map(|found| found.positions)
+        .unwrap_or_default()
+}
+
+#[test]
+fn the_lit_letters_are_those_of_the_tightest_span_found_ignoring_case() {
+    assert_eq!(positions("dm", "damnit"), [0, 2]);
+    assert_eq!(positions("DM", "damnit"), [0, 2]);
+    assert_eq!(positions("pl", "p-lantpl"), [6, 7]);
+    assert_eq!(positions("", "damnit"), Vec::<usize>::new());
 }
 
 #[test]

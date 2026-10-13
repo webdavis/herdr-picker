@@ -22,7 +22,7 @@ fn workspaces() -> Vec<JumpTarget> {
 }
 
 fn menu(targets: &[JumpTarget]) -> Menu<'_, Fuzzy, ReadlineField> {
-    Menu::new(targets, None, Fuzzy, ReadlineField::default())
+    Menu::new(targets, &[], None, Fuzzy, ReadlineField::default())
 }
 
 struct Keys(VecDeque<PickKey>);

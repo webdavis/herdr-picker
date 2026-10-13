@@ -1,5 +1,5 @@
 use super::*;
-use crate::{ReadlineField, WorkspaceDeclaration, jump_targets};
+use crate::{ReadlineField, Workspace, WorkspaceDeclaration, jump_targets};
 
 mod browsing;
 mod searching;
@@ -16,6 +16,16 @@ fn targets(declarations: Vec<(&str, Option<&str>)>) -> Vec<JumpTarget> {
     jump_targets(declared).expect("well formed workspaces")
 }
 
+fn open(labels: &[&str]) -> Vec<Workspace> {
+    labels
+        .iter()
+        .map(|label| Workspace {
+            workspace_id: format!("w_{label}"),
+            label: label.to_string(),
+        })
+        .collect()
+}
+
 fn three_workspaces() -> Vec<JumpTarget> {
     targets(vec![
         ("Ivy", None),
@@ -27,10 +37,21 @@ fn three_workspaces() -> Vec<JumpTarget> {
 struct Contains;
 
 impl Matcher for Contains {
-    fn rank<'t, T>(&self, query: &str, items: &'t [T], label: impl Fn(&T) -> &str) -> Vec<&'t T> {
+    fn rank<'t, T>(
+        &self,
+        query: &str,
+        items: &'t [T],
+        label: impl Fn(&T) -> &str,
+    ) -> Vec<Match<'t, T>> {
         items
             .iter()
-            .filter(|item| label(item).contains(query))
+            .filter_map(|item| {
+                let at = label(item).find(query)?;
+                Some(Match {
+                    item,
+                    positions: (at..at + query.len()).collect(),
+                })
+            })
             .collect()
     }
 }
@@ -38,8 +59,15 @@ impl Matcher for Contains {
 struct Reversed;
 
 impl Matcher for Reversed {
-    fn rank<'t, T>(&self, _: &str, items: &'t [T], _: impl Fn(&T) -> &str) -> Vec<&'t T> {
-        items.iter().rev().collect()
+    fn rank<'t, T>(&self, _: &str, items: &'t [T], _: impl Fn(&T) -> &str) -> Vec<Match<'t, T>> {
+        items
+            .iter()
+            .rev()
+            .map(|item| Match {
+                item,
+                positions: Vec::new(),
+            })
+            .collect()
     }
 }
 
@@ -67,7 +95,7 @@ impl TextField for RecordingField {
 }
 
 fn menu(workspaces: &[JumpTarget]) -> Menu<'_, Contains, ReadlineField> {
-    Menu::new(workspaces, None, Contains, ReadlineField::default())
+    Menu::new(workspaces, &[], None, Contains, ReadlineField::default())
 }
 
 fn shown(frame: &Frame<'_>) -> Vec<String> {
