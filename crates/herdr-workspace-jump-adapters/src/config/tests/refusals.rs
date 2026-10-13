@@ -1,11 +1,11 @@
 use super::*;
 
 #[test]
-fn read_jump_targets_refuses_a_missing_file() {
+fn read_config_refuses_a_missing_file() {
     let sandbox = TempDirectory::new("missing");
     let path = sandbox.0.join("config.toml");
 
-    let refusal = read_jump_targets(&path).expect_err("a missing file is refused");
+    let refusal = read_config(&path).expect_err("a missing file is refused");
 
     assert!(
         matches!(refusal, ConfigError::Unreadable { .. }),
@@ -15,7 +15,7 @@ fn read_jump_targets_refuses_a_missing_file() {
 }
 
 #[test]
-fn read_jump_targets_refuses_unparseable_toml_and_names_the_line() {
+fn read_config_refuses_unparseable_toml_and_names_the_line() {
     let (refusal, rendered) = refusal_for(
         "unparseable",
         "[workspaces]\nnetpulse = \"/opt/netpulse\"\nhomelab = unquoted\n",
@@ -29,7 +29,24 @@ fn read_jump_targets_refuses_unparseable_toml_and_names_the_line() {
 }
 
 #[test]
-fn read_jump_targets_refuses_a_file_with_no_workspaces_table() {
+fn read_config_refuses_rows_it_does_not_know_naming_the_choices_and_the_line() {
+    let (refusal, rendered) = refusal_for(
+        "unknown-rows",
+        "[pick]\nrows = \"dots\"\n[workspaces]\nnetpulse = \"/opt/netpulse\"\n",
+    );
+
+    assert!(
+        matches!(refusal, ConfigError::Unparseable { line: Some(2), .. }),
+        "{rendered}"
+    );
+    assert!(
+        rendered.contains("leaders") && rendered.contains("stripes"),
+        "{rendered}"
+    );
+}
+
+#[test]
+fn read_config_refuses_a_file_with_no_workspaces_table() {
     let (refusal, rendered) = refusal_for("no-table", "[other]\nkey = \"value\"\n");
 
     assert!(
@@ -40,7 +57,7 @@ fn read_jump_targets_refuses_a_file_with_no_workspaces_table() {
 }
 
 #[test]
-fn read_jump_targets_refuses_an_unknown_top_level_key() {
+fn read_config_refuses_an_unknown_top_level_key() {
     let (_, rendered) = refusal_for(
         "unknown-key",
         "[workspace]\nnetpulse = \"/opt/netpulse\"\n\n[workspaces]\nivy = \"/opt/ivy\"\n",
@@ -50,7 +67,7 @@ fn read_jump_targets_refuses_an_unknown_top_level_key() {
 }
 
 #[test]
-fn read_jump_targets_refuses_an_empty_workspaces_table() {
+fn read_config_refuses_an_empty_workspaces_table() {
     let (refusal, rendered) = refusal_for("empty-table", "[workspaces]\n");
 
     assert_eq!(
@@ -62,7 +79,7 @@ fn read_jump_targets_refuses_an_empty_workspaces_table() {
 }
 
 #[test]
-fn read_jump_targets_refuses_an_empty_label_or_an_empty_directory() {
+fn read_config_refuses_an_empty_label_or_an_empty_directory() {
     let (empty_label, rendered) =
         refusal_for("empty-label", "[workspaces]\n\"\" = \"/opt/project\"\n");
     assert_eq!(refusal_cause(empty_label), TargetError::EmptyLabel);
@@ -80,7 +97,7 @@ fn read_jump_targets_refuses_an_empty_label_or_an_empty_directory() {
 }
 
 #[test]
-fn read_jump_targets_refuses_two_labels_that_derive_the_same_action_id() {
+fn read_config_refuses_two_labels_that_derive_the_same_action_id() {
     let (refusal, rendered) = refusal_for(
         "collision",
         "[workspaces]\n\"my-project\" = \"/opt/one\"\n\"my_project\" = \"/opt/two\"\n",
@@ -105,7 +122,7 @@ fn refusal_cause(refusal: ConfigError) -> TargetError {
 }
 
 #[test]
-fn read_jump_targets_refuses_a_table_without_a_directory_or_with_an_unknown_field() {
+fn read_config_refuses_a_table_without_a_directory_or_with_an_unknown_field() {
     let (refusal, rendered) = refusal_for("no-dir", "[workspaces]\nIvy = { key = \"v\" }\n");
     assert!(
         matches!(refusal, ConfigError::Unparseable { .. }),
@@ -127,7 +144,7 @@ fn read_jump_targets_refuses_a_table_without_a_directory_or_with_an_unknown_fiel
 }
 
 #[test]
-fn read_jump_targets_refuses_two_workspaces_that_pick_on_the_same_key() {
+fn read_config_refuses_two_workspaces_that_pick_on_the_same_key() {
     let (refusal, rendered) = refusal_for(
         "key-collision",
         "[workspaces]\ndamnit = \"/opt/damnit\"\ndotfiles = \"/opt/dotfiles\"\n",
@@ -146,7 +163,7 @@ fn read_jump_targets_refuses_two_workspaces_that_pick_on_the_same_key() {
 }
 
 #[test]
-fn read_jump_targets_refuses_a_pick_key_that_is_not_one_printable_character() {
+fn read_config_refuses_a_pick_key_that_is_not_one_printable_character() {
     let (refusal, rendered) = refusal_for(
         "long-key",
         "[workspaces]\nIvy = { dir = \"/opt/ivy\", key = \"vv\" }\n",

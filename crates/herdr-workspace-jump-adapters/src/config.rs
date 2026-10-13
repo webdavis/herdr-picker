@@ -3,12 +3,47 @@ use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use herdr_workspace_jump_domain::{JumpTarget, TargetError, WorkspaceDeclaration, jump_targets};
+use herdr_workspace_jump_domain::{
+    JumpTarget, RowStyle, TargetError, WorkspaceDeclaration, jump_targets,
+};
 use serde::Deserialize;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PluginConfig {
+    pub targets: Vec<JumpTarget>,
+    pub rows: RowStyle,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct WorkspaceDeclarations {
+struct ConfigFile {
     workspaces: BTreeMap<String, Declaration>,
+    #[serde(default)]
+    pick: PickTable,
+}
+
+#[derive(Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+struct PickTable {
+    #[serde(default)]
+    rows: Rows,
+}
+
+#[derive(Deserialize, Default, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+enum Rows {
+    #[default]
+    Leaders,
+    Stripes,
+}
+
+impl From<Rows> for RowStyle {
+    fn from(rows: Rows) -> Self {
+        match rows {
+            Rows::Leaders => Self::Leaders,
+            Rows::Stripes => Self::Stripes,
+        }
+    }
 }
 #[derive(Deserialize)]
 #[serde(
@@ -100,24 +135,28 @@ fn base_config_dir(xdg_config_home: Option<&str>, home: Option<&str>) -> PathBuf
         None => PathBuf::from(home.unwrap_or_default()).join(".config"),
     }
 }
-pub fn read_jump_targets(path: &Path) -> Result<Vec<JumpTarget>, ConfigError> {
+pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
     let content = fs::read_to_string(path).map_err(|failure| ConfigError::Unreadable {
         path: path.to_owned(),
         reason: failure.to_string(),
     })?;
-    let declarations: WorkspaceDeclarations =
+    let file: ConfigFile =
         toml::from_str(&content).map_err(|failure| ConfigError::Unparseable {
             path: path.to_owned(),
             reason: failure.message().to_string(),
             line: one_based_line_of(&content, &failure),
         })?;
-    let workspaces = declarations
+    let workspaces = file
         .workspaces
         .into_iter()
         .map(|(label, declaration)| declaration.labelled(label));
-    jump_targets(workspaces).map_err(|cause| ConfigError::Invalid {
+    let targets = jump_targets(workspaces).map_err(|cause| ConfigError::Invalid {
         path: path.to_owned(),
         cause,
+    })?;
+    Ok(PluginConfig {
+        targets,
+        rows: file.pick.rows.into(),
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {

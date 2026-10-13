@@ -38,7 +38,7 @@ impl Drop for TempDirectory {
 fn refusal_for(name: &str, content: &str) -> (ConfigError, String) {
     let sandbox = TempDirectory::new(name);
     let path = sandbox.write(content);
-    let refusal = read_jump_targets(&path).expect_err("the config is refused");
+    let refusal = read_config(&path).expect_err("the config is refused");
     let rendered = refusal.to_string();
     assert!(
         rendered.contains(&path.display().to_string()),
@@ -46,6 +46,21 @@ fn refusal_for(name: &str, content: &str) -> (ConfigError, String) {
     );
     assert!(!rendered.contains('\n'), "one sentence: {rendered}");
     (refusal, rendered)
+}
+
+#[test]
+fn rows_are_leaders_unless_a_pick_table_chooses_stripes() {
+    let sandbox = TempDirectory::new("rows");
+
+    let unsaid = read_config(&sandbox.write(FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER))
+        .expect("a readable config");
+    assert_eq!(unsaid.rows, RowStyle::Leaders);
+
+    let stripes = read_config(&sandbox.write(&format!(
+        "[pick]\nrows = \"stripes\"\n{FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER}"
+    )))
+    .expect("a readable config");
+    assert_eq!(stripes.rows, RowStyle::Stripes);
 }
 
 #[test]
@@ -77,11 +92,11 @@ fn config_file_falls_back_to_the_documented_path_under_xdg_then_home() {
 }
 
 #[test]
-fn read_jump_targets_orders_five_declared_workspaces_by_label() {
+fn read_config_orders_five_declared_workspaces_by_label() {
     let sandbox = TempDirectory::new("ordered");
     let path = sandbox.write(FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER);
 
-    let targets = read_jump_targets(&path).expect("a readable config");
+    let targets = read_config(&path).expect("a readable config").targets;
 
     let labels: Vec<&str> = targets.iter().map(|target| target.label.as_str()).collect();
     assert_eq!(
@@ -115,13 +130,13 @@ fn read_jump_targets_orders_five_declared_workspaces_by_label() {
 }
 
 #[test]
-fn read_jump_targets_accepts_a_table_declaring_a_directory_and_a_pick_key() {
+fn read_config_accepts_a_table_declaring_a_directory_and_a_pick_key() {
     let sandbox = TempDirectory::new("keyed");
     let path = sandbox.write(
         "[workspaces]\nhomelab = \"/srv/homelab\"\nIvy = { dir = \"~/workspaces/Ivy\", key = \"v\" }\n",
     );
 
-    let targets = read_jump_targets(&path).expect("a readable config");
+    let targets = read_config(&path).expect("a readable config").targets;
 
     assert_eq!(targets[0].label, "Ivy");
     assert_eq!(targets[0].directory, "~/workspaces/Ivy");
