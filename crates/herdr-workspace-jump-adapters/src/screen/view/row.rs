@@ -1,11 +1,14 @@
 use super::text::{fill, fit, room, width_of};
-use super::{BOLD_BLUE, FAINT, GREY_BAR, MARGIN, RESET};
+use super::{BOLD_BLUE, FAINT, GREEN, GREY_BAR, MARGIN, RESET};
 use herdr_workspace_jump_domain::{Frame, JumpTarget, Row};
 
 const KEY_COLUMN_WIDTH: usize = 3;
-const LABEL_INDENT: &str = "  ";
+const OPEN_MARK: &str = "  ●";
+const NO_MARK: &str = "   ";
+const MARK_COLUMN_WIDTH: usize = 3;
+const LABEL_INDENT: &str = " ";
 const GAP_BEFORE_DIRECTORY: &str = "  ";
-const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH;
+const BEFORE_LABEL: usize = MARGIN.len() + KEY_COLUMN_WIDTH + MARK_COLUMN_WIDTH;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Columns {
@@ -53,6 +56,7 @@ pub(super) fn workspace_rows(
 fn workspace_row(row: &Row<'_>, searching: bool, columns: Columns, width: usize) -> String {
     let paint = Paint::for_row(row);
     let key = key_cell(row.target.pick_key, searching);
+    let mark = if row.open { OPEN_MARK } else { NO_MARK };
     let name = name_cell(&row.target.label, columns, width);
     let directory = fit(
         &row.target.directory,
@@ -65,8 +69,9 @@ fn workspace_row(row: &Row<'_>, searching: bool, columns: Columns, width: usize)
         String::new()
     };
     format!(
-        "{}{MARGIN}{BOLD_BLUE}{key}{RESET}{}{}{}",
+        "{}{MARGIN}{BOLD_BLUE}{key}{RESET}{}{}{}{}",
         paint.bar,
+        paint.cell(if row.open { GREEN } else { "" }, mark),
         paint.cell("", &name),
         paint.cell(FAINT, &directory),
         paint.cell("", &pad)

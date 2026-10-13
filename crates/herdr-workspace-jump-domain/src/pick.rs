@@ -4,13 +4,14 @@ mod frame;
 pub use command::{Command, Mode, Pick};
 pub use frame::{Frame, Refusal, Row, SearchLine};
 
-use crate::JumpTarget;
 use crate::field::{Edit, TextField};
 use crate::fuzzy::Matcher;
+use crate::{JumpTarget, Workspace};
 
 #[derive(Debug, Clone)]
 pub struct Menu<'a, M, F> {
     targets: &'a [JumpTarget],
+    live: &'a [Workspace],
     current: Option<&'a JumpTarget>,
     selected_row: usize,
     matcher: M,
@@ -22,12 +23,18 @@ pub struct Menu<'a, M, F> {
 impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
     pub fn new(
         targets: &'a [JumpTarget],
-        current_label: Option<&str>,
+        live: &'a [Workspace],
+        active_id: Option<&str>,
         matcher: M,
         field: F,
     ) -> Self {
+        let current_label = live
+            .iter()
+            .find(|workspace| Some(workspace.workspace_id.as_str()) == active_id)
+            .map(|workspace| workspace.label.as_str());
         Self {
             targets,
+            live,
             current: targets
                 .iter()
                 .find(|target| Some(target.label.as_str()) == current_label),
@@ -55,6 +62,7 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
             .map(|(row, target)| Row {
                 target,
                 selected: row == self.selected_row,
+                open: self.is_open(target),
             })
             .collect();
         Frame {
@@ -125,6 +133,12 @@ impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
         } else {
             self.offered().collect()
         }
+    }
+
+    fn is_open(&self, target: &JumpTarget) -> bool {
+        self.live
+            .iter()
+            .any(|workspace| workspace.label == target.label)
     }
 
     fn offered(&self) -> impl Iterator<Item = &'a JumpTarget> {

@@ -27,6 +27,7 @@ pub(super) fn browsing(targets: &[JumpTarget], selected: usize) -> Frame<'_> {
             .map(|(index, target)| Row {
                 target,
                 selected: index == selected,
+                open: false,
             })
             .collect(),
         total: targets.len(),

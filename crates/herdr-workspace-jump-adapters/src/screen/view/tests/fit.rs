@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn the_columns_to_fit_are_the_widest_row_with_its_directory() {
-    assert_eq!(columns_to_fit(&three_workspaces(), LEGEND), 29);
+    assert_eq!(columns_to_fit(&three_workspaces(), LEGEND), 31);
 }
 
 #[test]

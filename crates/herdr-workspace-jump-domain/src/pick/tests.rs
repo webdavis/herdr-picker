@@ -1,5 +1,5 @@
 use super::*;
-use crate::{ReadlineField, WorkspaceDeclaration, jump_targets};
+use crate::{ReadlineField, Workspace, WorkspaceDeclaration, jump_targets};
 
 mod browsing;
 mod searching;
@@ -14,6 +14,16 @@ fn targets(declarations: Vec<(&str, Option<&str>)>) -> Vec<JumpTarget> {
         })
         .collect::<Vec<_>>();
     jump_targets(declared).expect("well formed workspaces")
+}
+
+fn open(labels: &[&str]) -> Vec<Workspace> {
+    labels
+        .iter()
+        .map(|label| Workspace {
+            workspace_id: format!("w_{label}"),
+            label: label.to_string(),
+        })
+        .collect()
 }
 
 fn three_workspaces() -> Vec<JumpTarget> {
@@ -67,7 +77,7 @@ impl TextField for RecordingField {
 }
 
 fn menu(workspaces: &[JumpTarget]) -> Menu<'_, Contains, ReadlineField> {
-    Menu::new(workspaces, None, Contains, ReadlineField::default())
+    Menu::new(workspaces, &[], None, Contains, ReadlineField::default())
 }
 
 fn shown(frame: &Frame<'_>) -> Vec<String> {

@@ -32,7 +32,7 @@ fn the_picker_opens_wide_enough_for_the_longest_workspace_and_knows_where_it_cam
     assert_eq!(server.seen()["method"], "pane.layout");
     let open = server.seen();
     assert_eq!(open["params"]["plugin_id"], "herdr-workspace-jump");
-    assert_eq!(open["params"]["width"], json!(100));
+    assert_eq!(open["params"]["width"], json!(102));
     assert_eq!(open["params"]["height"], json!(17));
     assert_eq!(open["params"]["env"]["HERDR_ACTIVE_WORKSPACE_ID"], "w6");
 }

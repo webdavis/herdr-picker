@@ -17,7 +17,7 @@ fn search_starts_an_empty_search_over_every_workspace_with_the_bar_on_the_first(
 #[test]
 fn a_search_shows_the_workspaces_the_matcher_keeps_in_the_matchers_order() {
     let workspaces = three_workspaces();
-    let mut menu = Menu::new(&workspaces, None, Reversed, ReadlineField::default());
+    let mut menu = Menu::new(&workspaces, &[], None, Reversed, ReadlineField::default());
     menu.apply(Command::Search);
 
     assert_eq!(shown(&menu.frame()), [">dotfiles", "homelab", "Ivy"]);
@@ -42,9 +42,11 @@ fn typing_narrows_the_rows_and_puts_the_bar_back_on_the_first() {
 #[test]
 fn a_search_never_offers_the_workspace_the_popup_opened_from() {
     let workspaces = three_workspaces();
+    let live = open(&["homelab"]);
     let mut menu = Menu::new(
         &workspaces,
-        Some("homelab"),
+        &live,
+        Some("w_homelab"),
         Contains,
         ReadlineField::default(),
     );
@@ -127,7 +129,7 @@ fn erase_deletes_behind_the_cursor_and_ends_the_search_once_it_is_empty() {
 #[test]
 fn the_menu_hands_each_edit_to_its_field_and_shows_what_the_field_holds() {
     let workspaces = three_workspaces();
-    let mut menu = Menu::new(&workspaces, None, Contains, RecordingField::default());
+    let mut menu = Menu::new(&workspaces, &[], None, Contains, RecordingField::default());
     menu.apply(Command::Search);
 
     menu.apply(Command::Edit(Edit::Insert('h')));

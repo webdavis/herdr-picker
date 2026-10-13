@@ -9,23 +9,27 @@ use herdr_workspace_jump_adapters::{
     wait_for_process_exit,
 };
 use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
-use herdr_workspace_jump_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap};
+use herdr_workspace_jump_domain::{
+    Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap, Workspace,
+};
 use herdr_workspace_jump_protocol::ACTIVE_WORKSPACE_VARIABLE;
 
 use crate::command::{CommandError, config_path, failed, spawned_jump_log_path};
 
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
-const CURRENT_MARKER_LOOKUP_CAP: Duration = Duration::from_secs(1);
+const LIVE_WORKSPACES_LOOKUP_CAP: Duration = Duration::from_secs(1);
 
 pub(crate) const AFTER_PID: &str = "--after-pid";
 
 pub(crate) fn run() -> Result<(), CommandError> {
     let targets = read_jump_targets(&config_path()).map_err(failed)?;
-    let current = current_label();
+    let live = live_workspaces();
+    let active = env::var(ACTIVE_WORKSPACE_VARIABLE).ok();
     let menu = Menu::new(
         &targets,
-        current.as_deref(),
+        &live,
+        active.as_deref(),
         Fuzzy,
         ReadlineField::default(),
     );
@@ -38,15 +42,13 @@ pub(crate) fn run() -> Result<(), CommandError> {
     }
 }
 
-fn current_label() -> Option<String> {
-    let active = env::var(ACTIVE_WORKSPACE_VARIABLE).ok()?;
-    let socket = env::var("HERDR_SOCKET_PATH").ok()?;
-    SocketWorkspaceDirectory::at(Path::new(&socket), CURRENT_MARKER_LOOKUP_CAP)
+fn live_workspaces() -> Vec<Workspace> {
+    let Ok(socket) = env::var("HERDR_SOCKET_PATH") else {
+        return Vec::new();
+    };
+    SocketWorkspaceDirectory::at(Path::new(&socket), LIVE_WORKSPACES_LOOKUP_CAP)
         .list()
-        .ok()?
-        .into_iter()
-        .find(|workspace| workspace.workspace_id == active)
-        .map(|workspace| workspace.label)
+        .unwrap_or_default()
 }
 
 fn spawn_jump(

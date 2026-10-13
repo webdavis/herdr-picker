@@ -16,18 +16,22 @@ fn a_new_menu_browses_every_workspace_in_order_with_the_bar_on_the_first() {
 fn the_workspace_the_popup_opened_from_is_left_out_and_an_unknown_one_leaves_the_list_whole() {
     let workspaces = three_workspaces();
 
+    let live = open(&["homelab"]);
     let opened = Menu::new(
         &workspaces,
-        Some("homelab"),
+        &live,
+        Some("w_homelab"),
         Contains,
         ReadlineField::default(),
     );
     assert_eq!(shown(&opened.frame()), [">Ivy", "dotfiles"]);
     assert_eq!(opened.frame().total, 2);
 
+    let live = open(&["elsewhere"]);
     let unknown = Menu::new(
         &workspaces,
-        Some("elsewhere"),
+        &live,
+        Some("w_elsewhere"),
         Contains,
         ReadlineField::default(),
     );
@@ -39,9 +43,11 @@ fn the_workspace_the_popup_opened_from_is_left_out_and_an_unknown_one_leaves_the
 fn the_key_of_the_workspace_the_popup_opened_from_keeps_the_menu_open_and_says_so_until_the_next_command()
  {
     let workspaces = three_workspaces();
+    let live = open(&["homelab"]);
     let mut menu = Menu::new(
         &workspaces,
-        Some("homelab"),
+        &live,
+        Some("w_homelab"),
         Contains,
         ReadlineField::default(),
     );
@@ -53,6 +59,32 @@ fn the_key_of_the_workspace_the_popup_opened_from_keeps_the_menu_open_and_says_s
     assert_eq!(shown(&frame), [">Ivy", "dotfiles"]);
     assert_eq!(menu.apply(Command::Next), Pick::Pending);
     assert_eq!(menu.frame().refusal, None);
+}
+
+#[test]
+fn a_workspace_herdr_has_open_is_marked_open_in_its_row_and_the_others_are_not() {
+    let workspaces = three_workspaces();
+    let live = open(&["dotfiles", "elsewhere"]);
+    let menu = Menu::new(&workspaces, &live, None, Contains, ReadlineField::default());
+
+    let open: Vec<bool> = menu.frame().rows.iter().map(|row| row.open).collect();
+
+    assert_eq!(open, [false, false, true]);
+}
+
+#[test]
+fn an_active_id_herdr_does_not_list_leaves_every_workspace_offered() {
+    let workspaces = three_workspaces();
+    let live = open(&["homelab"]);
+    let menu = Menu::new(
+        &workspaces,
+        &live,
+        Some("w_gone"),
+        Contains,
+        ReadlineField::default(),
+    );
+
+    assert_eq!(menu.frame().total, 3);
 }
 
 #[test]
