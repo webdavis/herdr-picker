@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use herdr_workspace_jump_adapters::{read_jump_targets, write_manifest};
+use herdr_workspace_jump_adapters::{read_config, write_manifest};
 
 use crate::command::{CommandError, config_path, failed};
 
@@ -12,7 +12,7 @@ struct Options {
 pub(crate) fn run(arguments: &[&str]) -> Result<(), CommandError> {
     let options = parse(arguments)?;
     let config = options.config.unwrap_or_else(config_path);
-    let targets = read_jump_targets(&config).map_err(failed)?;
+    let targets = read_config(&config).map_err(failed)?.targets;
     write_manifest(&options.output, env!("CARGO_PKG_VERSION"), &targets).map_err(failed)
 }
 

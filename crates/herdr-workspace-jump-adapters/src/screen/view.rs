@@ -12,6 +12,8 @@ const BOLD_BLUE: &str = "\x1b[1;34m";
 const FAINT: &str = "\x1b[2m";
 const GREEN: &str = "\x1b[32m";
 const GREY_BAR: &str = "\x1b[48;5;236m";
+const LEADER: &str = "\x1b[38;5;239m";
+const STRIPE: &str = "\x1b[48;5;235m";
 const RED: &str = "\x1b[31m";
 const RESET: &str = "\x1b[0m";
 

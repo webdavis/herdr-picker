@@ -26,6 +26,7 @@ fn the_workspace_the_popup_opened_from_is_left_out_and_an_unknown_one_leaves_the
     );
     assert_eq!(shown(&opened.frame()), [">Ivy", "dotfiles"]);
     assert_eq!(opened.frame().total, 2);
+    assert_eq!(opened.current_label(), Some("homelab"));
 
     let live = herdr_has(&["elsewhere"]);
     let unknown = Menu::new(
@@ -37,6 +38,7 @@ fn the_workspace_the_popup_opened_from_is_left_out_and_an_unknown_one_leaves_the
     );
     assert_eq!(shown(&unknown.frame()), [">Ivy", "homelab", "dotfiles"]);
     assert_eq!(unknown.frame().total, 3);
+    assert_eq!(unknown.current_label(), None);
 }
 
 #[test]

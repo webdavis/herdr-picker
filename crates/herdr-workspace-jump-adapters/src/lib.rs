@@ -12,7 +12,7 @@ mod socket;
 mod state;
 
 pub use cli::CliWorkspaceDirectory;
-pub use config::{ConfigError, config_file, read_jump_targets};
+pub use config::{ConfigError, PluginConfig, config_file, read_config};
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
 pub use keyboard::TerminalKeys;
