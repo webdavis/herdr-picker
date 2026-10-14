@@ -5,7 +5,7 @@ use std::process;
 use std::time::Duration;
 
 use herdr_workspace_jump_adapters::{
-    Layout, PluginConfig, TerminalKeys, TerminalScreen, spawn_detached, wait_for_process_exit,
+    Layout, PluginConfig, TerminalInput, TerminalScreen, spawn_detached, wait_for_process_exit,
 };
 use herdr_workspace_jump_application::{WorkspaceDirectory, pick};
 use herdr_workspace_jump_domain::{
@@ -37,7 +37,7 @@ pub(crate) fn run(
         ReadlineField::default(),
     );
     let mut screen = TerminalScreen::stdout(layout.hiding(menu.current_label()));
-    match pick(menu, &ReadlineKeymap, &mut TerminalKeys, &mut screen).map_err(failed)? {
+    match pick(menu, &ReadlineKeymap, &mut TerminalInput, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
             spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))
         }),

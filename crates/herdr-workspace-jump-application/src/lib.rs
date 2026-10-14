@@ -7,5 +7,5 @@ mod popup;
 pub use error::JumpError;
 pub use jump::{WorkspaceDirectory, jump};
 pub use mru::{WorkspaceHistory, bounce, record};
-pub use pick::{KeySource, PickError, Screen, pick};
+pub use pick::{InputSource, PickError, Screen, pick};
 pub use popup::{PopupHost, open_picker};

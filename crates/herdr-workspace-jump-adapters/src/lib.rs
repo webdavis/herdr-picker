@@ -15,7 +15,7 @@ pub use cli::CliWorkspaceDirectory;
 pub use config::{ConfigError, PluginConfig, config_file, read_config};
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
-pub use keyboard::TerminalKeys;
+pub use keyboard::TerminalInput;
 pub use manifest::{ManifestError, write_manifest};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};

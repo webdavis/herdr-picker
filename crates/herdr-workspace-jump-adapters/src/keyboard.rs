@@ -2,13 +2,13 @@ use std::io;
 
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use herdr_workspace_jump_application::KeySource;
+use herdr_workspace_jump_application::InputSource;
 use herdr_workspace_jump_domain::PickKey;
 
-pub struct TerminalKeys;
+pub struct TerminalInput;
 
-impl KeySource for TerminalKeys {
-    fn next_key(&mut self) -> io::Result<PickKey> {
+impl InputSource for TerminalInput {
+    fn next_input(&mut self) -> io::Result<PickKey> {
         let _raw_mode = enter_raw_mode()?;
         loop {
             if let Some(key) = keystroke_of(read()?) {

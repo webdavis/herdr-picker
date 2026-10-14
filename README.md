@@ -180,9 +180,9 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
 - `Keymap` turns keys into the menu's commands. `ReadlineKeymap` is the one in use.
 - `Menu` holds the popup's state, takes commands, and describes what to show as a `Frame`, without
   knowing keys or terminals.
-- `pick`, in the application crate, runs the popup's loop against a `KeySource` and a `Screen`. The
-  adapters crate gives it the popup's terminal as `TerminalKeys` and `TerminalScreen`, the only code
-  that knows ANSI.
+- `pick`, in the application crate, runs the popup's loop against an `InputSource` and a `Screen`.
+  The adapters crate gives it the popup's terminal as `TerminalInput` and `TerminalScreen`, the only
+  code that knows ANSI.
 - `open_picker`, in the application crate, opens the popup through a `PopupHost` at the size the
   domain's `popup_size` gives for the host's window and the columns
   `TerminalScreen::columns_to_fit` measures. `SocketPopupHost` is the host in use, over herdr's

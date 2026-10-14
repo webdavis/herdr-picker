@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn a_screen_that_cannot_show_stops_the_popup_before_any_key_is_read() {
     let targets = workspaces();
-    let mut keys = Keys::typing(&typed("d"));
+    let mut keys = Inputs::typing(&typed("d"));
     let mut screen = Notes {
         failure: Some("terminal gone"),
         ..Notes::default()
@@ -22,7 +22,7 @@ fn a_key_that_cannot_be_read_is_reported() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&[]),
+        &mut Inputs::typing(&[]),
         &mut Notes::default(),
     );
 
