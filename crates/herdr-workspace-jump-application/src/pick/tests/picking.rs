@@ -92,6 +92,39 @@ fn readline_keys_edit_the_search_between_frames() {
 }
 
 #[test]
+fn a_resize_between_keys_shows_the_frame_again_and_changes_nothing_else() {
+    let targets = workspaces();
+    let keymap = ModeNoting::default();
+    let mut screen = Notes::default();
+
+    let picked = pick(
+        menu(&targets),
+        &keymap,
+        &mut Inputs::arriving(&[
+            PickInput::Key(PickKey::Control('n')),
+            PickInput::Resized,
+            PickInput::Key(PickKey::Enter),
+        ]),
+        &mut screen,
+    );
+
+    assert_eq!(picked, Ok(Some(&targets[1])));
+    assert_eq!(
+        screen.frames,
+        [
+            ">netpulse plantpulse essential dotfiles fitness",
+            "netpulse >plantpulse essential dotfiles fitness",
+            "netpulse >plantpulse essential dotfiles fitness",
+        ]
+    );
+    assert_eq!(
+        *keymap.modes.borrow(),
+        [Mode::Browsing, Mode::Browsing],
+        "the resize was handed to the keymap"
+    );
+}
+
+#[test]
 fn escape_closes_with_nothing_picked() {
     let targets = workspaces();
     let mut screen = Notes::default();

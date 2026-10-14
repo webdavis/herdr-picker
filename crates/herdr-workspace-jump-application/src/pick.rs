@@ -5,8 +5,14 @@ use herdr_workspace_jump_domain::{
     Frame, JumpTarget, Keymap, Matcher, Menu, Pick, PickKey, TextField,
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PickInput {
+    Key(PickKey),
+    Resized,
+}
+
 pub trait InputSource {
-    fn next_input(&mut self) -> io::Result<PickKey>;
+    fn next_input(&mut self) -> io::Result<PickInput>;
 }
 
 pub trait Screen {
@@ -38,9 +44,12 @@ pub fn pick<'a, M: Matcher, F: TextField>(
         screen
             .show(&menu.frame())
             .map_err(|failure| PickError::Show(failure.to_string()))?;
-        let key = inputs
+        let PickInput::Key(key) = inputs
             .next_input()
-            .map_err(|failure| PickError::ReadKey(failure.to_string()))?;
+            .map_err(|failure| PickError::ReadKey(failure.to_string()))?
+        else {
+            continue;
+        };
         match menu.apply(keymap.command(key, menu.mode())) {
             Pick::Selected(target) => return Ok(Some(target)),
             Pick::Cancelled | Pick::Unbound => return Ok(None),
