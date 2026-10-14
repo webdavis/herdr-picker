@@ -28,16 +28,16 @@ impl PopupHost for Host {
 #[test]
 fn the_picker_opens_at_the_size_its_window_and_widest_row_call_for() {
     let mut host = Host::of(Ok(Size {
-        columns: 58,
-        rows: 29,
+        columns: 175,
+        rows: 65,
     }));
 
-    assert_eq!(open_picker(&mut host, 40), Ok(()));
+    assert_eq!(open_picker(&mut host, 80), Ok(()));
     assert_eq!(
         host.opened,
         [Size {
-            columns: 43,
-            rows: 17
+            columns: 83,
+            rows: 26
         }]
     );
 }

@@ -2,7 +2,7 @@ use super::*;
 use crate::socket_server::{Reply, SocketServer};
 use serde_json::json;
 
-const LAYOUT: &str = r#"{"id":"req_1","result":{"type":"pane_layout","layout":{"area":{"x":0,"y":0,"width":58,"height":29}}}}"#;
+const LAYOUT: &str = r#"{"id":"req_1","result":{"type":"pane_layout","layout":{"area":{"x":0,"y":0,"width":175,"height":65}}}}"#;
 const OK: &str = r#"{"id":"req_2","result":{"type":"ok"}}"#;
 
 fn workspace(label: &str, pick_key: char) -> JumpTarget {
@@ -24,7 +24,10 @@ fn the_picker_opens_wide_enough_for_the_longest_workspace_and_knows_where_it_cam
         Some("w6".to_string()),
         &[
             workspace("Ivy", 'i'),
-            workspace("essential-feed-case-study-and-its-write-up", 'e'),
+            workspace(
+                "essential-feed-case-study-and-its-write-up-and-the-talk-slides",
+                'e',
+            ),
         ],
     );
 
@@ -32,8 +35,8 @@ fn the_picker_opens_wide_enough_for_the_longest_workspace_and_knows_where_it_cam
     assert_eq!(server.seen()["method"], "pane.layout");
     let open = server.seen();
     assert_eq!(open["params"]["plugin_id"], "herdr-workspace-jump");
-    assert_eq!(open["params"]["width"], json!(57));
-    assert_eq!(open["params"]["height"], json!(17));
+    assert_eq!(open["params"]["width"], json!(77));
+    assert_eq!(open["params"]["height"], json!(26));
     assert_eq!(open["params"]["env"]["HERDR_ACTIVE_WORKSPACE_ID"], "w6");
 }
 
