@@ -143,14 +143,13 @@ command = "herdr-workspace-jump.pick"
 description = "pick a workspace"
 ```
 
-The popup sizes itself, so the binding names no width or height. It takes 74% of the herdr window's
-width and 62% of its height, the share herdr-bar's popup takes, however many workspaces there are.
-It grows wider only when the message refusing a workspace's key, or the legend, needs more room, and
-never past the window; a name or a directory never widens it on its own. Inside it, herdr's border
-takes three columns and two rows, and four rows go to the prompt, the legend and the blank rows
-around the list. A directory too long for what is left of its row is cut short with an ellipsis, or
-left out, and so is a label too long for its row or a message above the legend, so the list, the
-hint and the legend never wrap.
+The popup sizes itself, so the binding names no width or height. It takes 40% of the herdr window
+each way, at least 60 columns by 14 rows and at most 100 by 30. It grows wider only when the message
+refusing a workspace's key, or the legend, needs more room, and never past the window; a name or a
+directory never widens it on its own. Inside it, herdr's border takes three columns and two rows,
+and four rows go to the prompt, the legend and the blank rows around the list. A directory too long
+for what is left of its row is cut short with an ellipsis, or left out, and so is a label too long
+for its row or a message above the legend, so the list, the hint and the legend never wrap.
 
 The action runs `herdr-workspace-jump popup`. That asks herdr for the window's size and opens the
 manifest's `pick` pane as a popup at the size worked out from it, telling the pane which workspace
@@ -181,9 +180,9 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
 - `Keymap` turns keys into the menu's commands. `ReadlineKeymap` is the one in use.
 - `Menu` holds the popup's state, takes commands, and describes what to show as a `Frame`, without
   knowing keys or terminals.
-- `pick`, in the application crate, runs the popup's loop against a `KeySource` and a `Screen`. The
-  adapters crate gives it the popup's terminal as `TerminalKeys` and `TerminalScreen`, the only code
-  that knows ANSI.
+- `pick`, in the application crate, runs the popup's loop against an `InputSource` and a `Screen`.
+  The adapters crate gives it the popup's terminal as `TerminalInput` and `TerminalScreen`, the only
+  code that knows ANSI.
 - `open_picker`, in the application crate, opens the popup through a `PopupHost` at the size the
   domain's `popup_size` gives for the host's window and the columns
   `TerminalScreen::columns_to_fit` measures. `SocketPopupHost` is the host in use, over herdr's

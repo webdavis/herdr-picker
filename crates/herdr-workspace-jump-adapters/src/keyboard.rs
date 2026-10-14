@@ -1,18 +1,18 @@
 use std::io;
 
-use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, read};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use herdr_workspace_jump_application::KeySource;
+use herdr_workspace_jump_application::{InputSource, PickInput};
 use herdr_workspace_jump_domain::PickKey;
 
-pub struct TerminalKeys;
+pub struct TerminalInput;
 
-impl KeySource for TerminalKeys {
-    fn next_key(&mut self) -> io::Result<PickKey> {
+impl InputSource for TerminalInput {
+    fn next_input(&mut self) -> io::Result<PickInput> {
         let _raw_mode = enter_raw_mode()?;
         loop {
-            if let Some(key) = keystroke_of(read()?) {
-                return Ok(key);
+            if let Some(input) = input_of(read()?) {
+                return Ok(input);
             }
         }
     }
@@ -39,10 +39,15 @@ fn enter_raw_mode() -> io::Result<RawMode> {
     })
 }
 
-fn keystroke_of(event: Event) -> Option<PickKey> {
-    let Event::Key(key) = event else {
-        return None;
-    };
+fn input_of(event: Event) -> Option<PickInput> {
+    match event {
+        Event::Key(key) => keystroke_of(key).map(PickInput::Key),
+        Event::Resize(..) => Some(PickInput::Resized),
+        _ => None,
+    }
+}
+
+fn keystroke_of(key: KeyEvent) -> Option<PickKey> {
     if key.kind == KeyEventKind::Release {
         return None;
     }

@@ -8,7 +8,7 @@ fn a_workspaces_key_picks_it_after_one_frame() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&typed("d")),
+        &mut Inputs::typing(&typed("d")),
         &mut screen,
     );
 
@@ -27,7 +27,7 @@ fn the_bar_moves_frame_by_frame_and_enter_picks_the_row_under_it() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&[PickKey::Control('n'), PickKey::Control('n'), PickKey::Enter]),
+        &mut Inputs::typing(&[PickKey::Control('n'), PickKey::Control('n'), PickKey::Enter]),
         &mut screen,
     );
 
@@ -52,7 +52,7 @@ fn a_search_is_answered_frame_by_frame_and_enter_picks_the_best_match() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&keys),
+        &mut Inputs::typing(&keys),
         &mut screen,
     );
 
@@ -80,7 +80,7 @@ fn readline_keys_edit_the_search_between_frames() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&keys),
+        &mut Inputs::typing(&keys),
         &mut screen,
     );
 
@@ -92,6 +92,39 @@ fn readline_keys_edit_the_search_between_frames() {
 }
 
 #[test]
+fn a_resize_between_keys_shows_the_frame_again_and_changes_nothing_else() {
+    let targets = workspaces();
+    let keymap = ModeNoting::default();
+    let mut screen = Notes::default();
+
+    let picked = pick(
+        menu(&targets),
+        &keymap,
+        &mut Inputs::arriving(&[
+            PickInput::Key(PickKey::Control('n')),
+            PickInput::Resized,
+            PickInput::Key(PickKey::Enter),
+        ]),
+        &mut screen,
+    );
+
+    assert_eq!(picked, Ok(Some(&targets[1])));
+    assert_eq!(
+        screen.frames,
+        [
+            ">netpulse plantpulse essential dotfiles fitness",
+            "netpulse >plantpulse essential dotfiles fitness",
+            "netpulse >plantpulse essential dotfiles fitness",
+        ]
+    );
+    assert_eq!(
+        *keymap.modes.borrow(),
+        [Mode::Browsing, Mode::Browsing],
+        "the resize was handed to the keymap"
+    );
+}
+
+#[test]
 fn escape_closes_with_nothing_picked() {
     let targets = workspaces();
     let mut screen = Notes::default();
@@ -99,7 +132,7 @@ fn escape_closes_with_nothing_picked() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&[PickKey::Escape]),
+        &mut Inputs::typing(&[PickKey::Escape]),
         &mut screen,
     );
 
@@ -114,7 +147,7 @@ fn a_key_no_workspace_claims_closes_with_nothing_picked() {
     let picked = pick(
         menu(&targets),
         &ReadlineKeymap,
-        &mut Keys::typing(&typed("z")),
+        &mut Inputs::typing(&typed("z")),
         &mut Notes::default(),
     );
 
@@ -131,7 +164,7 @@ fn the_keymap_is_asked_in_the_mode_the_menu_is_in() {
     let picked = pick(
         menu(&targets),
         &keymap,
-        &mut Keys::typing(&keys),
+        &mut Inputs::typing(&keys),
         &mut Notes::default(),
     );
 

@@ -25,16 +25,20 @@ fn menu(targets: &[JumpTarget]) -> Menu<'_, Fuzzy, ReadlineField> {
     Menu::new(targets, &[], None, Fuzzy, ReadlineField::default())
 }
 
-struct Keys(VecDeque<PickKey>);
+struct Inputs(VecDeque<PickInput>);
 
-impl Keys {
+impl Inputs {
     fn typing(keys: &[PickKey]) -> Self {
-        Self(keys.iter().copied().collect())
+        Self(keys.iter().copied().map(PickInput::Key).collect())
+    }
+
+    fn arriving(inputs: &[PickInput]) -> Self {
+        Self(inputs.iter().copied().collect())
     }
 }
 
-impl KeySource for Keys {
-    fn next_key(&mut self) -> io::Result<PickKey> {
+impl InputSource for Inputs {
+    fn next_input(&mut self) -> io::Result<PickInput> {
         self.0
             .pop_front()
             .ok_or_else(|| io::Error::other("no more keys"))

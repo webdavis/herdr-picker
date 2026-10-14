@@ -5,7 +5,7 @@ use crossterm::event::KeyEvent;
 use super::*;
 
 fn press(code: KeyCode, modifiers: KeyModifiers) -> Option<PickKey> {
-    keystroke_of(Event::Key(KeyEvent::new(code, modifiers)))
+    keystroke_of(KeyEvent::new(code, modifiers))
 }
 
 #[test]
@@ -96,27 +96,38 @@ fn the_release_of_a_key_is_not_a_keystroke() {
         KeyEventKind::Release,
     );
 
-    assert_eq!(keystroke_of(Event::Key(release)), None);
+    assert_eq!(keystroke_of(release), None);
     assert_eq!(
-        keystroke_of(Event::Key(KeyEvent::new_with_kind(
+        keystroke_of(KeyEvent::new_with_kind(
             KeyCode::Char('d'),
             KeyModifiers::NONE,
             KeyEventKind::Repeat,
-        ))),
+        )),
         Some(PickKey::Character('d')),
         "a held key still answers the menu"
     );
 }
 
 #[test]
-fn a_resize_a_focus_change_and_a_paste_are_waited_through() {
+fn a_key_press_is_a_key_and_a_resize_is_a_resize() {
+    assert_eq!(
+        input_of(Event::Key(KeyEvent::new(
+            KeyCode::Char('d'),
+            KeyModifiers::NONE
+        ))),
+        Some(PickInput::Key(PickKey::Character('d')))
+    );
+    assert_eq!(input_of(Event::Resize(80, 24)), Some(PickInput::Resized));
+}
+
+#[test]
+fn a_focus_change_and_a_paste_are_waited_through() {
     for ignored in [
-        Event::Resize(80, 24),
         Event::FocusGained,
         Event::FocusLost,
         Event::Paste("dotfiles".to_string()),
     ] {
-        assert_eq!(keystroke_of(ignored.clone()), None, "{ignored:?}");
+        assert_eq!(input_of(ignored.clone()), None, "{ignored:?}");
     }
 }
 
