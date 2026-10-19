@@ -7,12 +7,12 @@ cd "$(dirname "$0")/.."
 checkout=$PWD
 dir=$checkout/target/preview
 registry=$dir/xdg
-bin=$checkout/target/release/herdr-workspace-jump
+bin=$checkout/target/release/herdr-picker
 prefix=ctrl+x
 user_shell=${SHELL:-/bin/sh}
 how_to_leave="exit or $prefix q leaves"
-users_workspaces=${HERDR_PLUGIN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/config/herdr-workspace-jump}/config.toml
-preview_workspaces=$registry/herdr/plugins/config/herdr-workspace-jump/config.toml
+users_workspaces=${HERDR_PLUGIN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/config/herdr-picker}/config.toml
+preview_workspaces=$registry/herdr/plugins/config/herdr-picker/config.toml
 
 in_preview() {
   env -u HERDR_SOCKET_PATH -u HERDR_CLIENT_SOCKET_PATH -u HERDR_WORKSPACE_ID \
@@ -67,7 +67,7 @@ prefix = "$prefix"
 [[keys.command]]
 key = "prefix+ctrl+o"
 type = "plugin_action"
-command = "herdr-workspace-jump.pick"
+command = "herdr-picker.pick"
 description = "pick a workspace"
 EOF
   } >"$dir/config.toml"

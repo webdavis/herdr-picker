@@ -61,13 +61,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 
 [[package]]
-name = "herdr-workspace-jump-adapters"
+name = "herdr-picker-adapters"
 version = "0.1.0"
 dependencies = [
  "crossterm",
- "herdr-workspace-jump-application",
- "herdr-workspace-jump-domain",
- "herdr-workspace-jump-protocol",
+ "herdr-picker-application",
+ "herdr-picker-domain",
+ "herdr-picker-protocol",
  "rustix",
  "serde",
  "serde_json",
@@ -75,32 +75,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "herdr-workspace-jump-application"
+name = "herdr-picker-application"
 version = "0.1.0"
 dependencies = [
- "herdr-workspace-jump-domain",
+ "herdr-picker-domain",
 ]
 
 [[package]]
-name = "herdr-workspace-jump-cli"
+name = "herdr-picker-cli"
 version = "0.1.0"
 dependencies = [
- "herdr-workspace-jump-adapters",
- "herdr-workspace-jump-application",
- "herdr-workspace-jump-domain",
- "herdr-workspace-jump-protocol",
+ "herdr-picker-adapters",
+ "herdr-picker-application",
+ "herdr-picker-domain",
+ "herdr-picker-protocol",
  "serde_json",
 ]
 
 [[package]]
-name = "herdr-workspace-jump-domain"
+name = "herdr-picker-domain"
 version = "0.1.0"
 
 [[package]]
-name = "herdr-workspace-jump-protocol"
+name = "herdr-picker-protocol"
 version = "0.1.0"
 dependencies = [
- "herdr-workspace-jump-domain",
+ "herdr-picker-domain",
  "serde",
  "serde_json",
  "toml",

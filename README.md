@@ -1,4 +1,4 @@
-# herdr-workspace-jump
+# herdr-picker
 
 Two pieces of workspace navigation [herdr](https://herdr.dev) has no built-in for:
 
@@ -26,12 +26,12 @@ rather than a file that can be committed once for everybody. It is built, genera
 instead. A Rust toolchain has to be on the machine.
 
 ```bash
-git clone https://github.com/webdavis/herdr-workspace-jump.git ~/.local/share/herdr-workspace-jump
-cd ~/.local/share/herdr-workspace-jump
+git clone https://github.com/webdavis/herdr-picker.git ~/.local/share/herdr-picker
+cd ~/.local/share/herdr-picker
 cargo build --release --locked
 ```
 
-Declare your workspaces in `~/.config/herdr/plugins/config/herdr-workspace-jump/config.toml`. The
+Declare your workspaces in `~/.config/herdr/plugins/config/herdr-picker/config.toml`. The
 key is the label herdr shows, which is case sensitive, and the value is either the working
 directory on its own or a table naming that directory and the key the pick popup selects it with:
 
@@ -66,8 +66,8 @@ taken means giving one of the two its own `key`.
 Then render the manifest and link the directory:
 
 ```bash
-./target/release/herdr-workspace-jump generate --output .
-herdr plugin link ~/.local/share/herdr-workspace-jump
+./target/release/herdr-picker generate --output .
+herdr plugin link ~/.local/share/herdr-picker
 ```
 
 Re-run `generate`, and re-link, whenever the config changes or the plugin is updated, since an
@@ -90,7 +90,7 @@ Then bind the actions in `~/.config/herdr/config.toml`:
 [[keys.command]]
 key = "prefix+ctrl+\\"
 type = "plugin_action"
-command = "herdr-workspace-jump.last_workspace"
+command = "herdr-picker.last_workspace"
 ```
 
 ## The pick popup
@@ -139,7 +139,7 @@ Bind its plugin action:
 [[keys.command]]
 key = "prefix+ctrl+o"
 type = "plugin_action"
-command = "herdr-workspace-jump.pick"
+command = "herdr-picker.pick"
 description = "pick a workspace"
 ```
 
@@ -151,9 +151,9 @@ and four rows go to the prompt, the legend and the blank rows around the list. A
 for what is left of its row is cut short with an ellipsis, or left out, and so is a label too long
 for its row or a message above the legend, so the list, the hint and the legend never wrap.
 
-The action runs `herdr-workspace-jump popup`. That asks herdr for the window's size and opens the
+The action runs `herdr-picker popup`. That asks herdr for the window's size and opens the
 manifest's `pick` pane as a popup at the size worked out from it, telling the pane which workspace
-the key was pressed in. The pane runs `herdr-workspace-jump pick`, which reads the same config file
+the key was pressed in. The pane runs `herdr-picker pick`, which reads the same config file
 the manifest comes from and has no `--config` flag; `HERDR_PLUGIN_CONFIG_DIR` is what points it
 elsewhere. A `type = "popup"` binding that runs `pick` itself still works, at whatever size that
 binding gives.

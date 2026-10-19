@@ -1,0 +1,60 @@
+use std::fmt;
+use std::io;
+
+use herdr_picker_domain::{Frame, JumpTarget, Keymap, Matcher, Menu, Pick, PickKey, TextField};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PickInput {
+    Key(PickKey),
+    Resized,
+}
+
+pub trait InputSource {
+    fn next_input(&mut self) -> io::Result<PickInput>;
+}
+
+pub trait Screen {
+    fn show(&mut self, frame: &Frame<'_>) -> io::Result<()>;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PickError {
+    Show(String),
+    ReadKey(String),
+}
+
+impl fmt::Display for PickError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Show(detail) => write!(f, "cannot show the menu: {detail}"),
+            Self::ReadKey(detail) => write!(f, "cannot read a key: {detail}"),
+        }
+    }
+}
+
+pub fn pick<'a, M: Matcher, F: TextField>(
+    mut menu: Menu<'a, M, F>,
+    keymap: &impl Keymap,
+    inputs: &mut impl InputSource,
+    screen: &mut impl Screen,
+) -> Result<Option<&'a JumpTarget>, PickError> {
+    loop {
+        screen
+            .show(&menu.frame())
+            .map_err(|failure| PickError::Show(failure.to_string()))?;
+        let PickInput::Key(key) = inputs
+            .next_input()
+            .map_err(|failure| PickError::ReadKey(failure.to_string()))?
+        else {
+            continue;
+        };
+        match menu.apply(keymap.command(key, menu.mode())) {
+            Pick::Selected(target) => return Ok(Some(target)),
+            Pick::Cancelled | Pick::Unbound => return Ok(None),
+            Pick::Pending => {}
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests;

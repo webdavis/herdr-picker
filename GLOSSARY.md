@@ -1,4 +1,4 @@
-# herdr-workspace-jump
+# herdr-picker
 
 Jumps between herdr workspaces by key, from a chord or a pick popup.
 
