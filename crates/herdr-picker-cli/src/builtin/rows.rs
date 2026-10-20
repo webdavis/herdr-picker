@@ -27,7 +27,14 @@ impl<W: Write> RowWriter<W> {
     }
 
     pub(super) fn row(&mut self, row: &PickerRow) -> io::Result<()> {
-        writeln!(self.out, "{}", encode_row(row))?;
+        let encoded = match row.label.contains(['\n', '\r', '\t']) {
+            true => encode_row(&PickerRow {
+                label: one_line(&row.label),
+                ..row.clone()
+            }),
+            false => encode_row(row),
+        };
+        writeln!(self.out, "{encoded}")?;
         if self.flushed.is_none_or(|at| at.elapsed() >= FLUSH_EVERY) {
             self.out.flush()?;
             self.flushed = Some(Instant::now());
@@ -42,6 +49,14 @@ impl<W: Write> RowWriter<W> {
     pub(super) fn finish(mut self) -> io::Result<()> {
         self.out.flush()
     }
+}
+
+// A label is one line: a log message's line breaks show the way the fzf-pickers suite drew them.
+fn one_line(label: &str) -> String {
+    label
+        .replace('\r', "")
+        .replace('\n', " ↵ ")
+        .replace('\t', "  ")
 }
 
 pub(super) fn shown(path: &Path, cwd: &Path) -> String {

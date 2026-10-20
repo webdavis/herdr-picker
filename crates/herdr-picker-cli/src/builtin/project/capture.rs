@@ -1,13 +1,12 @@
-use std::env;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
-use herdr_picker_adapters::{bare_program, run_capture};
+use herdr_picker_adapters::run_capture;
 use herdr_picker_domain::PickerRow;
-use herdr_picker_protocol::shell_word;
 
 use super::{command_row, nearest, root, words};
 use crate::builtin::Places;
+use crate::builtin::page::own_program;
 use crate::builtin::paint::dim;
 use crate::command::{CommandError, failed};
 
@@ -39,15 +38,7 @@ pub(super) fn capture_row(
     places: &Places,
 ) -> PickerRow {
     let output = saved_dir(places).join(format!("diagnostics-{framework}.json"));
-    let program = env::current_exe().map_or_else(
-        |_| "herdr-picker".to_string(),
-        |path| {
-            bare_program(
-                &shell_word(&path.to_string_lossy()),
-                env::var_os("PATH").as_deref(),
-            )
-        },
-    );
+    let program = own_program();
     let saving = words(&[
         "capture",
         &output.to_string_lossy(),

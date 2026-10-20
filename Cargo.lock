@@ -89,7 +89,9 @@ dependencies = [
  "herdr-picker-application",
  "herdr-picker-domain",
  "herdr-picker-protocol",
+ "serde",
  "serde_json",
+ "toml",
 ]
 
 [[package]]

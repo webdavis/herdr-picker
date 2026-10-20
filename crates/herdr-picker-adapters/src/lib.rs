@@ -30,7 +30,9 @@ pub use capture::{Capture, read_captures, run_capture};
 pub use cli::CliWorkspaceDirectory;
 pub use clipboard::copy_to_clipboard;
 pub use command_preview::command_preview;
-pub use config::{ConfigError, PluginConfig, config_file, read_config, read_picker_config};
+pub use config::{
+    ConfigError, PluginConfig, UnifiSettings, config_file, read_config, read_picker_config,
+};
 pub use fzf::{
     Chrome, Helper, Placement, SAVE_QUICKFIX, SWITCH_SOURCE, change_footer, chooser_lines,
     error_footer, finder_actions, fzf_arguments, help_page, leave, list_lines, step_footer,
@@ -39,7 +41,7 @@ pub use fzf::{
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
 pub use keyboard::TerminalInput;
-pub use live_step::{rerun_step, save_step_command};
+pub use live_step::{is_live_step, rerun_step, save_step_command};
 pub use manifest::{ManifestError, write_manifest};
 pub use pane_result::{PaneWaitError, await_pane_result, write_pane_state};
 pub use path_preview::path_preview;

@@ -7,6 +7,8 @@ use herdr_picker_domain::{
 use herdr_picker_protocol::split_words;
 use serde::Deserialize;
 
+use super::unifi::UnifiSettings;
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct PickerEntry {
@@ -18,6 +20,7 @@ pub(super) struct PickerEntry {
     args: Vec<String>,
     #[serde(default = "on")]
     enabled: bool,
+    pub(super) unifi: Option<UnifiSettings>,
 }
 
 fn on() -> bool {

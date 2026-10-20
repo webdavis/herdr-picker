@@ -1,3 +1,8 @@
+mod steps;
+
+use steps::STEP_BUILTINS;
+pub use steps::is_step_builtin;
+
 // The pickers herdr-picker ships, on their keys unless the config turns them off or moves them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BuiltinPicker {
@@ -17,7 +22,7 @@ pub enum Live {
     On(&'static [&'static str]),
 }
 
-pub const BUILTIN_PICKERS: [BuiltinPicker; 10] = [
+pub const BUILTIN_PICKERS: [BuiltinPicker; 12] = [
     BuiltinPicker {
         name: "files",
         key: "ctrl-t f",
@@ -97,22 +102,21 @@ pub const BUILTIN_PICKERS: [BuiltinPicker; 10] = [
         sources: &["tests", "errors", "quickfix"],
         live: Live::Never,
     },
+    BuiltinPicker {
+        name: "processes",
+        key: "ctrl-t p",
+        description: "Processes and the sockets they hold, services, or the last hour of logs",
+        sources: &["processes", "services", "logs"],
+        live: Live::Never,
+    },
+    BuiltinPicker {
+        name: "network",
+        key: "ctrl-t n",
+        description: "Devices on the network, saved captures, checks of a URL, or network commands",
+        sources: &["devices", "captures", "web checks", "commands"],
+        live: Live::On(&["web checks"]),
+    },
 ];
-
-// The built-in steps a picker's next action opens; no key runs them.
-pub const STEP_BUILTINS: [(&str, Live); 7] = [
-    ("commit-files", Live::Never),
-    ("checkout", Live::Never),
-    ("stash-files", Live::Always),
-    ("rename-branch", Live::Always),
-    ("pull", Live::Never),
-    ("prune", Live::Never),
-    ("change-setting", Live::Always),
-];
-
-pub fn is_step_builtin(name: &str) -> bool {
-    STEP_BUILTINS.iter().any(|(step, _)| *step == name)
-}
 
 pub fn follows_query(builtin: &str, source: Option<&str>) -> bool {
     let shipped = BUILTIN_PICKERS

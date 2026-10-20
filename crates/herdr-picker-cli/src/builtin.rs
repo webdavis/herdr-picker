@@ -10,16 +10,22 @@ use herdr_picker_protocol::{
 
 use crate::command::{CommandError, failed};
 
+mod clock;
 mod files;
 mod folders;
 mod git;
+mod network;
+mod page;
 mod paint;
 mod places;
+mod processes;
+mod program;
 mod project;
 mod recipes;
 mod rows;
 
 pub(crate) use git::git_preview;
+pub(crate) use network::network_tool;
 pub(crate) use places::Places;
 pub(crate) use project::save_check;
 
@@ -68,7 +74,10 @@ pub(crate) fn print_rows(
         source: asked.source.or(first),
         ..*asked
     };
-    if let Some(listed) = git::git_rows(name, arguments, &asked, places, &mut rows) {
+    let step = git::git_rows(name, arguments, &asked, places, &mut rows);
+    if let Some(listed) =
+        step.or_else(|| network::network_step(name, arguments, &asked, places, &mut rows))
+    {
         listed?;
         return written(rows.finish());
     }
@@ -77,6 +86,10 @@ pub(crate) fn print_rows(
         ("folders", [], Some(source)) => folders::folders(source, places, &mut rows)?,
         ("recipes", [], _) => recipes::recipes_rows(places, &mut rows)?,
         ("tests", [], Some(source)) => project::tests(source, places, &mut rows)?,
+        ("processes", [], Some(source)) => processes::processes(source, &mut rows)?,
+        ("network", [], Some(source)) => network::network(source, &asked, places, &mut rows)?,
+        ("unified-logs", [], _) => processes::unified_logs(&mut rows)?,
+        ("crashes", [], _) => processes::crashes(places, &mut rows)?,
         ("echo-args", words, _) => written(
             words
                 .iter()

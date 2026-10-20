@@ -22,6 +22,11 @@ pub enum ConfigError {
         path: PathBuf,
         cause: PickerError,
     },
+    Misplaced {
+        path: PathBuf,
+        // A table only the network picker reads.
+        table: String,
+    },
 }
 
 impl fmt::Display for ConfigError {
@@ -37,6 +42,9 @@ impl fmt::Display for ConfigError {
             ),
             Self::Invalid { path, cause } => (path, cause.to_string()),
             Self::InvalidPicker { path, cause } => (path, cause.to_string()),
+            Self::Misplaced { path, table } => {
+                (path, format!("{table} belongs under [pickers.network]"))
+            }
         };
         write!(
             formatter,

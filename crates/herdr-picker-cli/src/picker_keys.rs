@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use herdr_picker_adapters::{
-    change_footer, copy_to_clipboard, error_footer, finder_actions, leave, read_run_error,
-    read_view, unbound_action, write_view,
+    change_footer, copy_to_clipboard, error_footer, finder_actions, is_live_step, leave,
+    read_run_error, read_view, unbound_action, write_view,
 };
 use herdr_picker_domain::{
     Action, Key, PickerRow, Theme, ViewKey, ViewResponse, ViewState, act, groups, press,
@@ -58,7 +58,12 @@ fn answer(cache: &Path, event: &[&str], theme: Theme) -> Result<String, CommandE
     }
     let failed_run = view_key == ViewKey::Loaded && read_run_error(cache).is_some();
     let quoted = QuotedHelper::for_run(cache)?;
-    Ok(finder_actions(response, quoted.helper(), failed_run))
+    Ok(finder_actions(
+        response,
+        quoted.helper(),
+        failed_run,
+        is_live_step(cache),
+    ))
 }
 
 // fzf hands the marked rows' indexes as separate words, or the highlighted row's when none is.

@@ -101,7 +101,9 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
             ("contents", "ctrl-g /"),
             ("git-config", "ctrl-g v"),
             ("recipes", "ctrl-t j"),
-            ("tests", "ctrl-t t")
+            ("tests", "ctrl-t t"),
+            ("processes", "ctrl-t p"),
+            ("network", "ctrl-t n")
         ]
     );
     assert!(

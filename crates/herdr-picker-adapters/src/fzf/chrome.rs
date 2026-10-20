@@ -41,7 +41,8 @@ pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
         .collect()
 }
 
-pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool) -> String {
+// A live step's rows follow the query, so fzf searches only while its chooser is open.
+pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool, live: bool) -> String {
     let reload = format!("reload({})", helper.call("rows", ""));
     let mut actions: Vec<String> = match response {
         ViewResponse::Redraw => vec![reload],
@@ -53,6 +54,11 @@ pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool) -> S
         ViewResponse::Switch(_) => vec![leave(SWITCH_SOURCE)],
         ViewResponse::Stay => Vec::new(),
     };
+    match (&response, live) {
+        (ViewResponse::OpenChooser, true) => actions.push("enable-search".into()),
+        (ViewResponse::CloseChooser, true) => actions.push("disable-search".into()),
+        _ => {}
+    }
     if failed {
         actions.push(format!("transform-footer({})", helper.call("footer", "")));
     }

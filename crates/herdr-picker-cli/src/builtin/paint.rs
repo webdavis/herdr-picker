@@ -41,3 +41,9 @@ pub(super) fn red(text: &str) -> String {
 pub(super) fn teal(text: &str) -> String {
     format!("{TEAL}{text}{RESET}")
 }
+
+const PEACH: &str = "\x1b[38;2;250;179;135m";
+
+pub(super) fn peach(text: &str) -> String {
+    format!("{PEACH}{text}{RESET}")
+}

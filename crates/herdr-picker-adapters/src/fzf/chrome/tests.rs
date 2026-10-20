@@ -65,7 +65,7 @@ fn the_chooser_lists_its_entries_by_index() {
 
 #[test]
 fn each_view_response_becomes_the_fzf_actions_that_draw_it() {
-    let actions = |response| finder_actions(response, HELPER, false);
+    let actions = |response| finder_actions(response, HELPER, false, false);
 
     assert_eq!(
         actions(ViewResponse::Switch("hidden".to_string())),
@@ -90,13 +90,25 @@ fn each_view_response_becomes_the_fzf_actions_that_draw_it() {
 }
 
 #[test]
+fn a_live_steps_chooser_searches_what_is_typed_and_closing_it_stops_searching_again() {
+    assert_eq!(
+        finder_actions(ViewResponse::OpenChooser, HELPER, false, true),
+        "reload('/bin/herdr-picker' rows '/state/rows')+clear-query+hide-preview+enable-search"
+    );
+    assert_eq!(
+        finder_actions(ViewResponse::CloseChooser, HELPER, false, true),
+        "reload('/bin/herdr-picker' rows '/state/rows')+clear-query+show-preview+disable-search"
+    );
+}
+
+#[test]
 fn a_failed_run_also_asks_herdr_picker_for_the_footer() {
     assert_eq!(
-        finder_actions(ViewResponse::Stay, HELPER, true),
+        finder_actions(ViewResponse::Stay, HELPER, true, false),
         "transform-footer('/bin/herdr-picker' footer '/state/rows')"
     );
     assert_eq!(
-        finder_actions(ViewResponse::Redraw, HELPER, true),
+        finder_actions(ViewResponse::Redraw, HELPER, true, false),
         "reload('/bin/herdr-picker' rows '/state/rows')+transform-footer('/bin/herdr-picker' footer '/state/rows')"
     );
 }

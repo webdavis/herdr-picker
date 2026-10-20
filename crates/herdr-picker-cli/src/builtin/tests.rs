@@ -101,6 +101,14 @@ fn echo_args_prints_one_row_per_argument_that_inserts_it_as_a_shell_word() {
 }
 
 #[test]
+fn a_label_with_line_breaks_is_drawn_on_one_line() {
+    assert_eq!(
+        printed("echo-args", &["two\nlines\tand\r"], None, &unused_places()).expect("rows"),
+        "{\"label\":\"two ↵ lines  and\",\"enter\":{\"insert\":\"'two\\nlines\\tand\\r'\"}}\n"
+    );
+}
+
+#[test]
 fn confirm_prints_yes_running_the_action_and_no_going_back() {
     assert_eq!(
         printed(

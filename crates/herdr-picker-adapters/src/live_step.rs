@@ -31,6 +31,11 @@ pub fn save_step_command(cache: &Path, command: &Command) -> io::Result<()> {
     fs::write(picker_command_file(cache), serde_json::to_string(&saved)?)
 }
 
+// Only a live step keeps its command beside its rows.
+pub fn is_live_step(cache: &Path) -> bool {
+    picker_command_file(cache).exists()
+}
+
 // The rows go to a side file first, so fzf never reads half a list.
 pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
     let refused = |refusal: PickerRunError| {

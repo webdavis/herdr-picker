@@ -7,10 +7,13 @@ use serde::Deserialize;
 
 mod error;
 mod pickers;
+mod unifi;
 mod workspaces;
 
 pub use error::ConfigError;
 use pickers::{PickerEntry, declared_pickers};
+pub use unifi::UnifiSettings;
+use unifi::unifi_settings;
 use workspaces::Declaration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,6 +22,7 @@ pub struct PluginConfig {
     pub look: RowLook,
     pub theme: Theme,
     pub pickers: Vec<Picker>,
+    pub unifi: Option<UnifiSettings>,
 }
 
 #[derive(Deserialize)]
@@ -108,13 +112,17 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
             cause,
         })?,
     };
-    let pickers =
-        declared_pickers(file.pickers, &path.with_file_name("pickers")).map_err(|cause| {
-            ConfigError::InvalidPicker {
-                path: path.to_owned(),
-                cause,
-            }
-        })?;
+    let mut entries = file.pickers;
+    let unifi = unifi_settings(&mut entries).map_err(|picker| ConfigError::Misplaced {
+        path: path.to_owned(),
+        table: format!("[pickers.{picker}.unifi]"),
+    })?;
+    let pickers = declared_pickers(entries, &path.with_file_name("pickers")).map_err(|cause| {
+        ConfigError::InvalidPicker {
+            path: path.to_owned(),
+            cause,
+        }
+    })?;
     let PickerTable {
         leaders,
         stripes,
@@ -125,6 +133,7 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
         look: RowLook { leaders, stripes },
         theme: theme.into(),
         pickers,
+        unifi,
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {
