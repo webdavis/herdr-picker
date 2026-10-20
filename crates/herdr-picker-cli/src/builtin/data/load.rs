@@ -1,9 +1,7 @@
-use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use herdr_picker_adapters::on_path;
 use serde_json::{Deserializer, Value};
 
 use super::formats::Format;
@@ -11,8 +9,6 @@ use crate::builtin::program::{ran, run};
 
 const CLIPBOARD: &str = "clipboard";
 const READ_DEADLINE: Duration = Duration::from_secs(20);
-pub(super) const NO_TOON: &str =
-    "TOON needs the toon program: npm install --global @toon-format/cli";
 
 // Where a document's text comes from.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,9 +46,6 @@ impl Origin {
             Self::File(path) => path,
         };
         let format = self.format();
-        if format == Some(Format::Toon) && !toon_installed() {
-            return Err(NO_TOON.to_string());
-        }
         let text = match format.and_then(|format| format.reader(path)) {
             Some(argv) => run(
                 &argv.iter().map(String::as_str).collect::<Vec<_>>(),
@@ -61,12 +54,13 @@ impl Origin {
             None => fs::read_to_string(path)
                 .map_err(|failure| format!("{}: {failure}", path.display()))?,
         };
-        values(&text)
+        match format {
+            Some(Format::Toon) => {
+                toon_format::decode_default(&text).map_err(|failure| format!("not TOON: {failure}"))
+            }
+            _ => values(&text),
+        }
     }
-}
-
-pub(super) fn toon_installed() -> bool {
-    on_path("toon", env::var_os("PATH").as_deref()).is_some()
 }
 
 // One value, or each of a stream of values (JSON Lines, YAML documents) as an array.

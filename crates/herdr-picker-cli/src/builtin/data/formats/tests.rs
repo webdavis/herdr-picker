@@ -19,7 +19,7 @@ fn a_data_file_is_known_by_its_extension() {
 }
 
 #[test]
-fn yaml_and_toon_are_read_as_json_through_yq_and_toon() {
+fn yaml_is_read_as_json_through_yq() {
     let file = Path::new("/w/a b.yaml");
 
     assert_eq!(
@@ -31,23 +31,5 @@ fn yaml_and_toon_are_read_as_json_through_yq_and_toon() {
                 .collect()
         )
     );
-    assert_eq!(
-        Format::Toon.reader(Path::new("/w/u.toon")),
-        Some(vec![
-            "toon".to_string(),
-            "--decode".to_string(),
-            "/w/u.toon".to_string()
-        ])
-    );
     assert_eq!(Format::Json.reader(file), None);
-}
-
-#[test]
-fn a_copy_is_converted_from_json_by_yq_or_toon_and_json_needs_no_program() {
-    assert_eq!(Output::Json.converter(), None);
-    assert_eq!(
-        Output::Yaml.converter(),
-        Some(&["yq", "-p", "json", "-o", "yaml", "-"][..])
-    );
-    assert_eq!(Output::Toon.converter(), Some(&["toon", "--encode"][..]));
 }

@@ -4,7 +4,6 @@ use herdr_picker_domain::{Action, PickerRow, Preview};
 use serde_json::Value;
 
 use super::formats::Output;
-use super::load::{NO_TOON, toon_installed};
 use super::place::Place;
 use super::redact::redacted;
 use crate::builtin::page::notice;
@@ -18,11 +17,8 @@ pub(super) fn copy_rows(value: &Value, place: &Place) -> Vec<PickerRow> {
     let shown = redacted(value, place.last_key());
     Output::ALL
         .iter()
-        .map(|output| {
-            if *output == Output::Toon && !toon_installed() {
-                return notice(output.name(), NO_TOON);
-            }
-            match (converted(*output, &shown), converted(*output, value)) {
+        .map(
+            |output| match (converted(*output, &shown), converted(*output, value)) {
                 (Ok(hidden), Ok(visible)) => {
                     let mut keys = Vec::new();
                     if hidden != visible {
@@ -40,8 +36,8 @@ pub(super) fn copy_rows(value: &Value, place: &Place) -> Vec<PickerRow> {
                     }
                 }
                 (Err(failure), _) | (_, Err(failure)) => notice(output.name(), &failure),
-            }
-        })
+            },
+        )
         .collect()
 }
 
@@ -52,14 +48,23 @@ pub(super) fn copy_header(place: &Place) -> String {
     )
 }
 
-pub(super) fn converted(output: Output, value: &Value) -> Result<String, String> {
-    let Some(argv) = output.converter() else {
-        return serde_json::to_string_pretty(value).map_err(|failure| failure.to_string());
-    };
-    let done = ran(argv, Some(&value.to_string()), DEADLINE)?;
+fn converted(output: Output, value: &Value) -> Result<String, String> {
+    match output {
+        Output::Json => serde_json::to_string_pretty(value).map_err(|failure| failure.to_string()),
+        Output::Toon => toon_format::encode_default(value).map_err(|failure| failure.to_string()),
+        Output::Yaml => yaml(value),
+    }
+}
+
+fn yaml(value: &Value) -> Result<String, String> {
+    let done = ran(
+        &["yq", "-p", "json", "-o", "yaml", "-"],
+        Some(&value.to_string()),
+        DEADLINE,
+    )?;
     match done.succeeded {
         true => Ok(done.stdout.trim_end().to_string()),
-        false => Err(format!("{} failed: {}", argv[0], done.stderr.trim())),
+        false => Err(format!("yq failed: {}", done.stderr.trim())),
     }
 }
 

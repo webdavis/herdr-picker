@@ -15,4 +15,5 @@ herdr-picker-adapters = { path = "../herdr-picker-adapters" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 toml = "1"
+toon-format = { version = "0.7.0", default-features = false }
 
