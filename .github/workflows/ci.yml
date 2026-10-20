@@ -14,7 +14,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Install the tools the pickers call
-        run: sudo apt-get update && sudo apt-get install -y ripgrep just
+        run: |
+          sudo apt-get update && sudo apt-get install -y ripgrep
+          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
       - name: Install clippy and rustfmt
         run: rustup component add clippy rustfmt
       - name: Format check
