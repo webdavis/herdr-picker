@@ -1,4 +1,5 @@
 mod bookmarks;
+mod capture;
 mod cli;
 mod clipboard;
 mod command_preview;
@@ -14,8 +15,10 @@ mod path_preview;
 mod picker_files;
 mod picker_run;
 mod popup_host;
+mod private;
 mod process;
 mod program;
+mod quickfix;
 mod response;
 mod screen;
 mod socket;
@@ -23,13 +26,15 @@ mod state;
 mod walk;
 
 pub use bookmarks::{add_bookmark, read_bookmarks};
+pub use capture::{Capture, read_captures, run_capture};
 pub use cli::CliWorkspaceDirectory;
 pub use clipboard::copy_to_clipboard;
 pub use command_preview::command_preview;
 pub use config::{ConfigError, PluginConfig, config_file, read_config, read_picker_config};
 pub use fzf::{
-    Chrome, Helper, Placement, SWITCH_SOURCE, change_footer, chooser_lines, error_footer,
-    finder_actions, fzf_arguments, help_page, leave, list_lines, step_footer,
+    Chrome, Helper, Placement, SAVE_QUICKFIX, SWITCH_SOURCE, change_footer, chooser_lines,
+    error_footer, finder_actions, fzf_arguments, help_page, leave, list_lines, step_footer,
+    unbound_action,
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
@@ -46,10 +51,12 @@ pub use picker_run::{Picked, PickerRunError, run_picker};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
 pub use program::{bare_program, on_path};
+pub use quickfix::{open_quickfix, read_quickfix, save_quickfix, send_quickfix};
 pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
 pub use state::{
-    bookmarks_file, mru_file, picker_result_file, picker_rows_file, spawned_jump_log_file,
+    bookmarks_file, captures_dir, mru_file, picker_result_file, picker_rows_file, quickfix_file,
+    spawned_jump_log_file,
 };
 pub use walk::{Entry, Walk, walk};
 

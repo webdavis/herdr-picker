@@ -131,8 +131,8 @@ fn a_key_a_row_cannot_claim_is_refused() {
     };
 
     assert_eq!(
-        refusal(r#"{"ctrl-a":"none"}"#),
-        "ctrl-a is not a key a row can claim"
+        refusal(r#"{"ctrl-q":"none"}"#),
+        "ctrl-q is not a key a row can claim"
     );
     assert_eq!(
         refusal(r#"{"enter":"none"}"#),

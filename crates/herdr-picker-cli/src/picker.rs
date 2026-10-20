@@ -11,6 +11,7 @@ use herdr_picker_protocol::{Shell, bash_init, instruction, parse_row};
 use crate::builtin::{self, Places};
 use crate::command::{CommandError, config_path, failed};
 use crate::picker_chrome::QuotedHelper;
+use crate::quickfix::quickfix_path;
 use crate::{picker_popup, picker_step};
 
 const OPENER: &str = if cfg!(target_os = "macos") {
@@ -62,11 +63,13 @@ pub(crate) fn pick(
         state: None,
         query: None,
     });
+    let quickfix = quickfix_path();
     let step = picker_step::Run {
         config: &config,
         helper: quoted.helper(),
         cache: &cache,
         placement,
+        quickfix: &quickfix,
     };
     loop {
         let Some((action, spot)) = step.show(&trail)? else {

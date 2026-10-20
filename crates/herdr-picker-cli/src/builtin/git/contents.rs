@@ -113,7 +113,7 @@ fn hit_row(
         if committed {
             let range = format!("{0},{0}:{1}", hit.line, hit.name);
             row.keys.push((
-                key("alt-g"),
+                key("alt-b"),
                 Action::Run(repo.shell(&["log", "-L", &range])),
             ));
         }

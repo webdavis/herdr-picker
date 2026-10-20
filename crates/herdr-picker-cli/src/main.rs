@@ -10,6 +10,7 @@ mod picker_keys;
 mod picker_popup;
 mod picker_step;
 mod popup;
+mod quickfix;
 mod run;
 
 use std::env;

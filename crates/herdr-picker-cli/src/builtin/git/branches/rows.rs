@@ -41,7 +41,7 @@ pub(super) fn local(repo: &Repo, item: &Item, current: bool) -> PickerRow {
             ),
         ),
         (
-            key("alt-e"),
+            key("ctrl-e"),
             next("rename-branch", &[&name], Some(&name), None),
         ),
     ];
@@ -128,11 +128,11 @@ fn repository_keys(repo: &Repo) -> Vec<(Key, Action)> {
     let root = repo.root.to_string_lossy().into_owned();
     vec![
         (
-            key("ctrl-r"),
+            key("ctrl-f"),
             Action::Run(repo.shell(&["fetch", "--all", "--prune"])),
         ),
-        (key("alt-p"), next("pull", &[], None, None)),
-        (key("alt-x"), next("prune", &[&root], None, None)),
+        (key("ctrl-l"), next("pull", &[], None, None)),
+        (key("alt-d"), next("prune", &[&root], None, None)),
     ]
 }
 

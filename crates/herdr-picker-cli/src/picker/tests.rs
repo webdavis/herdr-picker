@@ -77,6 +77,8 @@ fn init_bash_binds_each_configured_picker() {
             "bind -x '\"\\C-gb\": __herdr_picker branches'\n",
             "bind -x '\"\\C-g/\": __herdr_picker contents'\n",
             "bind -x '\"\\C-gv\": __herdr_picker git-config'\n",
+            "bind -x '\"\\C-tj\": __herdr_picker recipes'\n",
+            "bind -x '\"\\C-tt\": __herdr_picker tests'\n",
         )),
         "{script}"
     );

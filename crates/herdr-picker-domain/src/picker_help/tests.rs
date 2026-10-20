@@ -59,11 +59,15 @@ fn help_lists_the_rows_keys_in_detail_then_the_keys_every_picker_has() {
             entry("ctrl-o", "go to Git Log"),
             entry("ctrl-space", "choose a source"),
             entry("tab", "mark a row; a key then acts on every marked row"),
+            entry(
+                "ctrl-q",
+                "save the marked rows' files and lines as the quickfix list"
+            ),
             entry("esc", "back to the previous step, or close on the first"),
             entry("F1", "this help"),
         ]
     );
-    assert_eq!(help_entries(None, false).len(), 3);
+    assert_eq!(help_entries(None, false).len(), 4);
 }
 
 #[test]

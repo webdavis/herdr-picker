@@ -30,6 +30,9 @@ pub fn list_lines(rows: &[PickerRow], view: &View) -> Vec<String> {
 // What fzf prints in place of a key when the user picks another source in the chooser.
 pub const SWITCH_SOURCE: &str = "source";
 
+// What fzf prints in place of a key when Ctrl-Q saved the quickfix list for Neovim to open.
+pub const SAVE_QUICKFIX: &str = "quickfix";
+
 pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
     entries
         .iter()

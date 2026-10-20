@@ -102,19 +102,19 @@ fn a_local_branch_checks_out_opens_as_a_worktree_renames_and_reaches_the_reposit
     );
     assert_eq!(other.action(&key("ctrl-x")), None);
     assert_eq!(
-        other.action(&key("alt-e")),
+        other.action(&key("ctrl-e")),
         Some(&next("rename-branch", &["other"], Some("other"), None))
     );
     assert_eq!(
-        other.action(&key("alt-x")),
+        other.action(&key("alt-d")),
         Some(&next("prune", &[&root], None, None))
     );
     assert_eq!(
-        other.action(&key("alt-p")),
+        other.action(&key("ctrl-l")),
         Some(&next("pull", &[], None, None))
     );
     assert_eq!(
-        other.action(&key("ctrl-r")),
+        other.action(&key("ctrl-f")),
         Some(&Action::Run(format!("git -C {root} fetch --all --prune")))
     );
     assert_eq!(
@@ -147,7 +147,7 @@ fn remote_branches_tags_and_worktrees_do_what_suits_them() {
         remote.action(&key("ctrl-enter")),
         Some(&next("checkout", &["remote", "origin/topic"], None, None))
     );
-    assert_eq!(remote.action(&key("alt-e")), None);
+    assert_eq!(remote.action(&key("ctrl-e")), None);
     let tag = row_of(&rows, "v1");
     assert_eq!(
         tag.action(&key("ctrl-enter")),

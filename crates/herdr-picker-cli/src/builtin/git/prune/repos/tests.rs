@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use herdr_picker_adapters::on_path;
-use herdr_picker_domain::{Action, Preview};
+use herdr_picker_domain::{Action, Key, PickerCall, Preview};
 
-use super::{main_repo, worktree_base};
+use super::{main_repo, repo_row, worktree_base};
 use crate::builtin::git::fixture::{GitRepo, read};
 use crate::builtin::tests::printed;
 
@@ -24,6 +24,30 @@ fn worktrunks_worktree_folder_is_the_fixed_start_of_its_path_template() {
     );
     assert_eq!(worktree_base("../{{ repo }}.{{ branch }}", home), None);
     assert_eq!(worktree_base("~/{{ repo }}", None), None);
+}
+
+#[test]
+fn a_repository_with_something_to_prune_changes_into_it_or_prunes_it() {
+    let repo = GitRepo::new("prune-row");
+    let item = serde_json::json!({"kind": "branch", "branch": "old", "reason": "merged", "target": "main"});
+    let root = repo.0.to_string_lossy().into_owned();
+
+    let row = repo_row(&repo.0, &[item], &repo.places());
+
+    let key = |name| Key::parse(name).expect("a key");
+    assert_eq!(
+        row.action(&key("ctrl-enter")),
+        Some(&Action::Cd(root.clone()))
+    );
+    assert_eq!(
+        row.action(&key("alt-d")),
+        Some(&Action::Next(PickerCall {
+            name: "prune".to_string(),
+            args: vec![root],
+            state: None,
+            query: None,
+        }))
+    );
 }
 
 #[test]

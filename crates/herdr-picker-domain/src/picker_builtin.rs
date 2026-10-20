@@ -17,7 +17,7 @@ pub enum Live {
     On(&'static [&'static str]),
 }
 
-pub const BUILTIN_PICKERS: [BuiltinPicker; 8] = [
+pub const BUILTIN_PICKERS: [BuiltinPicker; 10] = [
     BuiltinPicker {
         name: "files",
         key: "ctrl-t f",
@@ -81,6 +81,20 @@ pub const BUILTIN_PICKERS: [BuiltinPicker; 8] = [
         key: "ctrl-g v",
         description: "Git settings, where each comes from, and which value wins",
         sources: &[],
+        live: Live::Never,
+    },
+    BuiltinPicker {
+        name: "recipes",
+        key: "ctrl-t j",
+        description: "Recipes in this project's justfile",
+        sources: &[],
+        live: Live::Never,
+    },
+    BuiltinPicker {
+        name: "tests",
+        key: "ctrl-t t",
+        description: "Tests in this project, compiler and linter errors, or the saved quickfix list",
+        sources: &["tests", "errors", "quickfix"],
         live: Live::Never,
     },
 ];

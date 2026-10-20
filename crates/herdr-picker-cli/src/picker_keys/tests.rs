@@ -103,6 +103,29 @@ fn a_rows_own_key_leaves_and_a_key_it_does_not_claim_does_nothing() {
 }
 
 #[test]
+fn a_key_no_row_claims_keeps_what_fzf_does_with_it() {
+    let sandbox = Sandbox::new("defaults", GROUPED_ROWS);
+
+    assert_eq!(sandbox.press(&["key", "ctrl-e", "0"]), "end-of-line");
+    assert_eq!(sandbox.press(&["key", "alt-b", "2"]), "backward-word");
+    assert_eq!(sandbox.press(&["key", "ctrl-a", ""]), "beginning-of-line");
+    sandbox.press(&["load"]);
+    sandbox.press(&["choose"]);
+    assert_eq!(sandbox.press(&["key", "ctrl-w", "0"]), "unix-word-rubout");
+}
+
+#[test]
+fn a_row_claiming_an_editing_key_takes_it_over() {
+    let rows = "{\"label\":\"main\",\"enter\":{\"insert\":\"main\"},\"keys\":{\"ctrl-e\":{\"run\":\"git branch -m main\"}}}\n";
+    let sandbox = Sandbox::new("claimed", rows);
+
+    assert_eq!(
+        sandbox.press(&["key", "ctrl-e", "0"]),
+        "print(ctrl-e)+accept"
+    );
+}
+
+#[test]
 fn marked_rows_that_lead_one_place_ask_for_one_in_the_footer() {
     let sandbox = Sandbox::new("multi", GROUPED_ROWS);
 
@@ -185,7 +208,7 @@ fn a_run_error_reaches_the_footer_when_the_rows_finish_loading() {
 fn an_unknown_view_event_or_key_is_a_usage_error() {
     let sandbox = Sandbox::new("usage", GROUPED_ROWS);
 
-    for event in [&["sideways"][..], &["key", "ctrl-a", "0"]] {
+    for event in [&["sideways"][..], &["key", "ctrl-q", "0"]] {
         let refusal = view_key(&sandbox.cache(), event, Theme::CatppuccinMocha);
         assert!(matches!(refusal, Err(CommandError::Usage)), "{refusal:?}");
     }

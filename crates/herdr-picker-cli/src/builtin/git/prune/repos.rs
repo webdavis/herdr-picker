@@ -81,7 +81,7 @@ fn repo_row(root: &Path, items: &[Value], places: &Places) -> PickerRow {
         ),
         preview: Some(Preview::Text(lines.join("\n"))),
         enter: Action::Insert(path.clone()),
-        keys: vec![(key("ctrl-enter"), Action::Cd(path)), (key("alt-x"), prune)],
+        keys: vec![(key("ctrl-enter"), Action::Cd(path)), (key("alt-d"), prune)],
         group: None,
     }
 }

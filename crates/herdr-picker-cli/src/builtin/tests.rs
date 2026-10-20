@@ -35,6 +35,8 @@ impl Tree {
             fd: None,
             bat: None,
             bookmarks: self.0.join("state/bookmarks"),
+            quickfix: self.0.join("state/quickfix.json"),
+            captures: self.0.join("state/captures"),
         }
     }
 }
@@ -80,6 +82,8 @@ fn unused_places() -> Places {
         fd: None,
         bat: None,
         bookmarks: PathBuf::from("/unused/bookmarks"),
+        quickfix: PathBuf::from("/unused/quickfix.json"),
+        captures: PathBuf::from("/unused/captures"),
     }
 }
 

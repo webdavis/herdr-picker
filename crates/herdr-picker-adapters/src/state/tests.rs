@@ -55,3 +55,15 @@ fn the_bookmarks_file_sits_in_the_state_directory() {
         PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/bookmarks")
     );
 }
+
+#[test]
+fn the_quickfix_list_and_saved_checks_sit_in_the_state_folder() {
+    assert_eq!(
+        quickfix_file(Some("/tmp/state"), None),
+        PathBuf::from("/tmp/state/quickfix.json")
+    );
+    assert_eq!(
+        captures_dir(None, Some("/home/me")),
+        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/captures")
+    );
+}

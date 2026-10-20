@@ -1,13 +1,16 @@
 use herdr_picker_domain::{Theme, bindable_keys};
 
-use crate::screen::palette;
+use colors::colors;
 
 mod chrome;
+mod colors;
+mod unbound;
 
 pub use chrome::{
-    SWITCH_SOURCE, change_footer, chooser_lines, error_footer, finder_actions, help_page, leave,
-    list_lines, step_footer,
+    SAVE_QUICKFIX, SWITCH_SOURCE, change_footer, chooser_lines, error_footer, finder_actions,
+    help_page, leave, list_lines, step_footer,
 };
+pub use unbound::unbound_action;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Placement {
@@ -58,7 +61,11 @@ const LAYOUT: [&str; 16] = [
     "--print-query",
 ];
 
-const VIEW_KEYS: [(&str, &str); 2] = [("ctrl-space", "choose"), ("esc", "back")];
+const VIEW_KEYS: [(&str, &str); 3] = [
+    ("ctrl-space", "choose"),
+    ("esc", "back"),
+    ("ctrl-q", "quickfix {+1}"),
+];
 
 pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec<String> {
     let helper = chrome.helper;
@@ -104,44 +111,6 @@ pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec
         arguments.push("--height=100%".to_string());
     }
     arguments
-}
-
-fn colors(theme: Theme) -> String {
-    let palette = palette(theme);
-    let (base, bar, text) = (hex(palette.base), hex(palette.bar), hex(palette.text));
-    let (faint, matched) = (hex(palette.faint), format!("{}:bold", hex(palette.matched)));
-    [
-        ("bg", &base),
-        ("bg+", &bar),
-        ("fg", &text),
-        ("fg+", &text),
-        ("hl", &matched),
-        ("hl+", &matched),
-        ("info", &faint),
-        ("prompt", &text),
-        ("query", &text),
-        ("pointer", &hex(palette.key)),
-        ("gutter", &base),
-        ("border", &hex(palette.leader)),
-        ("preview-bg", &base),
-        ("header", &faint),
-        ("footer", &faint),
-    ]
-    .iter()
-    .map(|(element, color)| format!("{element}:{color}"))
-    .collect::<Vec<_>>()
-    .join(",")
-}
-
-// The palette holds 24-bit SGR escapes ending in `r;g;bm`; fzf wants the same color as `#rrggbb`.
-fn hex(sgr: &str) -> String {
-    let mut channels: Vec<&str> = sgr.trim_end_matches('m').rsplit(';').take(3).collect();
-    channels.reverse();
-    let digits: String = channels
-        .iter()
-        .map(|channel| format!("{:02x}", channel.parse::<u8>().unwrap_or_default()))
-        .collect();
-    format!("#{digits}")
 }
 
 #[cfg(test)]

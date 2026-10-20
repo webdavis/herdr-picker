@@ -30,3 +30,14 @@ pub(super) fn dim(text: &str) -> String {
 pub(super) fn bold(text: &str) -> String {
     format!("{BOLD}{text}{RESET}")
 }
+
+const RED: &str = "\x1b[38;2;243;139;168m";
+const TEAL: &str = "\x1b[38;2;148;226;213m";
+
+pub(super) fn red(text: &str) -> String {
+    format!("{RED}{text}{RESET}")
+}
+
+pub(super) fn teal(text: &str) -> String {
+    format!("{TEAL}{text}{RESET}")
+}

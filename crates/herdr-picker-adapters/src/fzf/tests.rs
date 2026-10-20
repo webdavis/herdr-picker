@@ -66,6 +66,7 @@ fn fzf_draws_the_picker_like_the_pick_popup_in_the_theme_colors() {
             "--bind=f1:preview('/bin/herdr-picker' help '/state/rows' {1})",
             "--bind=ctrl-space:transform('/bin/herdr-picker' view '/state/rows' choose)",
             "--bind=esc:transform('/bin/herdr-picker' view '/state/rows' back)",
+            "--bind=ctrl-q:transform('/bin/herdr-picker' view '/state/rows' quickfix {+1})",
         ]
     );
 }
@@ -139,5 +140,25 @@ fn a_live_step_leaves_matching_to_its_command_and_runs_it_again_on_every_change(
         !still
             .iter()
             .any(|argument| argument.starts_with("--bind=change:"))
+    );
+}
+
+#[test]
+fn a_key_keeps_the_editing_or_moving_fzf_gives_it_unbound() {
+    let kept: Vec<Option<&str>> = ["ctrl-a", "ctrl-e", "ctrl-k", "alt-d", "ctrl-o", "f2"]
+        .into_iter()
+        .map(unbound_action)
+        .collect();
+
+    assert_eq!(
+        kept,
+        vec![
+            Some("beginning-of-line"),
+            Some("end-of-line"),
+            Some("up"),
+            Some("kill-word"),
+            None,
+            None
+        ]
     );
 }

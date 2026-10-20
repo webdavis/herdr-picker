@@ -18,7 +18,7 @@ use crate::{
     picker_popup, popup, run,
 };
 
-pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker init bash";
+pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker capture <output> <cwd> <category> <framework> -- <command>... | herdr-picker init bash";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -134,6 +134,7 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ] => picker_chrome::answer(part, Path::new(cache), rest, &picker_config_path())
             .map(|answer| print!("{answer}")),
         ["builtin", name, arguments @ ..] => builtin::print_asked(name, arguments),
+        ["capture", arguments @ ..] => builtin::save_check(arguments),
         ["git-preview", arguments @ ..] => {
             builtin::git_preview(arguments).map(|preview| print!("{preview}"))
         }

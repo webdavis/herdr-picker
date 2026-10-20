@@ -2,7 +2,7 @@ use std::env;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
-use herdr_picker_adapters::{add_bookmark, bookmarks_file, on_path};
+use herdr_picker_adapters::add_bookmark;
 use herdr_picker_domain::{Action, BUILTIN_PICKERS, PickerRow, Preview};
 use herdr_picker_protocol::{
     PICKER_QUERY_VARIABLE, PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, parse_action, shell_word,
@@ -13,33 +13,17 @@ use crate::command::{CommandError, failed};
 mod files;
 mod folders;
 mod git;
+mod paint;
+mod places;
+mod project;
+mod recipes;
 mod rows;
 
 pub(crate) use git::git_preview;
+pub(crate) use places::Places;
+pub(crate) use project::save_check;
 
 use rows::{RowWriter, in_home};
-
-pub(crate) struct Places {
-    pub(crate) cwd: PathBuf,
-    pub(crate) home: Option<PathBuf>,
-    pub(crate) fd: Option<PathBuf>,
-    pub(crate) bat: Option<PathBuf>,
-    pub(crate) bookmarks: PathBuf,
-}
-
-impl Places {
-    pub(crate) fn here() -> Result<Self, CommandError> {
-        let home = env::var("HOME").ok().filter(|home| !home.is_empty());
-        let state = env::var("HERDR_PLUGIN_STATE_DIR").ok();
-        Ok(Self {
-            cwd: env::current_dir().map_err(failed)?,
-            fd: on_path("fd", env::var_os("PATH").as_deref()),
-            bat: on_path("bat", env::var_os("PATH").as_deref()),
-            bookmarks: bookmarks_file(state.as_deref(), home.as_deref()),
-            home: home.map(PathBuf::from),
-        })
-    }
-}
 
 // What the step asked of its picker: the source to read, its state, and what is typed.
 #[derive(Debug, Clone, Copy, Default)]
@@ -91,6 +75,8 @@ pub(crate) fn print_rows(
     match (name, arguments, asked.source) {
         ("files", [], Some(source)) => files::files(source, places, &mut rows)?,
         ("folders", [], Some(source)) => folders::folders(source, places, &mut rows)?,
+        ("recipes", [], _) => recipes::recipes_rows(places, &mut rows)?,
+        ("tests", [], Some(source)) => project::tests(source, places, &mut rows)?,
         ("echo-args", words, _) => written(
             words
                 .iter()

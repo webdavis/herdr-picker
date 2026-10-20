@@ -63,7 +63,9 @@ fn pickers_sit_beside_workspaces() {
             "status",
             "history",
             "contents",
-            "git-config"
+            "git-config",
+            "recipes",
+            "tests"
         ]
     );
 }
@@ -107,6 +109,12 @@ fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
                 "git-config",
                 "ctrl-g v",
                 "Git settings, where each comes from, and which value wins"
+            ),
+            builtin("recipes", "ctrl-t j", "Recipes in this project's justfile"),
+            builtin(
+                "tests",
+                "ctrl-t t",
+                "Tests in this project, compiler and linter errors, or the saved quickfix list"
             ),
         ]
     );
@@ -316,7 +324,9 @@ fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
             "history",
             "branches",
             "contents",
-            "git-config"
+            "git-config",
+            "recipes",
+            "tests"
         ]
     );
 }
@@ -338,7 +348,9 @@ fn a_configured_picker_turned_off_is_not_declared() {
             "history",
             "branches",
             "contents",
-            "git-config"
+            "git-config",
+            "recipes",
+            "tests"
         ]
     );
 }
@@ -388,7 +400,9 @@ fn without_a_config_file_the_pickers_are_the_builtin_ones() {
             "history",
             "branches",
             "contents",
-            "git-config"
+            "git-config",
+            "recipes",
+            "tests"
         ]
     );
     assert_eq!(config.targets, Vec::new());

@@ -12,6 +12,7 @@ mod picker_builtin;
 mod picker_header;
 mod picker_help;
 mod picker_key;
+mod picker_quickfix;
 mod picker_row;
 mod picker_trail;
 mod picker_view;
@@ -23,7 +24,7 @@ pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Match, Matcher};
 pub use jump::{Jump, Workspace, decide};
 pub use keymap::{Keymap, Legend, PickKey, ReadlineKeymap};
-pub use look::{RowLook, Theme};
+pub use look::{RowLook, Theme, unstyled};
 pub use mru::{Bounce, Mru, decide_bounce, next_mru};
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
 pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, pickers};
@@ -32,6 +33,7 @@ pub use picker_builtin::{BUILTIN_PICKERS, BuiltinPicker, Live, follows_query, is
 pub use picker_header::{header, title};
 pub use picker_help::{footer_hint, help_entries};
 pub use picker_key::{Key, bindable_keys};
+pub use picker_quickfix::{QuickfixEntry, quickfix_entries};
 pub use picker_row::{Action, Location, PickerCall, PickerRow, Preview};
 pub use picker_trail::{Page, Spot, Step, Trail, Turn};
 pub use picker_view::{

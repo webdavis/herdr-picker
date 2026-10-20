@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use herdr_picker_adapters::{
-    Chrome, Helper, Picked, Placement, PluginConfig, SWITCH_SOURCE, fzf_arguments, read_view,
-    remove_run_files, run_picker, save_step_command, write_view,
+    Chrome, Helper, Picked, Placement, PluginConfig, SAVE_QUICKFIX, SWITCH_SOURCE, fzf_arguments,
+    open_quickfix, read_view, remove_run_files, run_picker, save_step_command, write_view,
 };
 use herdr_picker_domain::{Action, Key, Page, Spot, Trail, View, ViewState, act, header};
 use herdr_picker_protocol::PICKER_QUERY_VARIABLE;
@@ -18,6 +18,7 @@ pub(crate) struct Run<'a> {
     pub(crate) helper: Helper<'a>,
     pub(crate) cache: &'a Path,
     pub(crate) placement: Placement,
+    pub(crate) quickfix: &'a Path,
 }
 
 impl Run<'_> {
@@ -66,7 +67,7 @@ impl Run<'_> {
         };
         let picked = picked.map_err(|failure| failed(format!("picker {name}: {failure}")))?;
         Ok(picked.map(|picked| {
-            let action = chosen_action(&picked, left.source.as_deref());
+            let action = chosen_action(&picked, left.source.as_deref(), self.quickfix);
             // The query a switch leaves behind filtered the chooser, not the rows.
             let switched = picked.key == SWITCH_SOURCE;
             let spot = Spot {
@@ -87,9 +88,10 @@ impl Run<'_> {
     }
 }
 
-fn chosen_action(picked: &Picked, source: Option<&str>) -> Action {
+fn chosen_action(picked: &Picked, source: Option<&str>, quickfix: &Path) -> Action {
     match picked.key.as_str() {
         "esc" => return Action::Back,
+        SAVE_QUICKFIX => return Action::Run(open_quickfix(quickfix, None)),
         SWITCH_SOURCE => {
             return source.map_or(Action::Nothing, |source| Action::Source(source.to_string()));
         }

@@ -12,6 +12,7 @@ use herdr_picker_protocol::shell_quote;
 
 use crate::command::{CommandError, failed};
 use crate::picker_keys;
+use crate::quickfix::{self, Quickfix};
 
 pub(crate) struct QuotedHelper {
     program: String,
@@ -47,6 +48,9 @@ pub(crate) fn answer(
         ("header", []) => picker_header(cache),
         ("rows", []) => view_rows(cache),
         ("live", [query]) => live_rows(cache, query),
+        ("view", ["quickfix", fields @ ..]) => {
+            quickfix::save_marked(cache, fields, &Quickfix::here(), theme)
+        }
         ("view", event) => picker_keys::view_key(cache, event, theme),
         ("footer", [] | [_]) => picker_footer(cache, rest.first().copied(), columns(), theme),
         ("help", [] | [_]) => picker_help(cache, rest.first().copied(), theme),

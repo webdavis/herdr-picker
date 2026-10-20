@@ -99,7 +99,9 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
             ("history", "ctrl-g l"),
             ("branches", "ctrl-g b"),
             ("contents", "ctrl-g /"),
-            ("git-config", "ctrl-g v")
+            ("git-config", "ctrl-g v"),
+            ("recipes", "ctrl-t j"),
+            ("tests", "ctrl-t t")
         ]
     );
     assert!(

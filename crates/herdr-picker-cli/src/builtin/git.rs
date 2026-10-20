@@ -16,7 +16,7 @@ mod checkout;
 mod contents;
 mod history;
 mod inputs;
-mod paint;
+use super::paint;
 mod preview;
 mod prune;
 mod settings;

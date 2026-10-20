@@ -100,7 +100,7 @@ fn a_line_opens_at_its_number_and_its_keys_flip_the_search_or_trace_the_line() {
     );
     assert_eq!(row.action(&key("alt-s")).cloned(), state("{\"sort\":true}"));
     assert_eq!(
-        row.action(&key("alt-g")),
+        row.action(&key("alt-b")),
         Some(&Action::Run(format!(
             "git -C {} log -L 1,1:src/a.rs",
             repo.0.display()
@@ -140,7 +140,7 @@ fn a_changed_file_has_no_committed_line_history_to_trace() {
 
     let rows = search(&repo, "alpha", None);
 
-    assert_eq!(rows[1].action(&key("alt-g")), None);
+    assert_eq!(rows[1].action(&key("alt-b")), None);
 }
 
 #[test]

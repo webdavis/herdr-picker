@@ -50,6 +50,8 @@ impl GitRepo {
             fd: None,
             bat: None,
             bookmarks: self.0.join(".git/bookmarks"),
+            quickfix: self.0.join(".git/quickfix.json"),
+            captures: self.0.join(".git/captures"),
         }
     }
 }

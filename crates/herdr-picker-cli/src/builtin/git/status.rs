@@ -66,7 +66,7 @@ fn file_row_of(repo: &Repo, file: &File, all: bool, places: &Places) -> PickerRo
     });
     if file.stashable() {
         let stash = next("stash-files", &[&file.name], None, None);
-        row.keys.push((key("alt-z"), stash));
+        row.keys.push((key("ctrl-z"), stash));
     }
     row
 }

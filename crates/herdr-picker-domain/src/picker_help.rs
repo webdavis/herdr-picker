@@ -3,8 +3,12 @@ use crate::picker_row::{Action, PickerRow};
 
 const HELP_KEY: &str = "F1 help";
 const CHOOSE: (&str, &str) = ("ctrl-space", "choose a source");
-const GENERAL: [(&str, &str); 3] = [
+const GENERAL: [(&str, &str); 4] = [
     ("tab", "mark a row; a key then acts on every marked row"),
+    (
+        "ctrl-q",
+        "save the marked rows' files and lines as the quickfix list",
+    ),
     ("esc", "back to the previous step, or close on the first"),
     ("F1", "this help"),
 ];

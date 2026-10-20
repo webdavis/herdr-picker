@@ -5,14 +5,20 @@ fn names(keys: impl Iterator<Item = Key>) -> Vec<String> {
 }
 
 #[test]
-fn a_row_may_claim_enter_and_the_keys_fzf_leaves_unbound() {
+fn a_row_may_claim_enter_and_any_ctrl_or_alt_letter_the_engine_does_not_need() {
     for name in [
         "enter",
         "alt-enter",
         "ctrl-o",
         "ctrl-x",
+        "ctrl-e",
+        "ctrl-f",
+        "ctrl-l",
+        "ctrl-z",
         "alt-y",
         "alt-a",
+        "alt-b",
+        "alt-d",
         "f2",
         "f12",
     ] {
@@ -24,16 +30,20 @@ fn a_row_may_claim_enter_and_the_keys_fzf_leaves_unbound() {
 }
 
 #[test]
-fn keys_that_type_edit_or_steer_the_picker_are_not_a_rows_to_claim() {
+fn keys_that_type_or_steer_the_picker_are_not_a_rows_to_claim() {
     for name in [
         "a",
-        "ctrl-a",
-        "ctrl-e",
-        "ctrl-k",
-        "alt-b",
-        "alt-d",
-        "alt-f",
+        "ctrl-c",
+        "ctrl-h",
+        "ctrl-i",
+        "ctrl-m",
+        "ctrl-n",
+        "ctrl-p",
+        "ctrl-q",
         "tab",
+        "shift-tab",
+        "up",
+        "down",
         "esc",
         "ctrl-space",
         "f1",
@@ -58,8 +68,8 @@ fn ctrl_enter_is_the_alt_enter_fzf_receives_and_is_shown_as_ctrl_enter() {
 fn every_claimable_key_is_bound_enter_first() {
     let bound = names(bindable_keys());
 
-    assert_eq!(bound.len(), 2 + 7 + 23 + 1 + 11);
-    assert_eq!(&bound[..4], ["enter", "alt-enter", "ctrl-o", "ctrl-r"]);
+    assert_eq!(bound.len(), 2 + 19 + 26 + 1 + 11);
+    assert_eq!(&bound[..4], ["enter", "alt-enter", "ctrl-a", "ctrl-b"]);
     assert_eq!(bound.last().map(String::as_str), Some("f12"));
 }
 

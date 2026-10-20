@@ -78,7 +78,7 @@ fn a_changed_file_previews_its_diff_inserts_its_path_and_can_be_edited_or_stashe
         }]))
     );
     assert_eq!(
-        row.action(&key("alt-z")),
+        row.action(&key("ctrl-z")),
         Some(&Action::Next(PickerCall {
             name: "stash-files".to_string(),
             args: vec!["a.txt".to_string()],
@@ -106,7 +106,7 @@ fn a_stash_previews_its_patch_and_ctrl_enter_asks_before_applying_it() {
             ))),
         })
     );
-    assert_eq!(rows[0].action(&key("alt-z")), None);
+    assert_eq!(rows[0].action(&key("ctrl-z")), None);
 }
 
 #[test]
@@ -180,6 +180,8 @@ fn outside_a_repository_the_picker_says_it_needs_one() {
         fd: None,
         bat: None,
         bookmarks: std::env::temp_dir().join("bookmarks"),
+        quickfix: std::env::temp_dir().join("quickfix.json"),
+        captures: std::env::temp_dir().join("captures"),
     };
 
     let refusal =
