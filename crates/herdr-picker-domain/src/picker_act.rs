@@ -2,7 +2,7 @@ use std::fmt;
 use std::mem::discriminant;
 
 use crate::picker_key::Key;
-use crate::picker_row::{Action, PickerRow};
+use crate::picker_row::{Action, PickerCall, PickerRow};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ActRefusal {
@@ -56,13 +56,37 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
                 })
                 .collect(),
         )),
-        Action::Source(_) | Action::Reload | Action::Back | Action::Nothing => Ok(first.clone()),
+        Action::Next(first) => merged_next(first, &actions).ok_or(ActRefusal::SelectOne {
+            purpose: "go to its picker",
+        }),
+        Action::Source(_) | Action::State(_) | Action::Reload | Action::Back | Action::Nothing => {
+            Ok(first.clone())
+        }
         Action::Cd(_) => select_one("change into"),
         Action::Run(_) => select_one("run"),
         Action::Open(_) => select_one("open"),
-        Action::Next(_) => select_one("go to its picker"),
         Action::Confirm { .. } => select_one("confirm"),
     }
+}
+
+// One step for every marked row, so it can act on all of them: their args in the order marked.
+fn merged_next(first: &PickerCall, actions: &[&Action]) -> Option<Action> {
+    let mut args = Vec::new();
+    for action in actions {
+        let Action::Next(call) = action else {
+            return None;
+        };
+        let alike =
+            (&call.name, &call.state, &call.query) == (&first.name, &first.state, &first.query);
+        if !alike {
+            return None;
+        }
+        args.extend(call.args.iter().cloned());
+    }
+    Some(Action::Next(PickerCall {
+        args,
+        ..first.clone()
+    }))
 }
 
 fn text(action: &Action) -> Option<&str> {

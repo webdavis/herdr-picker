@@ -2,7 +2,8 @@ use std::path::Path;
 use std::{env, fs, process};
 
 use herdr_picker_adapters::{
-    Placement, bare_program, copy_to_clipboard, path_preview, picker_rows_file, read_picker_config,
+    Placement, bare_program, command_preview, copy_to_clipboard, path_preview, picker_rows_file,
+    read_picker_config,
 };
 use herdr_picker_domain::{Action, PickerCall, PickerCommand, Preview, Trail, Turn};
 use herdr_picker_protocol::{Shell, bash_init, instruction, parse_row};
@@ -59,6 +60,7 @@ pub(crate) fn pick(
         name: name.to_string(),
         args: Vec::new(),
         state: None,
+        query: None,
     });
     let step = picker_step::Run {
         config: &config,
@@ -116,6 +118,7 @@ pub(crate) fn preview(cache: &Path, field: &str) -> Result<String, CommandError>
         None => String::new(),
         Some(Preview::Text(text)) => text,
         Some(Preview::Path(path)) => path_preview(Path::new(&path), env::var_os("PATH").as_deref()),
+        Some(Preview::Command(argv)) => command_preview(&argv),
     })
 }
 

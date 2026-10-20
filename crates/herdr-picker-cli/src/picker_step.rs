@@ -2,9 +2,10 @@ use std::path::Path;
 
 use herdr_picker_adapters::{
     Chrome, Helper, Picked, Placement, PluginConfig, SWITCH_SOURCE, fzf_arguments, read_view,
-    remove_run_files, run_picker, write_view,
+    remove_run_files, run_picker, save_step_command, write_view,
 };
 use herdr_picker_domain::{Action, Key, Page, Spot, Trail, View, ViewState, act, header};
+use herdr_picker_protocol::PICKER_QUERY_VARIABLE;
 
 use crate::command::{CommandError, failed};
 
@@ -28,6 +29,7 @@ impl Run<'_> {
             description,
             source,
             sources,
+            live,
         } = step_command(&step.page, step.spot.source.as_deref(), self.config)?;
         let titles = trail.titles();
         let first_view = View::Streamed {
@@ -43,11 +45,16 @@ impl Run<'_> {
             sources,
         };
         write_view(self.cache, &state).map_err(failed)?;
+        if live {
+            save_step_command(self.cache, &command).map_err(failed)?;
+            command.env(PICKER_QUERY_VARIABLE, &step.spot.query);
+        }
         let chrome = Chrome {
             helper: self.helper,
             header: &header,
             description: &description,
             query: &step.spot.query,
+            live,
         };
         let arguments = fzf_arguments(self.config.theme, &chrome, self.placement);
         let picked = run_picker(&mut command, Path::new("fzf"), &arguments, self.cache);

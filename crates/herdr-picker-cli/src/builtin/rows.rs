@@ -3,7 +3,7 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 use herdr_picker_domain::{Action, Key, Location, PickerRow, Preview};
-use herdr_picker_protocol::{encode_row, shell_word};
+use herdr_picker_protocol::{encode_header, encode_row, shell_word};
 
 use super::Places;
 
@@ -33,6 +33,10 @@ impl<W: Write> RowWriter<W> {
             self.flushed = Some(Instant::now());
         }
         Ok(())
+    }
+
+    pub(super) fn header(&mut self, text: &str) -> io::Result<()> {
+        writeln!(self.out, "{}", encode_header(text))
     }
 
     pub(super) fn finish(mut self) -> io::Result<()> {
@@ -115,6 +119,6 @@ pub(super) fn folder_row(path: &Path, places: &Places) -> PickerRow {
     }
 }
 
-fn key(name: &str) -> Key {
+pub(super) fn key(name: &str) -> Key {
     Key::parse(name).expect("the built-in pickers claim only keys a row may claim")
 }

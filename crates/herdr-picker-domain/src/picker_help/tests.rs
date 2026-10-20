@@ -23,6 +23,7 @@ fn row() -> PickerRow {
                     name: "git-log".to_string(),
                     args: Vec::new(),
                     state: None,
+                    query: None,
                 }),
             ),
             (key("ctrl-x"), Action::Nothing),
@@ -83,4 +84,20 @@ fn a_source_key_reads_as_show_and_names_the_source() {
         help_entries(Some(&toggle), false)[0],
         ("alt-.".to_string(), "show hidden".to_string())
     );
+}
+
+#[test]
+fn a_state_key_reads_as_switch() {
+    let toggle = PickerRow {
+        label: "a.rs:1: x".to_string(),
+        preview: None,
+        enter: Action::Nothing,
+        keys: vec![(
+            Key::parse("alt-x").expect("a key"),
+            Action::State("{\"regex\":true}".to_string()),
+        )],
+        group: None,
+    };
+
+    assert_eq!(footer_hint(&toggle), vec!["alt-x switch", "F1 help"]);
 }

@@ -87,11 +87,6 @@ fn marked_rows_edit_every_location_in_one_editor() {
 
 #[test]
 fn actions_that_lead_one_place_refuse_more_than_one_marked_row() {
-    let next = Action::Next(PickerCall {
-        name: "files".to_string(),
-        args: Vec::new(),
-        state: None,
-    });
     let confirm = Action::Confirm {
         question: "Delete?".to_string(),
         action: Box::new(Action::Run("rm x".to_string())),
@@ -103,7 +98,6 @@ fn actions_that_lead_one_place_refuse_more_than_one_marked_row() {
         ),
         (Action::Run("date".to_string()), "Select one row to run"),
         (Action::Open("x".to_string()), "Select one row to open"),
-        (next, "Select one row to go to its picker"),
         (confirm, "Select one row to confirm"),
     ] {
         let one = row(action.clone(), Vec::new());
@@ -151,4 +145,55 @@ fn a_source_key_on_marked_rows_switches_once() {
     let second = row(Action::Nothing, vec![("alt-.", hidden.clone())]);
 
     assert_eq!(act(&[&first, &second], &key("alt-.")), Ok(hidden));
+}
+
+fn next(name: &str, args: &[&str]) -> Action {
+    Action::Next(PickerCall {
+        name: name.to_string(),
+        args: args.iter().map(|arg| arg.to_string()).collect(),
+        state: None,
+        query: None,
+    })
+}
+
+#[test]
+fn several_rows_going_to_the_same_step_hand_it_all_their_args() {
+    let first = row(
+        Action::Nothing,
+        vec![("alt-z", next("stash-files", &["/r", "a.txt"]))],
+    );
+    let second = row(
+        Action::Nothing,
+        vec![("alt-z", next("stash-files", &["/r", "b.txt"]))],
+    );
+
+    assert_eq!(
+        act(&[&first, &second], &key("alt-z")),
+        Ok(next("stash-files", &["/r", "a.txt", "/r", "b.txt"]))
+    );
+}
+
+#[test]
+fn several_rows_going_to_different_steps_select_one() {
+    let first = row(
+        Action::Nothing,
+        vec![("alt-z", next("stash-files", &["a"]))],
+    );
+    let second = row(Action::Nothing, vec![("alt-z", next("prune", &["b"]))]);
+
+    assert_eq!(
+        act(&[&first, &second], &key("alt-z")),
+        Err(ActRefusal::SelectOne {
+            purpose: "go to its picker"
+        })
+    );
+}
+
+#[test]
+fn a_state_switch_on_several_rows_switches_once() {
+    let state = Action::State("{\"regex\":true}".to_string());
+    let first = row(Action::Nothing, vec![("alt-x", state.clone())]);
+    let second = row(Action::Nothing, vec![("alt-x", state.clone())]);
+
+    assert_eq!(act(&[&first, &second], &key("alt-x")), Ok(state));
 }

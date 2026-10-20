@@ -1,12 +1,12 @@
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ExitStatus};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use herdr_picker_domain::PickerRow;
-use herdr_picker_protocol::{RowError, parse_row};
+use herdr_picker_protocol::{RowError, parse_header, parse_row};
 use rustix::process::kill_process_group;
 
 use super::{PickerRunError, signal};
@@ -16,6 +16,9 @@ pub(super) struct Feed {
     pub(super) rows_in: ChildStdin,
     pub(super) cache: File,
     pub(super) error_file: PathBuf,
+    pub(super) header_file: PathBuf,
+    // Where the command's stderr goes: a file, which no other process holding it open can block.
+    pub(super) said_file: PathBuf,
     pub(super) stopping: Arc<AtomicBool>,
 }
 
@@ -27,17 +30,20 @@ pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
         mut rows_in,
         mut cache,
         error_file,
+        header_file,
+        said_file,
         stopping,
     } = feed;
     let rows_out = source.stdout.take().expect("the picker's stdout is piped");
-    let (rows, bad_row) = deliver(rows_out, &mut rows_in, &mut cache);
+    let (rows, bad_row) = deliver(rows_out, &mut rows_in, &mut cache, &header_file);
     if bad_row.is_some() {
         signal(source.id(), kill_process_group);
     }
     let status = source.wait();
+    let said = fs::read_to_string(said_file).unwrap_or_default();
     let refusal = bad_row
         .map(PickerRunError::BadRow)
-        .or_else(|| failure(status, &stopping));
+        .or_else(|| failure(status, &stopping, &said));
     if let Some(refusal) = &refusal {
         let _ = fs::write(&error_file, refusal.to_string());
     }
@@ -49,9 +55,14 @@ fn deliver(
     rows_out: impl io::Read,
     rows_in: &mut ChildStdin,
     cache: &mut File,
+    header_file: &Path,
 ) -> (Vec<PickerRow>, Option<RowError>) {
     let mut rows = Vec::new();
     for (index, line) in BufReader::new(rows_out).lines().enumerate() {
+        if let Some(header) = line.as_deref().ok().and_then(parse_header) {
+            let _ = fs::write(header_file, header);
+            continue;
+        }
         let (row, line) = match read_row(line, index + 1) {
             Ok(read) => read,
             Err(bad_row) => return (rows, Some(bad_row)),
@@ -75,10 +86,18 @@ fn read_row(line: io::Result<String>, number: usize) -> Result<(PickerRow, Strin
     Ok((parse_row(&line, number)?, line))
 }
 
-fn failure(status: io::Result<ExitStatus>, stopping: &AtomicBool) -> Option<PickerRunError> {
-    match status {
-        Ok(status) if status.success() || stopping.load(Ordering::SeqCst) => None,
-        Ok(status) => Some(PickerRunError::CommandFailed(status.to_string())),
-        Err(failure) => Some(PickerRunError::CommandFailed(failure.to_string())),
-    }
+pub(crate) fn failure(
+    status: io::Result<ExitStatus>,
+    stopping: &AtomicBool,
+    said: &str,
+) -> Option<PickerRunError> {
+    let reason = match status {
+        Ok(status) if status.success() || stopping.load(Ordering::SeqCst) => return None,
+        Ok(status) => status.to_string(),
+        Err(failure) => failure.to_string(),
+    };
+    Some(PickerRunError::CommandFailed(match said.trim() {
+        "" => reason,
+        said => format!("{reason}: {said}"),
+    }))
 }

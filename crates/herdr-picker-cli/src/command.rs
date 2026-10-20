@@ -1,6 +1,6 @@
+use std::env;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use std::{env, io};
 
 use herdr_picker_adapters::{
     FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, mru_file, read_config,
@@ -10,7 +10,7 @@ use herdr_picker_application::record;
 use herdr_picker_protocol::parse_focused_id;
 use herdr_picker_protocol::{
     ACTIVE_WORKSPACE_VARIABLE, PICKER_CONFIG_VARIABLE, PICKER_NAME_VARIABLE,
-    PICKER_RESULT_VARIABLE, PICKER_SOURCE_VARIABLE, SOCKET_PATH_VARIABLE,
+    PICKER_RESULT_VARIABLE, SOCKET_PATH_VARIABLE,
 };
 
 use crate::{
@@ -18,7 +18,7 @@ use crate::{
     picker_popup, popup, run,
 };
 
-pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker init bash";
+pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker init bash";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -128,18 +128,15 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             picker::preview(Path::new(cache), index).map(|preview| print!("{preview}"))
         }
         [
-            part @ ("header" | "rows" | "view" | "footer" | "help"),
+            part @ ("header" | "rows" | "live" | "view" | "footer" | "help"),
             cache,
             rest @ ..,
         ] => picker_chrome::answer(part, Path::new(cache), rest, &picker_config_path())
             .map(|answer| print!("{answer}")),
-        ["builtin", name, arguments @ ..] => builtin::print_rows(
-            name,
-            arguments,
-            env::var(PICKER_SOURCE_VARIABLE).ok().as_deref(),
-            &builtin::Places::here()?,
-            &mut io::stdout().lock(),
-        ),
+        ["builtin", name, arguments @ ..] => builtin::print_asked(name, arguments),
+        ["git-preview", arguments @ ..] => {
+            builtin::git_preview(arguments).map(|preview| print!("{preview}"))
+        }
         ["init", shell] => picker::init(shell, &config_path()).map(|script| print!("{script}")),
         _ => Err(CommandError::Usage),
     }

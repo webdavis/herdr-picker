@@ -3,7 +3,7 @@ use std::path::Path;
 
 use herdr_picker_adapters::{
     Helper, cached_rows, chooser_lines, help_page, list_lines, read_config, read_run_error,
-    read_view, step_footer,
+    read_step_header, read_view, rerun_step, step_footer,
 };
 use herdr_picker_domain::{
     PickerRow, Theme, View, chooser_entries, footer_hint, groups, header, help_entries,
@@ -46,6 +46,7 @@ pub(crate) fn answer(
     match (part, rest) {
         ("header", []) => picker_header(cache),
         ("rows", []) => view_rows(cache),
+        ("live", [query]) => live_rows(cache, query),
         ("view", event) => picker_keys::view_key(cache, event, theme),
         ("footer", [] | [_]) => picker_footer(cache, rest.first().copied(), columns(), theme),
         ("help", [] | [_]) => picker_help(cache, rest.first().copied(), theme),
@@ -53,14 +54,28 @@ pub(crate) fn answer(
     }
 }
 
+// The step's own header line, when its picker printed one, sits under the title.
 fn picker_header(cache: &Path) -> Result<String, CommandError> {
     let state = read_view(cache);
-    Ok(header(
+    let title = header(
         &state.titles,
         &state.view,
         state.source.as_deref(),
         &groups(&rows_of(cache)?),
-    ))
+    );
+    Ok(match read_step_header(cache) {
+        Some(line) => format!("{title}\n{line}"),
+        None => title,
+    })
+}
+
+// The chooser lists sources and groups, not rows, so typing there runs nothing; a failed run
+// keeps the rows it had and its error reaches the footer.
+fn live_rows(cache: &Path, query: &str) -> Result<String, CommandError> {
+    if !matches!(read_view(cache).view, View::Chooser { .. }) {
+        let _ = rerun_step(cache, query);
+    }
+    view_rows(cache)
 }
 
 fn view_rows(cache: &Path) -> Result<String, CommandError> {

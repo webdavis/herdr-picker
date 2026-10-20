@@ -28,6 +28,8 @@ pub enum Preview {
     Text(String),
     // Drawn only when the row is highlighted, so a long list never waits on its previews.
     Path(String),
+    // A program and its arguments, run only when the row is highlighted; its output is the preview.
+    Command(Vec<String>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,6 +44,8 @@ pub struct PickerCall {
     pub args: Vec<String>,
     // Handed to the picker's command as it was given; the command alone reads it.
     pub state: Option<String>,
+    // Typed into the step's search line when it opens.
+    pub query: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,6 +64,8 @@ pub enum Action {
     },
     // Shows the same step again, its rows read from the named source.
     Source(String),
+    // Shows the same step again, its command handed this state in place of the one it had.
+    State(String),
     Reload,
     Back,
     Nothing,

@@ -18,8 +18,8 @@ pub use popup::{
     window_of,
 };
 pub use rows::{
-    PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, RowError, encode_action, encode_row,
-    parse_action, parse_row,
+    PICKER_QUERY_VARIABLE, PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, RowError, encode_action,
+    encode_header, encode_row, parse_action, parse_header, parse_row,
 };
 pub use shell::{Shell, UnclosedQuote, instruction, shell_quote, shell_word, split_words};
 pub use view::{encode_view_state, parse_view_state};

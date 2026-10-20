@@ -28,8 +28,28 @@ fn ctrl_ignores_the_letter_case_the_way_a_terminal_does() {
 #[test]
 fn a_chord_refuses_a_plain_start_an_unknown_modifier_or_a_non_letter() {
     for unusable in [
-        "", "b", "b ctrl-t", "shift-t", "ctrl-tt", "ctrl-1", "ctrl-t 1", "ctrl-",
+        "",
+        "b",
+        "b ctrl-t",
+        "shift-t",
+        "ctrl-tt",
+        "ctrl-1",
+        "ctrl-t 1",
+        "ctrl-",
+        "/",
+        "ctrl-/",
+        "ctrl-g '",
+        "ctrl-g \"",
+        "ctrl-g \\",
     ] {
         assert_eq!(Chord::parse(unusable), None, "{unusable:?}");
     }
+}
+
+#[test]
+fn a_later_stroke_may_be_punctuation_that_keeps_a_readline_binding_whole() {
+    assert_eq!(
+        Chord::parse("ctrl-g /").map(|chord| chord.strokes().to_vec()),
+        Some(vec![Stroke::Ctrl('g'), Stroke::Plain('/')])
+    );
 }

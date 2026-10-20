@@ -196,3 +196,63 @@ fn a_picker_command_that_cannot_start_is_refused_naming_it() {
         "{refusal}"
     );
 }
+
+#[test]
+fn a_header_line_from_the_picker_becomes_the_step_header_and_is_no_row() {
+    let sandbox = Sandbox::new("header");
+    let picker =
+        r#"printf '%s\n' '{"header":"Pull into main?"}' '{"label":"Pull","enter":"none"}'"#;
+
+    let picked = sandbox.run(picker, "cat > /dev/null; printf '\\nenter\\n0\\tPull\\n'");
+
+    assert_eq!(
+        picked.expect("a pick").map(|picked| picked.rows.len()),
+        Some(1)
+    );
+    assert_eq!(
+        crate::picker_files::read_step_header(&sandbox.cache()),
+        Some("Pull into main?".to_string())
+    );
+    assert_eq!(
+        fs::read_to_string(sandbox.cache()).expect("the cache"),
+        "{\"label\":\"Pull\",\"enter\":\"none\"}\n"
+    );
+}
+
+#[test]
+fn the_rows_picked_are_the_ones_the_cache_holds_when_the_finder_closes() {
+    let sandbox = Sandbox::new("relisted");
+    let cache = sandbox.cache();
+    let finder = format!(
+        "cat > /dev/null; printf '%s\\n' '{{\"label\":\"late\",\"enter\":\"none\"}}' > '{}'; printf 'la\\nenter\\n0\\tlate\\n'",
+        cache.display()
+    );
+
+    let picked = sandbox
+        .run(
+            &format!("printf '%s\\n' '{}'", r#"{"label":"early","enter":"none"}"#),
+            &finder,
+        )
+        .expect("a pick")
+        .expect("a row");
+
+    assert_eq!(picked.rows[0].label, "late");
+}
+
+#[test]
+fn what_a_failing_picker_says_on_stderr_reaches_the_finder_with_its_status() {
+    let sandbox = Sandbox::new("said");
+
+    let picked = sandbox.run(
+        "echo 'This picker needs a Git repository.' >&2; exit 1",
+        "cat >/dev/null",
+    );
+
+    assert_eq!(
+        picked.map_err(|refusal| refusal.to_string()),
+        Err(
+            "the picker command stopped with exit status: 1: This picker needs a Git repository."
+                .to_string()
+        )
+    );
+}

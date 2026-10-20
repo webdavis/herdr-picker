@@ -4,13 +4,18 @@ use std::path::{Path, PathBuf};
 
 use herdr_picker_adapters::{add_bookmark, bookmarks_file, on_path};
 use herdr_picker_domain::{Action, BUILTIN_PICKERS, PickerRow, Preview};
-use herdr_picker_protocol::{parse_action, shell_word};
+use herdr_picker_protocol::{
+    PICKER_QUERY_VARIABLE, PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, parse_action, shell_word,
+};
 
 use crate::command::{CommandError, failed};
 
 mod files;
 mod folders;
+mod git;
 mod rows;
+
+pub(crate) use git::git_preview;
 
 use rows::{RowWriter, in_home};
 
@@ -18,6 +23,7 @@ pub(crate) struct Places {
     pub(crate) cwd: PathBuf,
     pub(crate) home: Option<PathBuf>,
     pub(crate) fd: Option<PathBuf>,
+    pub(crate) bat: Option<PathBuf>,
     pub(crate) bookmarks: PathBuf,
 }
 
@@ -28,16 +34,44 @@ impl Places {
         Ok(Self {
             cwd: env::current_dir().map_err(failed)?,
             fd: on_path("fd", env::var_os("PATH").as_deref()),
+            bat: on_path("bat", env::var_os("PATH").as_deref()),
             bookmarks: bookmarks_file(state.as_deref(), home.as_deref()),
             home: home.map(PathBuf::from),
         })
     }
 }
 
+// What the step asked of its picker: the source to read, its state, and what is typed.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct Asked<'a> {
+    pub(crate) source: Option<&'a str>,
+    pub(crate) state: Option<&'a str>,
+    pub(crate) query: &'a str,
+}
+
+// What the step asked is in the variables herdr-picker set for the builtin's run.
+pub(crate) fn print_asked(name: &str, arguments: &[&str]) -> Result<(), CommandError> {
+    let read = |variable| env::var(variable).ok();
+    let (source, state) = (read(PICKER_SOURCE_VARIABLE), read(PICKER_STATE_VARIABLE));
+    let query = read(PICKER_QUERY_VARIABLE).unwrap_or_default();
+    let asked = Asked {
+        source: source.as_deref(),
+        state: state.as_deref(),
+        query: &query,
+    };
+    print_rows(
+        name,
+        arguments,
+        &asked,
+        &Places::here()?,
+        &mut io::stdout().lock(),
+    )
+}
+
 pub(crate) fn print_rows(
     name: &str,
     arguments: &[&str],
-    source: Option<&str>,
+    asked: &Asked,
     places: &Places,
     out: &mut impl Write,
 ) -> Result<(), CommandError> {
@@ -46,7 +80,15 @@ pub(crate) fn print_rows(
         .find(|builtin| builtin.name == name)
         .and_then(|builtin| builtin.sources.first().copied());
     let mut rows = RowWriter::new(out);
-    match (name, arguments, source.or(first)) {
+    let asked = Asked {
+        source: asked.source.or(first),
+        ..*asked
+    };
+    if let Some(listed) = git::git_rows(name, arguments, &asked, places, &mut rows) {
+        listed?;
+        return written(rows.finish());
+    }
+    match (name, arguments, asked.source) {
         ("files", [], Some(source)) => files::files(source, places, &mut rows)?,
         ("folders", [], Some(source)) => folders::folders(source, places, &mut rows)?,
         ("echo-args", words, _) => written(

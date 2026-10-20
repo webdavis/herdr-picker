@@ -39,7 +39,21 @@ fn every_action_reads_from_its_json_form() {
                 name: "files".to_string(),
                 args: vec!["--hidden".to_string()],
                 state: Some(r#"{"root":"/tmp"}"#.to_string()),
+                query: None,
             }),
+        ),
+        (
+            r#"{"next":{"picker":"rename-branch","args":["main"],"query":"main"}}"#,
+            Action::Next(PickerCall {
+                name: "rename-branch".to_string(),
+                args: vec!["main".to_string()],
+                state: None,
+                query: Some("main".to_string()),
+            }),
+        ),
+        (
+            r#"{"state":{"regex":true}}"#,
+            Action::State(r#"{"regex":true}"#.to_string()),
         ),
         (
             r#"{"confirm":{"question":"Delete x?","action":{"run":"rm x"}}}"#,
@@ -164,4 +178,15 @@ fn a_source_action_names_the_source_to_show_and_survives_encoding() {
         Some(&Action::Source("hidden".to_string()))
     );
     assert_eq!(encode_row(&parsed), line);
+}
+
+#[test]
+fn a_next_with_a_query_and_a_state_switch_write_back_as_they_read() {
+    for line in [
+        r#"{"label":"x","enter":{"next":{"picker":"rename-branch","args":["main"],"query":"main"}}}"#,
+        r#"{"label":"x","enter":{"state":{"regex":true}}}"#,
+    ] {
+        let row = parse_row(line, 1).expect("a row");
+        assert_eq!(encode_row(&row), line);
+    }
 }

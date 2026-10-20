@@ -66,7 +66,14 @@ impl Trail {
             current.spot = spot;
         }
         match action {
-            Action::Next(call) => self.push(Page::Picker(call)),
+            Action::Next(call) => {
+                let query = call.query.clone().unwrap_or_default();
+                let turn = self.push(Page::Picker(call));
+                if let Some(opened) = self.steps.last_mut() {
+                    opened.spot.query = query;
+                }
+                turn
+            }
             Action::Confirm { question, action } => self.push(Page::Confirm {
                 question,
                 action: *action,
@@ -80,6 +87,12 @@ impl Trail {
                 if let Some(current) = self.steps.last_mut() {
                     current.spot.source = Some(source);
                     current.spot.group = None;
+                }
+                Turn::Show
+            }
+            Action::State(state) => {
+                if let Some(Page::Picker(call)) = self.steps.last_mut().map(|step| &mut step.page) {
+                    call.state = Some(state);
                 }
                 Turn::Show
             }

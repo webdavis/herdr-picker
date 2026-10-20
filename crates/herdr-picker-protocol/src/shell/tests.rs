@@ -130,6 +130,7 @@ fn actions_kept_inside_the_picker_give_the_shell_nothing() {
             name: "files".to_string(),
             args: Vec::new(),
             state: None,
+            query: None,
         }),
         Action::Reload,
         Action::Back,

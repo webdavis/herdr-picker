@@ -69,6 +69,8 @@ fn removing_a_runs_files_leaves_none_behind() {
     fs::write(&cache, "{}\n").expect("a cache");
     write_view(&cache, &state(View::Streamed { group: None })).expect("a view");
     fs::write(picker_error_file(&cache), "line 2 is bad").expect("an error");
+    fs::write(picker_header_file(&cache), "main | 1 staged").expect("a header");
+    fs::write(picker_command_file(&cache), "{}").expect("a command");
     assert_eq!(read_run_error(&cache), Some("line 2 is bad".to_string()));
 
     remove_run_files(&cache);
@@ -88,4 +90,22 @@ fn the_first_view_of_a_run_creates_the_state_directory() {
     write_view(&cache, &state(View::Streamed { group: None })).expect("the view is written");
 
     assert_eq!(read_view(&cache), state(View::Streamed { group: None }));
+}
+
+#[test]
+fn a_step_header_is_read_from_beside_the_rows_cache_and_absent_until_written() {
+    let sandbox = Sandbox::new("header");
+    let cache = sandbox.cache();
+
+    assert_eq!(read_step_header(&cache), None);
+    fs::write(
+        picker_header_file(&cache),
+        "main → origin/main ↑1 | 2 staged",
+    )
+    .expect("a header");
+
+    assert_eq!(
+        read_step_header(&cache),
+        Some("main → origin/main ↑1 | 2 staged".to_string())
+    );
 }

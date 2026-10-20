@@ -72,6 +72,11 @@ fn init_bash_binds_each_configured_picker() {
             "bind -x '\"\\C-tf\": __herdr_picker files'\n",
             "bind -x '\"\\C-td\": __herdr_picker folders'\n",
             "bind -x '\"\\C-t\\C-b\": __herdr_picker bookmark'\n",
+            "bind -x '\"\\C-gs\": __herdr_picker status'\n",
+            "bind -x '\"\\C-gl\": __herdr_picker history'\n",
+            "bind -x '\"\\C-gb\": __herdr_picker branches'\n",
+            "bind -x '\"\\C-g/\": __herdr_picker contents'\n",
+            "bind -x '\"\\C-gv\": __herdr_picker git-config'\n",
         )),
         "{script}"
     );

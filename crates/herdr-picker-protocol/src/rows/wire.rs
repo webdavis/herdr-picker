@@ -34,16 +34,18 @@ pub(super) enum Tagged {
     Next(WireNext),
     Confirm(WireConfirm),
     Source(String),
+    State(serde_json::Value),
 }
 
 #[derive(Deserialize, Serialize)]
 #[serde(
     untagged,
-    expecting = "a preview: its text, or {\"path\": \"<file or folder>\"}"
+    expecting = "a preview: its text, {\"path\": \"<file or folder>\"}, or {\"command\": [\"<program>\", ...]}"
 )]
 pub(super) enum WirePreview {
     Text(String),
     Path { path: String },
+    Command { command: Vec<String> },
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -76,6 +78,8 @@ pub(super) struct WireNext {
     pub(super) args: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) state: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) query: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]

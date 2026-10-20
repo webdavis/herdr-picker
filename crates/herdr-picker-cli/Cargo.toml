@@ -12,6 +12,5 @@ herdr-picker-protocol = { path = "../herdr-picker-protocol" }
 herdr-picker-domain = { path = "../herdr-picker-domain" }
 herdr-picker-application = { path = "../herdr-picker-application" }
 herdr-picker-adapters = { path = "../herdr-picker-adapters" }
-
-[dev-dependencies]
 serde_json = "1"
+

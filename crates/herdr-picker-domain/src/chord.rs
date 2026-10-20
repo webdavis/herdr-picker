@@ -32,7 +32,18 @@ fn stroke(word: &str) -> Option<Stroke> {
     if let Some(letter) = word.strip_prefix("alt-") {
         return only_letter(letter).map(Stroke::Alt);
     }
-    only_letter(word).map(Stroke::Plain)
+    let mut characters = word.chars();
+    match (characters.next(), characters.next()) {
+        (Some(plain), None) if plain.is_ascii_alphabetic() || bindable_punctuation(plain) => {
+            Some(Stroke::Plain(plain))
+        }
+        _ => None,
+    }
+}
+
+// A quote or backslash would end or escape the readline binding the chord becomes.
+fn bindable_punctuation(character: char) -> bool {
+    character.is_ascii_punctuation() && !"'\"\\".contains(character)
 }
 
 fn only_letter(text: &str) -> Option<char> {

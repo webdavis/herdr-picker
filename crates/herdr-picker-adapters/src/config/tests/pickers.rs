@@ -55,7 +55,16 @@ fn pickers_sit_beside_workspaces() {
     assert_eq!(config.targets.len(), 5);
     assert_eq!(
         names(&config.pickers),
-        ["branches", "files", "folders", "bookmark"]
+        [
+            "branches",
+            "files",
+            "folders",
+            "bookmark",
+            "status",
+            "history",
+            "contents",
+            "git-config"
+        ]
     );
 }
 
@@ -77,6 +86,27 @@ fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
                 "bookmark",
                 "ctrl-t ctrl-b",
                 "Bookmark this folder for the folders picker"
+            ),
+            builtin(
+                "status",
+                "ctrl-g s",
+                "Every file Git has an opinion about, and the stashes"
+            ),
+            builtin(
+                "history",
+                "ctrl-g l",
+                "Commits, the reflog, or the commits whose changes match what is typed"
+            ),
+            builtin(
+                "branches",
+                "ctrl-g b",
+                "Branches, tags and worktrees, or the repos with something to prune"
+            ),
+            builtin("contents", "ctrl-g /", "Lines matching what is typed"),
+            builtin(
+                "git-config",
+                "ctrl-g v",
+                "Git settings, where each comes from, and which value wins"
             ),
         ]
     );
@@ -256,8 +286,8 @@ fn a_table_named_for_a_builtin_picker_moves_its_key_or_turns_it_off() {
     );
 
     assert_eq!(
-        pickers,
-        vec![
+        pickers[..2],
+        [
             builtin(
                 "files",
                 "alt-f",
@@ -266,6 +296,7 @@ fn a_table_named_for_a_builtin_picker_moves_its_key_or_turns_it_off() {
             builtin("folders", "ctrl-t d", "Folders to change into"),
         ]
     );
+    assert!(!names(&pickers).contains(&"bookmark"));
 }
 
 #[test]
@@ -275,7 +306,19 @@ fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
         "[pickers.dirs]\nkey = \"ctrl-t d\"\ncommand = \"dirs.sh\"\n",
     );
 
-    assert_eq!(names(&pickers), ["dirs", "files", "bookmark"]);
+    assert_eq!(
+        names(&pickers),
+        [
+            "dirs",
+            "files",
+            "bookmark",
+            "status",
+            "history",
+            "branches",
+            "contents",
+            "git-config"
+        ]
+    );
 }
 
 #[test]
@@ -285,7 +328,19 @@ fn a_configured_picker_turned_off_is_not_declared() {
         "[pickers.notes]\nkey = \"ctrl-t n\"\ncommand = \"notes.sh\"\nenabled = false\n",
     );
 
-    assert_eq!(names(&pickers), ["files", "folders", "bookmark"]);
+    assert_eq!(
+        names(&pickers),
+        [
+            "files",
+            "folders",
+            "bookmark",
+            "status",
+            "history",
+            "branches",
+            "contents",
+            "git-config"
+        ]
+    );
 }
 
 #[test]
@@ -312,7 +367,7 @@ fn a_configured_picker_without_a_key_is_refused() {
     let (_, rendered) = refusal_for("no-key", "[pickers.notes]\ncommand = \"notes.sh\"\n");
 
     assert!(
-        rendered.ends_with(": the picker notes declares the key \"\", which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters, like \"ctrl-t b\""),
+        rendered.ends_with(": the picker notes declares the key \"\", which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters or punctuation, like \"ctrl-t b\""),
         "{rendered}"
     );
 }
@@ -323,7 +378,19 @@ fn without_a_config_file_the_pickers_are_the_builtin_ones() {
 
     let config = read_picker_config(&sandbox.0.join("config.toml")).expect("the defaults");
 
-    assert_eq!(names(&config.pickers), ["files", "folders", "bookmark"]);
+    assert_eq!(
+        names(&config.pickers),
+        [
+            "files",
+            "folders",
+            "bookmark",
+            "status",
+            "history",
+            "branches",
+            "contents",
+            "git-config"
+        ]
+    );
     assert_eq!(config.targets, Vec::new());
 }
 

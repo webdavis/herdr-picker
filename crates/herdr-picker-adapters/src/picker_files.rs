@@ -13,6 +13,22 @@ pub fn picker_error_file(cache: &Path) -> PathBuf {
     cache.with_extension("error")
 }
 
+pub fn picker_header_file(cache: &Path) -> PathBuf {
+    cache.with_extension("header")
+}
+
+pub fn picker_said_file(cache: &Path) -> PathBuf {
+    cache.with_extension("said")
+}
+
+pub fn picker_command_file(cache: &Path) -> PathBuf {
+    cache.with_extension("command")
+}
+
+pub fn read_step_header(cache: &Path) -> Option<String> {
+    fs::read_to_string(picker_header_file(cache)).ok()
+}
+
 pub fn cached_rows(cache: &Path) -> io::Result<Vec<PickerRow>> {
     Ok(fs::read_to_string(cache)?
         .lines()
@@ -41,6 +57,9 @@ pub fn remove_run_files(cache: &Path) {
         cache.to_owned(),
         picker_view_file(cache),
         picker_error_file(cache),
+        picker_header_file(cache),
+        picker_command_file(cache),
+        picker_said_file(cache),
     ] {
         let _ = fs::remove_file(file);
     }

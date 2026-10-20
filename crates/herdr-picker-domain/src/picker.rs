@@ -81,7 +81,7 @@ impl fmt::Display for PickerError {
             ),
             Self::UnusableKey { name, key } => write!(
                 formatter,
-                "the picker {name} declares the key {key:?}, which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters, like \"ctrl-t b\""
+                "the picker {name} declares the key {key:?}, which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters or punctuation, like \"ctrl-t b\""
             ),
             Self::CollidingKey { first, second, key } => write!(
                 formatter,

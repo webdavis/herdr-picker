@@ -52,6 +52,7 @@ fn verb(action: &Action) -> Option<&'static str> {
         Action::Next(_) => "go to",
         Action::Confirm { .. } => "confirm",
         Action::Source(_) => "show",
+        Action::State(_) => "switch",
         Action::Reload => "reload",
         Action::Back => "back",
         Action::Nothing => return None,
@@ -79,7 +80,7 @@ fn detail(action: &Action) -> Option<String> {
         ),
         Action::Next(call) => Some(title(&call.name)),
         Action::Confirm { question, .. } => Some(question.clone()),
-        Action::Reload | Action::Back | Action::Nothing => None,
+        Action::State(_) | Action::Reload | Action::Back | Action::Nothing => None,
     }
 }
 

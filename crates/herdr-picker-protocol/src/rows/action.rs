@@ -52,12 +52,14 @@ pub(super) fn into_action(wire: WireAction, value: Option<&Words>) -> Result<Act
                 name: next.picker,
                 args: next.args,
                 state: next.state.map(|state| state.to_string()),
+                query: next.query,
             }),
             Tagged::Confirm(confirm) => Action::Confirm {
                 question: confirm.question,
                 action: Box::new(into_action(*confirm.action, None)?),
             },
             Tagged::Source(source) => Action::Source(source),
+            Tagged::State(state) => Action::State(state.to_string()),
         },
     })
 }
@@ -96,12 +98,16 @@ pub(super) fn from_action(action: &Action) -> WireAction {
                 .state
                 .as_deref()
                 .and_then(|state| serde_json::from_str(state).ok()),
+            query: call.query.clone(),
         }),
         Action::Confirm { question, action } => Tagged::Confirm(WireConfirm {
             question: question.clone(),
             action: Box::new(from_action(action)),
         }),
         Action::Source(source) => Tagged::Source(source.clone()),
+        Action::State(state) => {
+            Tagged::State(serde_json::from_str(state).unwrap_or(serde_json::Value::Null))
+        }
         Action::Reload => return WireAction::Bare(Bare::Reload),
         Action::Nothing => return WireAction::Bare(Bare::None),
         Action::Back => return WireAction::Bare(Bare::Back),

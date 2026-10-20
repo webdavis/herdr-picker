@@ -5,6 +5,7 @@ fn call(name: &str) -> PickerCall {
         name: name.to_string(),
         args: Vec::new(),
         state: None,
+        query: None,
     }
 }
 
@@ -137,4 +138,39 @@ fn back_restores_the_source_a_step_was_left_on() {
     trail.advance(Action::Back, Spot::default());
 
     assert_eq!(trail.current().spot.source, Some("home".to_string()));
+}
+
+#[test]
+fn state_shows_the_same_step_again_with_the_new_state_and_the_query_kept() {
+    let mut trail = Trail::new(call("contents"));
+
+    assert_eq!(
+        trail.advance(
+            Action::State("{\"regex\":true}".to_string()),
+            spot("fo+", Some("tests"))
+        ),
+        Turn::Show
+    );
+    assert_eq!(trail.titles(), vec!["Contents"]);
+    assert_eq!(
+        trail.current().page,
+        Page::Picker(PickerCall {
+            state: Some("{\"regex\":true}".to_string()),
+            ..call("contents")
+        })
+    );
+    assert_eq!(trail.current().spot, spot("fo+", Some("tests")));
+}
+
+#[test]
+fn a_next_with_a_query_opens_its_step_with_that_query_typed() {
+    let mut trail = Trail::new(call("branches"));
+    let rename = PickerCall {
+        query: Some("main".to_string()),
+        ..call("rename-branch")
+    };
+
+    trail.advance(Action::Next(rename), Spot::default());
+
+    assert_eq!(trail.current().spot, spot("main", None));
 }

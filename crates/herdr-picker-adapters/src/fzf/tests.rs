@@ -10,6 +10,7 @@ const CHROME: Chrome = Chrome {
     header: "Git Branches",
     description: "Branches of this repository",
     query: "ma",
+    live: false,
 };
 
 fn row_key_binds() -> impl Iterator<Item = String> {
@@ -114,5 +115,29 @@ fn inline_fzf_keeps_the_height_the_defaults_ask_for() {
         !arguments
             .iter()
             .any(|argument| argument.starts_with("--height"))
+    );
+}
+
+#[test]
+fn a_live_step_leaves_matching_to_its_command_and_runs_it_again_on_every_change() {
+    let live = Chrome {
+        live: true,
+        ..CHROME
+    };
+
+    let arguments = fzf_arguments(Theme::CatppuccinMocha, &live, Placement::Inline);
+    let still = fzf_arguments(Theme::CatppuccinMocha, &CHROME, Placement::Inline);
+
+    assert!(arguments.contains(&"--disabled".to_string()));
+    assert!(
+        arguments.contains(
+            &"--bind=change:reload('/bin/herdr-picker' live '/state/rows' {q})".to_string()
+        )
+    );
+    assert!(!still.contains(&"--disabled".to_string()));
+    assert!(
+        !still
+            .iter()
+            .any(|argument| argument.starts_with("--bind=change:"))
     );
 }

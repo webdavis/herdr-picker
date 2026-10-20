@@ -119,3 +119,36 @@ fn a_preview_may_name_a_path_to_draw_once_the_row_is_highlighted() {
     );
     assert_eq!(encode_row(&parsed), line);
 }
+
+#[test]
+fn a_preview_may_name_a_command_to_run_once_the_row_is_highlighted() {
+    let line =
+        r#"{"label":"a.rs","preview":{"command":["git","diff","--","a.rs"]},"enter":"none"}"#;
+
+    let parsed = parse_row(line, 1).expect("a row");
+
+    assert_eq!(
+        parsed.preview,
+        Some(Preview::Command(vec![
+            "git".to_string(),
+            "diff".to_string(),
+            "--".to_string(),
+            "a.rs".to_string()
+        ]))
+    );
+    assert_eq!(encode_row(&parsed), line);
+}
+
+#[test]
+fn a_header_line_is_text_for_the_header_and_never_a_row() {
+    assert_eq!(
+        parse_header(r#"{"header":"main → origin/main ↑1 | 2 staged"}"#),
+        Some("main → origin/main ↑1 | 2 staged".to_string())
+    );
+    assert_eq!(parse_header(r#"{"label":"x","enter":"none"}"#), None);
+    assert_eq!(parse_header("not json"), None);
+    assert_eq!(
+        encode_header("Pull into main?"),
+        r#"{"header":"Pull into main?"}"#
+    );
+}

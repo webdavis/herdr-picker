@@ -33,6 +33,7 @@ impl Tree {
             cwd: self.0.clone(),
             home: Some(self.0.join(home)),
             fd: None,
+            bat: None,
             bookmarks: self.0.join("state/bookmarks"),
         }
     }
@@ -50,8 +51,25 @@ pub(crate) fn printed(
     source: Option<&str>,
     places: &Places,
 ) -> Result<String, CommandError> {
+    asked(
+        name,
+        arguments,
+        &Asked {
+            source,
+            ..Asked::default()
+        },
+        places,
+    )
+}
+
+pub(crate) fn asked(
+    name: &str,
+    arguments: &[&str],
+    asked: &Asked,
+    places: &Places,
+) -> Result<String, CommandError> {
     let mut out = Vec::new();
-    print_rows(name, arguments, source, places, &mut out)?;
+    print_rows(name, arguments, asked, places, &mut out)?;
     Ok(String::from_utf8(out).expect("rows are text"))
 }
 
@@ -60,6 +78,7 @@ fn unused_places() -> Places {
         cwd: PathBuf::from("/unused"),
         home: None,
         fd: None,
+        bat: None,
         bookmarks: PathBuf::from("/unused/bookmarks"),
     }
 }

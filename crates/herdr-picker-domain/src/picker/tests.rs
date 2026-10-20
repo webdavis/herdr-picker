@@ -1,4 +1,5 @@
 use super::*;
+use crate::picker_builtin::{follows_query, is_step_builtin};
 
 fn declared(name: &str, key: &str) -> PickerDeclaration {
     PickerDeclaration {
@@ -65,7 +66,7 @@ fn a_key_that_is_not_a_chord_is_refused_naming_the_picker() {
     );
     assert_eq!(
         refusal.to_string(),
-        "the picker files declares the key \"b\", which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters, like \"ctrl-t b\""
+        "the picker files declares the key \"b\", which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters or punctuation, like \"ctrl-t b\""
     );
 }
 
@@ -82,7 +83,7 @@ fn a_name_that_a_shell_key_binding_cannot_carry_bare_is_refused() {
 }
 
 #[test]
-fn the_builtin_pickers_are_files_folders_and_bookmark_on_ctrl_t_keys() {
+fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
     let shipped: Vec<(&str, &str)> = BUILTIN_PICKERS
         .iter()
         .map(|builtin| (builtin.name, builtin.key))
@@ -93,7 +94,12 @@ fn the_builtin_pickers_are_files_folders_and_bookmark_on_ctrl_t_keys() {
         vec![
             ("files", "ctrl-t f"),
             ("folders", "ctrl-t d"),
-            ("bookmark", "ctrl-t ctrl-b")
+            ("bookmark", "ctrl-t ctrl-b"),
+            ("status", "ctrl-g s"),
+            ("history", "ctrl-g l"),
+            ("branches", "ctrl-g b"),
+            ("contents", "ctrl-g /"),
+            ("git-config", "ctrl-g v")
         ]
     );
     assert!(
@@ -128,4 +134,63 @@ fn a_picker_running_a_builtin_offers_its_sources_and_a_command_offers_none() {
             .sources()
             .is_empty()
     );
+}
+
+#[test]
+fn the_git_pickers_offer_lowercase_sources() {
+    let sources = |name: &str| {
+        Picker {
+            name: name.to_string(),
+            chord: Chord::parse("ctrl-g x").expect("a chord"),
+            description: String::new(),
+            command: PickerCommand::Builtin(name.to_string()),
+            args: Vec::new(),
+        }
+        .sources()
+    };
+
+    assert_eq!(
+        sources("status"),
+        [
+            "all",
+            "conflicts",
+            "staged",
+            "unstaged",
+            "untracked",
+            "stashes",
+            "tracked",
+            "ignored"
+        ]
+    );
+    assert_eq!(sources("history"), ["commits", "reflog", "changes"]);
+    assert_eq!(sources("branches"), ["branches", "repos"]);
+    assert!(sources("contents").is_empty());
+    assert!(sources("git-config").is_empty());
+}
+
+#[test]
+fn a_step_follows_the_query_when_its_builtin_reads_it_for_that_source() {
+    assert!(follows_query("contents", None));
+    assert!(follows_query("history", Some("changes")));
+    assert!(!follows_query("history", Some("commits")));
+    assert!(follows_query("rename-branch", None));
+    assert!(!follows_query("checkout", None));
+    assert!(!follows_query("files", Some("this folder")));
+    assert!(!follows_query("my-script", None));
+}
+
+#[test]
+fn the_steps_only_a_next_reaches_are_builtins_too() {
+    for name in [
+        "commit-files",
+        "checkout",
+        "stash-files",
+        "rename-branch",
+        "pull",
+        "prune",
+        "change-setting",
+    ] {
+        assert!(is_step_builtin(name), "{name}");
+    }
+    assert!(!is_step_builtin("files"));
 }

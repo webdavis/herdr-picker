@@ -11,10 +11,10 @@ use std::time::Duration;
 use herdr_picker_domain::PickerRow;
 use rustix::process::{Pid, Signal, kill_process_group};
 
-use crate::picker_files::picker_error_file;
+use crate::picker_files::{cached_rows, picker_error_file, picker_header_file, picker_said_file};
 
 mod error;
-mod feed;
+pub(crate) mod feed;
 
 pub use error::PickerRunError;
 
@@ -34,11 +34,17 @@ pub fn run_picker(
     finder_arguments: &[String],
     cache: &Path,
 ) -> Result<Option<Picked>, PickerRunError> {
+    let said_file = picker_said_file(cache);
+    let said = create_cache(&said_file).map_err(|failure| PickerRunError::CannotCache {
+        path: said_file.clone(),
+        reason: failure.to_string(),
+    })?;
     // Its own process group, so stopping it also stops whatever it spawned to print rows.
     let mut source = spawn(
         command
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
+            .stderr(said)
             .process_group(0),
     )?;
     let (mut finder_process, cache_file) = match start_finder(finder, finder_arguments, cache) {
@@ -56,12 +62,15 @@ pub fn run_picker(
     let stopping = Arc::new(AtomicBool::new(false));
     let feeder = {
         let (stopping, error_file) = (Arc::clone(&stopping), picker_error_file(cache));
+        let header_file = picker_header_file(cache);
         thread::spawn(move || {
             feed::feed(feed::Feed {
                 source,
                 rows_in,
                 cache: cache_file,
                 error_file,
+                header_file,
+                said_file,
                 stopping,
             })
         })
@@ -75,7 +84,8 @@ pub fn run_picker(
     }
     let rows = feeder.join().expect("feeding rows does not panic")?;
     let picked = picked.map_err(|failure| PickerRunError::FinderFailed(failure.to_string()))?;
-    Ok(chosen(&picked.stdout, rows))
+    // A live step lists its rows again as the user types, so the cache holds the last list.
+    Ok(chosen(&picked.stdout, cached_rows(cache).unwrap_or(rows)))
 }
 
 fn start_finder(

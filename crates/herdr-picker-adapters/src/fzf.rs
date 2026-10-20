@@ -34,6 +34,8 @@ pub struct Chrome<'a> {
     pub header: &'a str,
     pub description: &'a str,
     pub query: &'a str,
+    // The command matches what is typed, so fzf only shows its rows and asks again on each change.
+    pub live: bool,
 }
 
 const LAYOUT: [&str; 16] = [
@@ -65,6 +67,13 @@ pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec
     arguments.push("--preview-window=right,50%,border-left".to_string());
     arguments.push(format!("--header={}", chrome.header));
     arguments.push(format!("--query={}", chrome.query));
+    if chrome.live {
+        arguments.push("--disabled".to_string());
+        arguments.push(format!(
+            "--bind=change:reload({})",
+            helper.call("live", " {q}")
+        ));
+    }
     if !chrome.description.is_empty() {
         arguments.push(format!("--footer={}", chrome.description));
     }

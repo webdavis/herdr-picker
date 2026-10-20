@@ -31,6 +31,7 @@ fn call(name: &str, args: &[&str], state: Option<&str>) -> Page {
         name: name.to_string(),
         args: args.iter().map(|arg| arg.to_string()).collect(),
         state: state.map(str::to_string),
+        query: None,
     })
 }
 
@@ -205,4 +206,42 @@ fn a_source_picked_in_the_chooser_shows_the_step_again_from_that_source() {
         chosen_action(&picked, Some("hidden")),
         Action::Source("hidden".to_string())
     );
+}
+
+#[test]
+fn a_step_builtin_the_config_never_names_runs_from_a_next_with_its_args() {
+    let step = step_command(
+        &call("rename-branch", &["/repo", "main"], None),
+        None,
+        &config("step-builtin", ""),
+    )
+    .expect("a command");
+
+    assert_eq!(
+        words(&step.command),
+        vec![
+            own(),
+            "builtin".into(),
+            "rename-branch".into(),
+            "/repo".into(),
+            "main".into()
+        ]
+    );
+    assert!(step.sources.is_empty());
+    assert!(step.live);
+}
+
+#[test]
+fn a_step_is_live_when_its_builtin_matches_the_query_for_its_source() {
+    let config = config("live", "");
+    let live = |name: &str, source: Option<&str>| {
+        step_command(&call(name, &[], None), source, &config)
+            .expect("a command")
+            .live
+    };
+
+    assert!(live("contents", None));
+    assert!(live("history", Some("changes")));
+    assert!(!live("history", None));
+    assert!(!live("files", None));
 }

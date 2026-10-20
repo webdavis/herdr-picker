@@ -5,15 +5,19 @@ use herdr_picker_domain::{Action, Key, PickerRow, Preview};
 use serde::{Deserialize, Serialize};
 
 mod action;
+mod header;
 mod wire;
 
 use action::{from_action, into_action};
+pub use header::{encode_header, parse_header};
 use wire::{WireAction, WirePreview, Words};
 
 // The state a next action hands the picker it opens, as the JSON the action carried.
 pub const PICKER_STATE_VARIABLE: &str = "HERDR_PICKER_STATE";
 // The source a picker with sources reads its rows from.
 pub const PICKER_SOURCE_VARIABLE: &str = "HERDR_PICKER_SOURCE";
+// What is typed, for a picker whose rows follow the query.
+pub const PICKER_QUERY_VARIABLE: &str = "HERDR_PICKER_QUERY";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RowError {
@@ -77,6 +81,7 @@ pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
         preview: wire.preview.map(|preview| match preview {
             WirePreview::Text(text) => Preview::Text(text),
             WirePreview::Path { path } => Preview::Path(path),
+            WirePreview::Command { command } => Preview::Command(command),
         }),
         enter: into_action(wire.enter, value).map_err(refusal)?,
         keys,
@@ -101,6 +106,7 @@ pub fn encode_row(row: &PickerRow) -> String {
         preview: row.preview.clone().map(|preview| match preview {
             Preview::Text(text) => WirePreview::Text(text),
             Preview::Path(path) => WirePreview::Path { path },
+            Preview::Command(command) => WirePreview::Command { command },
         }),
         enter: from_action(&row.enter),
         keys: row
