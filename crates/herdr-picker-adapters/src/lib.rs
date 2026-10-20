@@ -54,7 +54,7 @@ pub use pane_result::{PaneWaitError, await_pane_result, write_pane_state};
 pub use path_preview::path_preview;
 pub use picker_files::{
     cached_rows, picker_error_file, read_run_error, read_step_header, read_view, remove_run_files,
-    write_view,
+    remove_stale_runs, write_view,
 };
 pub use picker_run::{Picked, PickerRunError, run_picker};
 pub use places::{recent_places, record_place};

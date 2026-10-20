@@ -67,3 +67,31 @@ fn a_shell_whose_prompt_cannot_be_found_is_left_alone() {
         Err(Refusal::InputUnseen)
     );
 }
+
+#[test]
+fn the_owners_prompt_is_read_with_and_without_a_draft() {
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "~/repo main\n+❯ "),
+        Ok(())
+    );
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "~/repo main\n+❯ git di"),
+        Err(Refusal::Draft("git di".to_string()))
+    );
+}
+
+#[test]
+fn a_program_running_in_the_shell_is_never_mistaken_for_its_prompt() {
+    for screen in [
+        "fn main() {}\n~\nsrc/main.rs [+]  12,5  50%",
+        "Python 3.13.0\n>>> ",
+        "Compiling\nBuilding... 3/10 >",
+        "Password: ",
+    ] {
+        assert_eq!(
+            guard(&PaneKind::Shell, "unknown", screen),
+            Err(Refusal::InputUnseen),
+            "{screen}"
+        );
+    }
+}

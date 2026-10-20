@@ -78,8 +78,9 @@ pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec
     arguments.push(format!("--query={}", chrome.query));
     if chrome.live {
         arguments.push("--disabled".to_string());
+        // reload-sync holds Enter until the rows for the current query are in.
         arguments.push(format!(
-            "--bind=change:reload({})",
+            "--bind=change:reload-sync({})",
             helper.call("live", " {q}")
         ));
     }

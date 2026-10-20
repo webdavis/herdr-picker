@@ -6,7 +6,9 @@ use std::process::Command;
 use herdr_picker_protocol::PICKER_STATE_VARIABLE;
 
 use super::*;
-use crate::picker_files::{cached_rows, picker_error_file, read_step_header};
+use crate::picker_files::{
+    cached_rows, picker_command_file, picker_error_file, picker_header_file, read_step_header,
+};
 
 struct Sandbox(PathBuf);
 
@@ -78,4 +80,27 @@ fn without_a_saved_command_there_is_nothing_to_run_again() {
     let sandbox = Sandbox::new("unsaved");
 
     assert!(rerun_step(&sandbox.cache(), "x").is_err());
+}
+
+fn mode(file: &Path) -> u32 {
+    fs::metadata(file).expect("a file").permissions().mode() & 0o777
+}
+
+#[test]
+fn a_live_steps_command_rows_header_and_error_only_its_owner_reads() {
+    let sandbox = Sandbox::new("private");
+    let cache = sandbox.cache();
+    save_step_command(&cache, &sandbox.command(ECHOES)).expect("the command is saved");
+    rerun_step(&cache, "q").expect("the step runs again");
+    let listed = [
+        mode(&picker_command_file(&cache)),
+        mode(&cache),
+        mode(&picker_header_file(&cache)),
+    ];
+    save_step_command(&cache, &sandbox.command("exit 2")).expect("the command is saved");
+
+    assert!(rerun_step(&cache, "q").is_err());
+
+    assert_eq!(listed, [0o600; 3]);
+    assert_eq!(mode(&picker_error_file(&cache)), 0o600);
 }

@@ -256,3 +256,23 @@ fn what_a_failing_picker_says_on_stderr_reaches_the_finder_with_its_status() {
         )
     );
 }
+
+#[test]
+fn every_file_a_run_leaves_only_its_owner_reads() {
+    let sandbox = Sandbox::new("private");
+    let picker = r#"printf '%s\n' '{"header":"Pick"}' '{"label":"a","enter":"none"}' 'not a row'"#;
+
+    let _ = sandbox.run(picker, "cat > /dev/null; printf '\\nenter\\n'");
+
+    let cache = sandbox.cache();
+    let modes: Vec<u32> = [
+        cache.clone(),
+        crate::picker_files::picker_said_file(&cache),
+        crate::picker_files::picker_header_file(&cache),
+        picker_error_file(&cache),
+    ]
+    .iter()
+    .map(|file| fs::metadata(file).expect("a run file").permissions().mode() & 0o777)
+    .collect();
+    assert_eq!(modes, vec![0o600; 4]);
+}

@@ -5,6 +5,7 @@ use std::process::Command;
 use std::{fs, thread};
 
 use herdr_picker_domain::{Action, PickerRow, Preview};
+use herdr_picker_protocol::shell_word;
 use serde_json::Value;
 
 use super::super::paint::dim;
@@ -80,7 +81,7 @@ fn repo_row(root: &Path, items: &[Value], places: &Places) -> PickerRow {
             dim(&format!("{} to prune", plural(items.len(), "item")))
         ),
         preview: Some(Preview::Text(lines.join("\n"))),
-        enter: Action::Insert(path.clone()),
+        enter: Action::Insert(shell_word(&path)),
         keys: vec![(key("ctrl-enter"), Action::Cd(path)), (key("alt-d"), prune)],
         group: None,
     }

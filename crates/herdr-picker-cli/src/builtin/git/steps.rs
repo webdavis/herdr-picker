@@ -43,11 +43,8 @@ pub(super) fn choice(label: &str, note: &str, action: Action) -> Choice {
     }
 }
 
-pub(super) fn cancel() -> Choice {
-    choice("Cancel", "nothing changes", Action::Back)
-}
-
 // A step with several answers: the header asks the question and each row previews the detail.
+// Cancel comes first, so Enter on the first row changes nothing.
 pub(super) fn ask(
     question: &str,
     detail: &str,
@@ -55,16 +52,21 @@ pub(super) fn ask(
     rows: &mut RowWriter<impl Write>,
 ) -> Result<(), CommandError> {
     written(rows.header(question))?;
-    written(choices.into_iter().try_for_each(|choice| {
-        rows.row(&PickerRow {
-            label: match choice.note.is_empty() {
-                true => choice.label,
-                false => format!("{}  {}", choice.label, dim(&choice.note)),
-            },
-            preview: Some(Preview::Text(detail.to_string())),
-            enter: choice.action,
-            keys: Vec::new(),
-            group: None,
-        })
-    }))
+    let cancel = choice("Cancel", "nothing changes", Action::Back);
+    written(
+        std::iter::once(cancel)
+            .chain(choices)
+            .try_for_each(|choice| {
+                rows.row(&PickerRow {
+                    label: match choice.note.is_empty() {
+                        true => choice.label,
+                        false => format!("{}  {}", choice.label, dim(&choice.note)),
+                    },
+                    preview: Some(Preview::Text(detail.to_string())),
+                    enter: choice.action,
+                    keys: Vec::new(),
+                    group: None,
+                })
+            }),
+    )
 }

@@ -184,6 +184,22 @@ fn worktrunks_status_shows_on_local_branches_when_wt_is_installed() {
 }
 
 #[test]
+fn a_worktree_whose_path_holds_a_space_is_pasted_quoted() {
+    let repo = GitRepo::new("branches-quoted");
+    repo.write("a.txt", "one\n");
+    repo.commit("first");
+    let side = format!("{} side", repo.0.display());
+    let _ = std::fs::remove_dir_all(&side);
+    repo.git(&["worktree", "add", "-q", "-b", "side", &side]);
+
+    let rows = branches(&repo);
+
+    let row = row_of(&rows, &format!("'{side}'"));
+    assert_eq!(row.group.as_deref(), Some("worktrees"));
+    let _ = std::fs::remove_dir_all(&side);
+}
+
+#[test]
 fn pull_asks_which_way_to_pull_into_the_current_branch() {
     let (repo, side) = refs("branches-pull");
     let root = repo.0.display();
@@ -195,13 +211,13 @@ fn pull_asks_which_way_to_pull_into_the_current_branch() {
     assert_eq!(
         labels,
         vec![
-            &format!("Pull  {DIM}merges as your Git settings say{RESET}")[..],
+            &format!("Cancel  {DIM}nothing changes{RESET}")[..],
+            &format!("Pull  {DIM}merges as your Git settings say{RESET}"),
             &format!("Pull with rebase  {DIM}replays your commits on top{RESET}"),
-            &format!("Cancel  {DIM}nothing changes{RESET}"),
         ]
     );
     assert_eq!(
-        rows[1].enter,
+        rows[2].enter,
         Action::Run(format!("git -C {root} pull --rebase"))
     );
     let _ = std::fs::remove_dir_all(&side);

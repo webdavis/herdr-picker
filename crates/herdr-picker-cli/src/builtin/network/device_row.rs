@@ -78,12 +78,9 @@ pub(super) fn device_row(
     }
     let targets = wake_targets(&ip, networks);
     if !device.mac.is_empty() && !targets.is_empty() {
-        let wake = format!(
-            "{} network wake {} {}",
-            own_program(),
-            device.mac,
-            targets.join(" ")
-        );
+        let mut wake = vec!["network", "wake", &device.mac];
+        wake.extend(targets.iter().map(String::as_str));
+        let wake = format!("{} {}", own_program(), words(&wake));
         keys.push((key("ctrl-y"), Action::Run(wake)));
     }
     PickerRow {

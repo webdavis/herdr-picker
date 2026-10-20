@@ -81,13 +81,12 @@ pub(super) fn change_setting(
     new: &str,
     rows: &mut RowWriter<impl Write>,
 ) -> Result<(), CommandError> {
-    let new_shown = if shown == "[redacted]" { shown } else { new };
     let command = ["git", "config", "--file", file, name, new]
         .map(shell_word)
         .join(" ");
     let row = asking(
-        &format!("Set {name} to {new_shown}"),
-        &format!("Set {name} in {scope} from {shown} to {new_shown}?"),
+        &format!("Set {name} to {new}"),
+        &format!("Set {name} in {scope} from {shown} to {new}?"),
         command,
     );
     answer(

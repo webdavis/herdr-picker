@@ -91,3 +91,21 @@ fn failures_lists_the_failed_saved_runs_with_their_messages() {
         ]
     );
 }
+
+#[test]
+fn a_hermes_profile_with_shell_characters_in_its_name_is_started_quoted() {
+    let tree = Tree::new(
+        "agents-start-quoted",
+        &["home/.hermes/profiles/my lab;x/config.yaml"],
+    );
+
+    let started = agents("start", &tree.places("home"));
+
+    assert_eq!(
+        started.last().map(|row| &row.enter),
+        Some(&Action::InPane {
+            pane: herdr_picker_domain::NewPane::Right,
+            action: Box::new(Action::Run("hermes -p 'my lab;x'".to_string())),
+        })
+    );
+}

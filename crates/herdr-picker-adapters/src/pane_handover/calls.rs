@@ -7,7 +7,7 @@ use herdr_picker_protocol::{
 };
 
 use super::{HandoverError, SocketPanes};
-use crate::agent_store::{AgentSnapshot, read_queue, write_queue};
+use crate::agent_store::{AgentSnapshot, lock_queue, read_queue, write_queue};
 use crate::response::{jump_error, workspaces};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,6 +50,7 @@ pub fn send_prompt(
     pane_id: &str,
     text: &str,
 ) -> Result<Sent, HandoverError> {
+    let _held = locked(queue)?;
     match panes.delivery(pane_id)? {
         Delivery::Now => {
             panes.call(&prompt(pane_id, text))?;
@@ -80,6 +81,7 @@ pub fn drain_queue(
     if !status.settled() {
         return Ok(false);
     }
+    let _held = locked(queue)?;
     let (Some(next), rest) = take_next(read_queue(queue), pane_id) else {
         return Ok(false);
     };
@@ -115,6 +117,11 @@ fn queued_note(waiting: &Refusal) -> String {
         _ => "its input line could not be read",
     };
     format!("Queued: {why}. It is sent once the agent is free.")
+}
+
+fn locked(queue: &Path) -> Result<std::fs::File, HandoverError> {
+    lock_queue(queue)
+        .map_err(|failure| HandoverError::Unreadable(format!("cannot lock the queue: {failure}")))
 }
 
 fn prompt(pane_id: &str, text: &str) -> HerdrCall {

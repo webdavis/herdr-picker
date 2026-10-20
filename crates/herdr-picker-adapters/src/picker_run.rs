@@ -1,5 +1,4 @@
-use std::fs::{File, create_dir_all};
-use std::io;
+use std::fs::File;
 use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
@@ -12,6 +11,7 @@ use herdr_picker_domain::PickerRow;
 use rustix::process::{Pid, Signal, kill_process_group};
 
 use crate::picker_files::{cached_rows, picker_error_file, picker_header_file, picker_said_file};
+use crate::private::create_private;
 
 mod error;
 pub(crate) mod feed;
@@ -35,7 +35,7 @@ pub fn run_picker(
     cache: &Path,
 ) -> Result<Option<Picked>, PickerRunError> {
     let said_file = picker_said_file(cache);
-    let said = create_cache(&said_file).map_err(|failure| PickerRunError::CannotCache {
+    let said = create_private(&said_file).map_err(|failure| PickerRunError::CannotCache {
         path: said_file.clone(),
         reason: failure.to_string(),
     })?;
@@ -93,7 +93,7 @@ fn start_finder(
     arguments: &[String],
     cache: &Path,
 ) -> Result<(Child, File), PickerRunError> {
-    let cache_file = create_cache(cache).map_err(|failure| PickerRunError::CannotCache {
+    let cache_file = create_private(cache).map_err(|failure| PickerRunError::CannotCache {
         path: cache.to_owned(),
         reason: failure.to_string(),
     })?;
@@ -104,13 +104,6 @@ fn start_finder(
             .stdout(Stdio::piped()),
     )?;
     Ok((finder_process, cache_file))
-}
-
-fn create_cache(cache: &Path) -> io::Result<File> {
-    if let Some(parent) = cache.parent() {
-        create_dir_all(parent)?;
-    }
-    File::create(cache)
 }
 
 fn spawn(command: &mut Command) -> Result<Child, PickerRunError> {

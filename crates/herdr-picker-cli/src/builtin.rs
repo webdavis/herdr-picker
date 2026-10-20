@@ -112,8 +112,8 @@ pub(crate) fn print_rows(
         )?,
         ("confirm", [question, action], _) => {
             let action = parse_action(action).map_err(failed)?;
-            written(rows.row(&row("Yes", Some(question), action)))?;
             written(rows.row(&row("No", Some(question), Action::Back)))?;
+            written(rows.row(&row("Yes", Some(question), action)))?;
         }
         _ => return Err(failed(format!("no builtin picker is named {name}"))),
     }

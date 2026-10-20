@@ -2,7 +2,7 @@ use std::io::Write;
 
 use herdr_picker_domain::Action;
 
-use super::steps::{ask, cancel, choice};
+use super::steps::{ask, choice};
 use super::{Repo, plural, strings};
 use crate::builtin::Places;
 use crate::builtin::rows::RowWriter;
@@ -50,7 +50,7 @@ pub(super) fn checkout(
     let go = Action::Run(format!("{switch} && {after}"));
     if changed.is_empty() && blocking.is_empty() {
         let question = format!("Check out {what}?");
-        let choices = vec![choice(&format!("Check out {shown}"), "", go), cancel()];
+        let choices = vec![choice(&format!("Check out {shown}"), "", go)];
         return ask(&question, &question, choices, rows);
     }
     let in_the_way: Vec<&String> = blocking
@@ -98,7 +98,6 @@ pub(super) fn checkout(
             &format!("saved as \"{message}\""),
             stashed,
         ),
-        cancel(),
     ];
     let question = format!("Check out {what}? {}", facts.join(" "));
     ask(&question, &question, choices, rows)

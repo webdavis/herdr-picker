@@ -59,28 +59,43 @@ pub fn guard(kind: &PaneKind, status: &str, screen: &str) -> Result<(), Refusal>
 }
 
 // Starship's prompt characters and the classic shell ones, each followed by a space or the end.
-const SHELL_PROMPTS: [&str; 6] = ["❯", "❮", "$", "#", "%", ">"];
+const SHELL_PROMPTS: [char; 6] = ['❯', '❮', '$', '#', '%', '>'];
 
-// The cursor sits on the last line holding text; what follows its first prompt character is typed,
-// so a draft holding a prompt character of its own still reads as a draft.
-// shortcut: a prompt ending in none of SHELL_PROMPTS reads as unseen and refuses; teach it that prompt.
+// herdr says which agent a pane runs but not which program holds a shell's screen, so the prompt is
+// read off the cursor's line: the first prompt character, with only prompt-like words before it.
+// What follows it is typed, so a draft holding a prompt character of its own still reads as a draft.
+// shortcut: a prompt with plain words before its character (bash-5.2$, on main ❯) reads as unseen
+// and refuses; teach prompt_like that word.
 fn shell_guard(screen: &str) -> Result<(), Refusal> {
     let line = screen
         .lines()
         .rev()
         .find(|line| !line.trim().is_empty())
         .ok_or(Refusal::InputUnseen)?;
-    let typed = SHELL_PROMPTS
-        .iter()
-        .filter_map(|prompt| {
-            line.match_indices(prompt)
-                .map(|(at, _)| &line[at + prompt.len()..])
-                .find(|rest| rest.is_empty() || rest.starts_with(' '))
-        })
-        .max_by_key(|rest| rest.len())
+    let (before, typed) = line
+        .char_indices()
+        .filter(|(_, character)| SHELL_PROMPTS.contains(character))
+        .map(|(at, character)| (&line[..at], &line[at + character.len_utf8()..]))
+        .find(|(_, rest)| rest.is_empty() || rest.starts_with(' '))
         .ok_or(Refusal::InputUnseen)?;
+    if !before.split_whitespace().all(prompt_like) {
+        return Err(Refusal::InputUnseen);
+    }
     match typed.trim() {
         "" => Ok(()),
         draft => Err(Refusal::Draft(draft.to_string())),
     }
+}
+
+// user@host, a path, (venv) or [git status], or a bare marker such as +; a program's status line
+// or a REPL's >>> holds some other word.
+fn prompt_like(word: &str) -> bool {
+    let wrapped = |open, close| word.starts_with(open) && word.ends_with(close);
+    word.contains('@')
+        || word.starts_with(['~', '/'])
+        || wrapped('(', ')')
+        || wrapped('[', ']')
+        || word
+            .chars()
+            .all(|character| !character.is_alphanumeric() && !SHELL_PROMPTS.contains(&character))
 }

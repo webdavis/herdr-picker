@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::picker_files::{picker_command_file, picker_error_file, picker_header_file};
 use crate::picker_run::{PickerRunError, feed::failure};
+use crate::private::write_private;
 
 // A step's command, kept beside its rows so fzf can run it again as the query changes.
 #[derive(Serialize, Deserialize)]
@@ -28,7 +29,7 @@ pub fn save_step_command(cache: &Path, command: &Command) -> io::Result<()> {
             .map(|(name, value)| (text(name), value.map(text)))
             .collect(),
     };
-    fs::write(picker_command_file(cache), serde_json::to_string(&saved)?)
+    write_private(&picker_command_file(cache), &serde_json::to_vec(&saved)?)
 }
 
 // Only a live step keeps its command beside its rows.
@@ -36,10 +37,10 @@ pub fn is_live_step(cache: &Path) -> bool {
     picker_command_file(cache).exists()
 }
 
-// The rows go to a side file first, so fzf never reads half a list.
+// The rows land whole, so fzf never reads half a list.
 pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
     let refused = |refusal: PickerRunError| {
-        let _ = fs::write(picker_error_file(cache), refusal.to_string());
+        let _ = write_private(&picker_error_file(cache), refusal.to_string().as_bytes());
         Err(refusal)
     };
     let mut command = match saved_command(cache) {
@@ -65,7 +66,7 @@ pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
     let mut rows = String::new();
     for (index, line) in String::from_utf8_lossy(&ran.stdout).lines().enumerate() {
         if let Some(header) = parse_header(line) {
-            let _ = fs::write(picker_header_file(cache), header);
+            let _ = write_private(&picker_header_file(cache), header.as_bytes());
         } else if let Err(bad_row) = parse_row(line, index + 1) {
             return refused(PickerRunError::BadRow(bad_row));
         } else {
@@ -74,15 +75,12 @@ pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
         }
     }
     let _ = fs::remove_file(picker_error_file(cache));
-    let fresh = cache.with_extension("fresh");
-    fs::write(&fresh, rows)
-        .and_then(|()| fs::rename(&fresh, cache))
-        .or_else(|failure| {
-            refused(PickerRunError::CannotCache {
-                path: cache.to_owned(),
-                reason: failure.to_string(),
-            })
+    write_private(cache, rows.as_bytes()).or_else(|failure| {
+        refused(PickerRunError::CannotCache {
+            path: cache.to_owned(),
+            reason: failure.to_string(),
         })
+    })
 }
 
 fn saved_command(cache: &Path) -> Option<Command> {

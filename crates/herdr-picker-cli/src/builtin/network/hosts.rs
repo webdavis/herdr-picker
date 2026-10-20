@@ -1,9 +1,10 @@
 use herdr_picker_domain::{Action, PickerRow, Preview};
+use herdr_picker_protocol::shell_word;
 use serde_json::Value;
 
 use super::command;
 use super::ssh_config::SshHost;
-use crate::builtin::page::{fields, notice};
+use crate::builtin::page::{fields, notice, words};
 use crate::builtin::paint::dim;
 
 const TAILSCALE: [&str; 8] = [
@@ -42,7 +43,7 @@ fn ssh_row(host: &SshHost) -> PickerRow {
         host.file.display()
     )];
     purpose.extend(host.settings.iter().cloned());
-    let text = format!("ssh {}", host.alias);
+    let text = words(&["ssh", &host.alias]);
     PickerRow {
         label: format!("{}  {}", host.alias, dim("SSH")),
         group: Some("SSH".to_string()),
@@ -109,7 +110,7 @@ fn pasted(name: &str, address: &str, page: String, group: &str) -> PickerRow {
     PickerRow {
         label,
         preview: Some(Preview::Text(page)),
-        enter: Action::Insert(if address.is_empty() { name } else { address }.to_string()),
+        enter: Action::Insert(shell_word(if address.is_empty() { name } else { address })),
         keys: Vec::new(),
         group: Some(group.to_string()),
     }

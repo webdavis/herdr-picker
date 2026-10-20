@@ -5,7 +5,7 @@ use std::thread;
 
 use herdr_picker_domain::Action;
 
-use super::steps::{ask, cancel, choice};
+use super::steps::{ask, choice};
 use super::{plural, wt};
 use crate::builtin::rows::RowWriter;
 use crate::command::CommandError;
@@ -41,10 +41,11 @@ pub(super) fn prune(roots: &[&str], rows: &mut RowWriter<impl Write>) -> Result<
         .map(|root| wt(Path::new(root), &["step", "prune"]))
         .collect::<Vec<_>>()
         .join("; ");
-    let choices = vec![
-        choice("Prune", "removes what the list shows", Action::Run(run)),
-        cancel(),
-    ];
+    let choices = vec![choice(
+        "Prune",
+        "removes what the list shows",
+        Action::Run(run),
+    )];
     ask(&question, &preview, choices, rows)
 }
 

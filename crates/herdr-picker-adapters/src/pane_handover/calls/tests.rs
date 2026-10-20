@@ -133,6 +133,50 @@ fn an_agent_that_settles_with_an_empty_line_takes_its_oldest_queued_prompt() {
 }
 
 #[test]
+fn two_hooks_draining_at_once_send_each_queued_prompt_once() {
+    let queue = TempQueue::new("race");
+    write_queue(
+        &queue.path(),
+        &[queued("w1:p2", "first"), queued("w1:p2", "second")],
+    )
+    .expect("saved");
+    let start = std::sync::Barrier::new(2);
+
+    let sent: Vec<String> = std::thread::scope(|scope| {
+        let hooks: Vec<_> = (0..2)
+            .map(|_| {
+                scope.spawn(|| {
+                    let server = SocketServer::start(vec![
+                        pane("w1:p2", Some("claude"), "idle"),
+                        screen(EMPTY_CLAUDE),
+                        ok(),
+                    ]);
+                    start.wait();
+                    let drained = drain_queue(
+                        &mut panes(&server),
+                        &queue.path(),
+                        "w1:p2",
+                        AgentStatus::Idle,
+                    );
+                    assert_eq!(drained, Ok(true));
+                    let _ = (server.seen(), server.seen());
+                    method_and_params(&server).1["text"].to_string()
+                })
+            })
+            .collect();
+        hooks
+            .into_iter()
+            .map(|hook| hook.join().expect("a hook"))
+            .collect()
+    });
+
+    let mut sent = sent;
+    sent.sort();
+    assert_eq!(sent, vec!["\"first\"", "\"second\""]);
+    assert_eq!(read_queue(&queue.path()), Vec::new());
+}
+
+#[test]
 fn a_draft_or_a_turn_still_running_leaves_the_queue_alone() {
     let queue = TempQueue::new("hold");
     write_queue(&queue.path(), &[queued("w1:p2", "first")]).expect("saved");

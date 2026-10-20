@@ -105,3 +105,36 @@ fn enter_resumes_the_session_in_a_new_pane_beside_this_one() {
     );
     assert!(herdr_picker_domain::unstyled(&rows[0].label).starts_with("Hello  claude · "));
 }
+
+#[test]
+fn a_session_id_with_shell_characters_is_resumed_quoted() {
+    let home = Tree::new("sessions-quoted", &[]);
+    let repo = Path::new("/work/dotfiles");
+    write(
+        &home.0.join(".claude/projects/-work-dotfiles/a b.jsonl"),
+        &[
+            serde_json::json!({"type": "user", "cwd": "/work/dotfiles", "message": {"content": "one"}}),
+        ],
+    );
+    write(
+        &home.0.join(".codex/sessions/2026/10/19/rollout-1.jsonl"),
+        &[
+            serde_json::json!({"type": "session_meta", "payload": {"id": "019a;touch x", "cwd": "/work/dotfiles"}}),
+            serde_json::json!({"type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "two"}]}}),
+        ],
+    );
+
+    let mut resumed: Vec<String> = past_sessions(repo, &home.0)
+        .into_iter()
+        .map(|session| session.resume)
+        .collect();
+    resumed.sort();
+
+    assert_eq!(
+        resumed,
+        vec![
+            "claude --resume 'a b'".to_string(),
+            "codex resume '019a;touch x'".to_string()
+        ]
+    );
+}

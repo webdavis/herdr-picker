@@ -109,3 +109,24 @@ fn this_mac_previews_without_a_ping() {
     );
     assert_eq!(row.keys.len(), 5);
 }
+
+#[test]
+fn a_reported_mac_with_shell_characters_is_woken_quoted() {
+    let odd = one(
+        Source::Bonjour,
+        Sighting {
+            ip: "192.168.1.20".into(),
+            mac: "aa:bb;touch x".into(),
+            name: "odd".into(),
+            ..Sighting::default()
+        },
+    );
+
+    let row = device_row(&odd, "192.168.1.1", &networks(), CLOCK);
+
+    let wake = row.keys.iter().find(|(key, _)| key.shown() == "ctrl-y");
+    assert!(
+        matches!(wake, Some((_, Action::Run(wake))) if wake.ends_with(" network wake 'aa:bb;touch x' 192.168.1.255")),
+        "{wake:?}"
+    );
+}

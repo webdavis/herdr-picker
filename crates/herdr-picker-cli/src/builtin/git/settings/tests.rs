@@ -121,11 +121,6 @@ fn secrets_are_hidden_and_a_setting_with_several_values_is_only_opened() {
         named(&rows, "remote.origin.url").label,
         format!("remote.origin.url = {DIM}https://[redacted]@example.com/x.git{RESET}")
     );
-    let Some(Action::Next(change)) = named(&rows, "my.token").action(&key("ctrl-v")).cloned()
-    else {
-        panic!("a change step");
-    };
-    assert_eq!(change.query, None);
     let fetch = named(&rows, "remote.origin.fetch");
     assert_eq!(fetch.action(&key("ctrl-v")), None);
     assert_eq!(fetch.action(&key("ctrl-x")), None);
@@ -136,6 +131,55 @@ fn secrets_are_hidden_and_a_setting_with_several_values_is_only_opened() {
         preview
             .ends_with("remote.origin.fetch holds several values; edit its file with Ctrl-Enter."),
         "{preview}"
+    );
+}
+
+#[test]
+fn a_secret_is_only_opened_at_its_line_so_its_value_never_reaches_a_command_line() {
+    let repo = configured("settings-secret-keys");
+    repo.git(&["config", "url.https://me:pw@x.com/.insteadOf", "gh:"]);
+    let file = repo.path(".git/config");
+    let line = fs::read_to_string(&file)
+        .expect("the config")
+        .lines()
+        .position(|line| line.trim() == "token = abc")
+        .expect("the line") as u32
+        + 1;
+
+    let rows = local(&repo);
+    let token = named(&rows, "my.token");
+
+    assert_eq!(token.action(&key("ctrl-v")), None);
+    assert_eq!(token.action(&key("ctrl-x")), None);
+    assert_eq!(
+        named(&rows, "remote.origin.url").action(&key("ctrl-v")),
+        None,
+        "a value shown partly redacted is never typed back"
+    );
+    let credential = rows
+        .iter()
+        .find(|row| {
+            row.label
+                .starts_with("url.https://[redacted]@x.com/.insteadof = ")
+        })
+        .expect("a row for the credential url");
+    assert_eq!(
+        credential.action(&key("ctrl-x")),
+        None,
+        "a name shown redacted never reaches a command line"
+    );
+    assert_eq!(
+        token.action(&key("ctrl-enter")),
+        Some(&Action::Edit(vec![Location {
+            path: file,
+            line: Some(line)
+        }]))
+    );
+    assert_eq!(
+        token.preview,
+        Some(Preview::Text(
+            "Value: [redacted]\nOrigin: file:.git/config\n\nmy.token holds a secret, which a command line would show and keep in your history. Press Ctrl-Enter to edit it in its file.".to_string()
+        ))
     );
 }
 

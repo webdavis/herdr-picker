@@ -1,4 +1,5 @@
 use herdr_picker_domain::{Action, Key, PickerRow, Preview};
+use herdr_picker_protocol::shell_word;
 use serde_json::json;
 
 use super::super::paint::{blue, dim, green, mauve, yellow};
@@ -96,7 +97,7 @@ pub(super) fn worktree(repo: &Repo, tree: &Worktree, branch: Option<&str>) -> Pi
             dim(branch.unwrap_or("detached"))
         ),
         preview: Some(Preview::Path(tree.path.clone())),
-        enter: Action::Insert(tree.path.clone()),
+        enter: Action::Insert(shell_word(&tree.path)),
         keys,
         group: Some("worktrees".to_string()),
     }

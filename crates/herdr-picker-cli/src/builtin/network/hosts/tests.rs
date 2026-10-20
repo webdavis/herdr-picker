@@ -79,3 +79,24 @@ fn tailscale_peers_paste_their_first_address_and_show_their_status() {
         "\u{1b}[2mTailscale status is unavailable\u{1b}[0m"
     );
 }
+
+#[test]
+fn a_name_with_shell_characters_is_pasted_quoted() {
+    let status = r#"{"Peer": {"key": {"HostName": "Me's iPad", "TailscaleIPs": []}}}"#;
+    let odd = SshHost {
+        alias: "nas$(x)".into(),
+        ..nas()
+    };
+
+    let rows = host_rows(&[odd], Some("192.168.1.9 a$b\n"), Some(status));
+
+    let pasted: Vec<&Action> = rows.iter().map(|row| &row.enter).collect();
+    assert_eq!(
+        pasted,
+        [
+            &Action::Insert("ssh 'nas$(x)'".to_string()),
+            &Action::Insert("192.168.1.9".to_string()),
+            &Action::Insert(r"'Me'\''s iPad'".to_string()),
+        ]
+    );
+}

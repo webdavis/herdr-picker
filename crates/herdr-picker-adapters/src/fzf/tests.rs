@@ -144,11 +144,9 @@ fn a_live_step_leaves_matching_to_its_command_and_runs_it_again_on_every_change(
     let still = fzf_arguments(Theme::CatppuccinMocha, &CHROME, Placement::Inline);
 
     assert!(arguments.contains(&"--disabled".to_string()));
-    assert!(
-        arguments.contains(
-            &"--bind=change:reload('/bin/herdr-picker' live '/state/rows' {q})".to_string()
-        )
-    );
+    assert!(arguments.contains(
+        &"--bind=change:reload-sync('/bin/herdr-picker' live '/state/rows' {q})".to_string()
+    ));
     assert!(!still.contains(&"--disabled".to_string()));
     assert!(
         !still

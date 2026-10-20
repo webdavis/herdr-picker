@@ -4,7 +4,7 @@ use std::thread;
 use herdr_picker_domain::{Action, PickerRow};
 
 use super::Repo;
-use super::steps::{ask, cancel, choice};
+use super::steps::{ask, choice};
 use super::worktrunk::{self};
 use crate::builtin::rows::RowWriter;
 use crate::builtin::{Places, written};
@@ -117,7 +117,6 @@ pub(super) fn pull(places: &Places, rows: &mut RowWriter<impl Write>) -> Result<
             "replays your commits on top",
             Action::Run(repo.shell(&["pull", "--rebase"])),
         ),
-        cancel(),
     ];
     let question = format!("Pull into {name}?");
     ask(&question, &question, choices, rows)

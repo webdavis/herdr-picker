@@ -78,16 +78,26 @@ fn the_prune_step_shows_what_worktrunk_would_remove_and_asks_first() {
 
     assert_eq!(header, Some(format!("Prune {root}?")));
     assert_eq!(
-        rows[0].label,
+        rows[1].label,
         format!("Prune  {DIM}removes what the list shows{RESET}")
     );
     assert_eq!(
-        rows[0].enter,
+        rows[1].enter,
         Action::Run(format!("wt -C {root} step prune"))
     );
-    let Some(Preview::Text(preview)) = &rows[0].preview else {
+    let Some(Preview::Text(preview)) = &rows[1].preview else {
         panic!("a text preview");
     };
     assert!(preview.starts_with(&format!("{root}\n")), "{preview}");
-    assert_eq!(rows[1].enter, Action::Back);
+    assert_eq!(rows[0].enter, Action::Back);
+}
+
+#[test]
+fn a_repository_whose_path_holds_a_space_is_pasted_quoted() {
+    let repo = GitRepo::new("prune-quoted");
+    let item = serde_json::json!({"kind": "branch", "branch": "old", "reason": "merged", "target": "main"});
+
+    let row = repo_row(Path::new("/work/my repo"), &[item], &repo.places());
+
+    assert_eq!(row.enter, Action::Insert("'/work/my repo'".to_string()));
 }

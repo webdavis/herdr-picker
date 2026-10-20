@@ -109,3 +109,60 @@ fn a_step_header_is_read_from_beside_the_rows_cache_and_absent_until_written() {
         Some("main → origin/main ↑1 | 2 staged".to_string())
     );
 }
+
+fn mode(file: &Path) -> u32 {
+    use std::os::unix::fs::PermissionsExt;
+    fs::metadata(file).expect("a file").permissions().mode() & 0o777
+}
+
+#[test]
+fn a_runs_view_only_its_owner_reads() {
+    let sandbox = Sandbox::new("private-view");
+    let cache = sandbox.cache();
+
+    write_view(&cache, &state(View::Streamed { group: None })).expect("the view is written");
+
+    assert_eq!(mode(&picker_view_file(&cache)), 0o600);
+}
+
+#[test]
+fn starting_a_run_clears_the_files_of_runs_whose_process_is_gone() {
+    let sandbox = Sandbox::new("stale");
+    let mut gone = std::process::Command::new("true")
+        .spawn()
+        .expect("true starts");
+    gone.wait().expect("true exits");
+    let own = std::process::id();
+    let names = [
+        format!("picker-rows-{}.jsonl", gone.id()),
+        format!("picker-rows-{}.view", gone.id()),
+        format!("picker-rows-{own}.jsonl"),
+        "picker-rows-x.jsonl".to_string(),
+        "send-queue.json".to_string(),
+    ];
+    for name in &names {
+        fs::write(sandbox.0.join(name), "").expect("a file");
+    }
+
+    remove_stale_runs(&sandbox.0);
+
+    let mut left: Vec<String> = fs::read_dir(&sandbox.0)
+        .expect("the state lists")
+        .map(|entry| {
+            entry
+                .expect("an entry")
+                .file_name()
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect();
+    left.sort();
+    assert_eq!(
+        left,
+        vec![
+            format!("picker-rows-{own}.jsonl"),
+            "picker-rows-x.jsonl".to_string(),
+            "send-queue.json".to_string(),
+        ]
+    );
+}

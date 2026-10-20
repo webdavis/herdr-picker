@@ -1,13 +1,15 @@
 use std::fmt;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::thread;
 use std::time::{Duration, Instant};
 
 use herdr_picker_protocol::{PaneState, encode_pane_state, parse_pane_state};
 use rustix::io::Errno;
 use rustix::process::{Pid, test_kill_process};
+
+use crate::private::write_private;
 
 const POLL: Duration = Duration::from_millis(25);
 
@@ -35,11 +37,7 @@ impl fmt::Display for PaneWaitError {
 }
 
 pub fn write_pane_state(path: &Path, state: &PaneState) -> io::Result<()> {
-    let mut temporary = path.as_os_str().to_owned();
-    temporary.push(".tmp");
-    let temporary = PathBuf::from(temporary);
-    fs::write(&temporary, encode_pane_state(state))?;
-    fs::rename(&temporary, path)
+    write_private(path, encode_pane_state(state).as_bytes())
 }
 
 pub fn await_pane_result(
@@ -78,7 +76,7 @@ fn settled(state: Option<PaneState>) -> Result<Option<String>, PaneWaitError> {
     }
 }
 
-fn alive(pid: u32) -> bool {
+pub(crate) fn alive(pid: u32) -> bool {
     let Some(pid) = i32::try_from(pid).ok().and_then(Pid::from_raw) else {
         return false;
     };

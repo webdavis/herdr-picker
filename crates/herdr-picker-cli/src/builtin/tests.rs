@@ -113,7 +113,7 @@ fn a_label_with_line_breaks_is_drawn_on_one_line() {
 }
 
 #[test]
-fn confirm_prints_yes_running_the_action_and_no_going_back() {
+fn confirm_prints_no_going_back_first_then_yes_running_the_action() {
     assert_eq!(
         printed(
             "confirm",
@@ -123,9 +123,9 @@ fn confirm_prints_yes_running_the_action_and_no_going_back() {
         )
         .expect("rows"),
         concat!(
-            r#"{"label":"Yes","preview":"Delete x?","enter":{"run":"rm x"}}"#,
-            "\n",
             r#"{"label":"No","preview":"Delete x?","enter":"back"}"#,
+            "\n",
+            r#"{"label":"Yes","preview":"Delete x?","enter":{"run":"rm x"}}"#,
             "\n"
         )
     );

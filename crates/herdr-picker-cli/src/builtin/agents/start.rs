@@ -3,6 +3,7 @@ use std::fs;
 use herdr_picker_domain::{Action, NewPane, PickerRow, Preview};
 
 use crate::builtin::Places;
+use crate::builtin::page::words;
 use crate::builtin::paint::dim;
 
 // clauth's profiles for the two accounts: personal work, and Broccoli's team account.
@@ -33,7 +34,7 @@ pub(super) fn start(places: &Places) -> Vec<PickerRow> {
     tools.extend(
         named
             .into_iter()
-            .map(|profile| ("Hermes", "profile", format!("hermes -p {profile}"))),
+            .map(|profile| ("Hermes", "profile", words(&["hermes", "-p", &profile]))),
     );
     tools
         .into_iter()

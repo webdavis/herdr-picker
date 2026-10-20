@@ -7,7 +7,7 @@ use herdr_picker_domain::{Action, NewPane, PickerRow, Preview, age};
 use super::instructions::claude_project;
 use crate::builtin::Places;
 use crate::builtin::git::Repo;
-use crate::builtin::page::notice;
+use crate::builtin::page::{notice, words};
 use crate::builtin::paint::dim;
 use transcript::{claude_prompt, codex_prompt, first_prompt};
 
@@ -86,7 +86,7 @@ pub(super) fn past_sessions(root: &Path, home: &Path) -> Vec<Session> {
             let id = file.file_stem()?.to_string_lossy().into_owned();
             Path::new(&cwd)
                 .starts_with(root)
-                .then(|| session(format!("claude --resume {id}"), prompt, file))
+                .then(|| session(words(&["claude", "--resume", &id]), prompt, file))
         });
     let days = listed(&home.join(".codex/sessions"))
         .into_iter()
@@ -97,7 +97,7 @@ pub(super) fn past_sessions(root: &Path, home: &Path) -> Vec<Session> {
         let (cwd, id) = meta.split_once('\t')?;
         Path::new(cwd)
             .starts_with(root)
-            .then(|| session(format!("codex resume {id}"), prompt, file))
+            .then(|| session(words(&["codex", "resume", id]), prompt, file))
     });
     let mut found: Vec<Session> = claude.chain(codex).collect();
     found.sort_by(|left, right| right.at.cmp(&left.at).then(left.file.cmp(&right.file)));

@@ -27,6 +27,8 @@ pub(super) fn setting_row(
     } else {
         redact(&entry.value)
     };
+    // Anything shown redacted would be typed back redacted or land on a command line.
+    let hidden = shown != entry.value || name != entry.name;
     let label = match note.is_empty() {
         true => format!("{name} = {}", dim(&shown)),
         false => format!("{}  {}", dim(&format!("{name} = {shown}")), dim(note)),
@@ -55,6 +57,9 @@ pub(super) fn setting_row(
         (None, _) => Some(format!(
             "{name} was set on the command line, not in a file."
         )),
+        _ if hidden => Some(format!(
+            "{name} holds a secret, which a command line would show and keep in your history. Press Ctrl-Enter to edit it in its file."
+        )),
         _ if several => Some(format!(
             "{name} holds several values; edit its file with Ctrl-Enter."
         )),
@@ -69,12 +74,7 @@ pub(super) fn setting_row(
         (Some(refusal), _) => detail += &format!("\n\n{refusal}"),
         (None, Some(file)) => {
             let arguments = [file.as_str(), &entry.name, &entry.scope, &shown];
-            let change = next(
-                "change-setting",
-                &arguments,
-                (!secret).then_some(&*shown),
-                None,
-            );
+            let change = next("change-setting", &arguments, Some(&shown), None);
             let remove = ["git", "config", "--file", file, "--unset", &entry.name]
                 .map(shell_word)
                 .join(" ");

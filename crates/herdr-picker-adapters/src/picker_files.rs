@@ -5,6 +5,9 @@ use std::path::{Path, PathBuf};
 use herdr_picker_domain::{PickerRow, ViewState};
 use herdr_picker_protocol::{encode_view_state, parse_row, parse_view_state};
 
+use crate::pane_result::alive;
+use crate::private::write_private;
+
 pub fn picker_view_file(cache: &Path) -> PathBuf {
     cache.with_extension("view")
 }
@@ -42,10 +45,10 @@ pub fn read_view(cache: &Path) -> ViewState {
 }
 
 pub fn write_view(cache: &Path, state: &ViewState) -> io::Result<()> {
-    if let Some(directory) = cache.parent() {
-        fs::create_dir_all(directory)?;
-    }
-    fs::write(picker_view_file(cache), encode_view_state(state))
+    write_private(
+        &picker_view_file(cache),
+        encode_view_state(state).as_bytes(),
+    )
 }
 
 pub fn read_run_error(cache: &Path) -> Option<String> {
@@ -67,3 +70,21 @@ pub fn remove_run_files(cache: &Path) {
 
 #[cfg(test)]
 mod tests;
+
+// A run killed before it cleaned up leaves its files; each names its process, so a run whose
+// process is gone has nothing left to read them.
+pub fn remove_stale_runs(state: &Path) {
+    let Ok(entries) = fs::read_dir(state) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let run = (name.to_str())
+            .and_then(|name| name.strip_prefix("picker-rows-"))
+            .and_then(|rest| rest.split_once('.'))
+            .and_then(|(pid, _)| pid.parse::<u32>().ok());
+        if run.is_some_and(|pid| !alive(pid)) {
+            let _ = fs::remove_file(entry.path());
+        }
+    }
+}

@@ -37,21 +37,21 @@ fn a_clean_tree_asks_once_before_checking_out_and_shows_where_it_landed() {
     assert_eq!(
         labels(&rows),
         vec![
-            "Check out other".to_string(),
-            format!("Cancel  {DIM}nothing changes{RESET}")
+            format!("Cancel  {DIM}nothing changes{RESET}"),
+            "Check out other".to_string()
         ]
     );
     assert_eq!(
-        rows[0].enter,
+        rows[1].enter,
         Action::Run(format!(
             "git -C {root} checkout other && git -C {root} status --short --branch"
         ))
     );
     assert_eq!(
-        rows[0].preview,
+        rows[1].preview,
         Some(Preview::Text("Check out other?".to_string()))
     );
-    assert_eq!(rows[1].enter, Action::Back);
+    assert_eq!(rows[0].enter, Action::Back);
 }
 
 #[test]
@@ -69,13 +69,13 @@ fn changes_in_the_way_are_counted_named_and_offered_a_stash_first() {
     assert_eq!(
         labels(&rows),
         vec![
+            format!("Cancel  {DIM}nothing changes{RESET}"),
             format!("Check out anyway  {DIM}Git will refuse: a.txt differs in other{RESET}"),
             format!("Stash, then check out  {DIM}saved as \"before checkout of other\"{RESET}"),
-            format!("Cancel  {DIM}nothing changes{RESET}"),
         ]
     );
     assert_eq!(
-        rows[1].enter,
+        rows[2].enter,
         Action::Run(format!(
             "git -C {root} stash push -m 'before checkout of other' && git -C {root} checkout other && git -C {root} status --short --branch"
         ))
@@ -94,12 +94,12 @@ fn a_remote_branch_becomes_a_tracking_branch_and_a_commit_a_detached_head() {
     let (commit, _) = checkout(&repo, "commit", &first);
 
     assert_eq!(
-        remote[0].enter,
+        remote[1].enter,
         Action::Run(format!(
             "git -C {root} checkout --track origin/topic && git -C {root} status --short --branch"
         ))
     );
-    assert_eq!(local_exists[0].label, "Check out other");
+    assert_eq!(local_exists[1].label, "Check out other");
     assert_eq!(
         commit,
         Some(format!(

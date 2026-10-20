@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 use std::thread;
 
@@ -41,7 +42,8 @@ fn exited_pid() -> u32 {
 }
 
 #[test]
-fn writing_a_state_replaces_the_file_whole_and_leaves_no_temporary_behind() {
+fn writing_a_state_replaces_the_file_whole_only_its_owner_reads_it_and_leaves_no_temporary_behind()
+{
     let sandbox = Sandbox::new("write");
     let result = sandbox.result();
 
@@ -57,6 +59,12 @@ fn writing_a_state_replaces_the_file_whole_and_leaves_no_temporary_behind() {
         .map(|entry| entry.expect("an entry").file_name())
         .collect();
     assert_eq!(names, ["picker-result"]);
+    use std::os::unix::fs::PermissionsExt;
+    let mode = fs::metadata(&result)
+        .expect("a result")
+        .permissions()
+        .mode();
+    assert_eq!(mode & 0o777, 0o600, "only its owner reads the result");
 }
 
 #[test]

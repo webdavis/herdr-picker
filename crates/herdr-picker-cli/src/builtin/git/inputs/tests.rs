@@ -94,7 +94,7 @@ fn a_new_branch_name_asks_before_renaming_and_the_old_one_asks_for_another() {
 }
 
 #[test]
-fn a_new_setting_value_asks_before_writing_it_and_keeps_a_secret_hidden() {
+fn a_new_setting_value_asks_before_writing_it() {
     let repo = GitRepo::new("input-setting");
     let file = repo.path("config");
 
@@ -102,12 +102,6 @@ fn a_new_setting_value_asks_before_writing_it_and_keeps_a_secret_hidden() {
         "change-setting",
         &[&file, "pull.rebase", "global", "false"],
         "true",
-        &repo,
-    );
-    let (_, secret) = typed(
-        "change-setting",
-        &[&file, "my.token", "local", "[redacted]"],
-        "abc",
         &repo,
     );
 
@@ -122,13 +116,5 @@ fn a_new_setting_value_asks_before_writing_it_and_keeps_a_secret_hidden() {
             "Set pull.rebase in global from false to true?",
             format!("git config --file {file} pull.rebase true")
         )
-    );
-    assert_eq!(secret[0].label, "Set my.token to [redacted]");
-    let Action::Confirm { question, .. } = &secret[0].enter else {
-        panic!("a confirm");
-    };
-    assert_eq!(
-        question,
-        "Set my.token in local from [redacted] to [redacted]?"
     );
 }

@@ -1,4 +1,4 @@
-use std::fs;
+use std::fs::{self, File};
 use std::io;
 use std::path::Path;
 use std::time::{Duration, SystemTime};
@@ -7,7 +7,7 @@ use herdr_picker_domain::{Agent, AgentStatus, Queued, Workspace};
 use herdr_picker_protocol::WireTab;
 use serde::{Deserialize, Serialize};
 
-use crate::private::write_private;
+use crate::private::{create_private, write_private};
 
 // What herdr runs, saved by the status hook so the agents picker opens without asking herdr.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -86,7 +86,14 @@ pub fn read_snapshot(path: &Path, fresh_for: Duration, now: SystemTime) -> Optio
     })
 }
 
-// shortcut: two hooks rewriting the queue at once can drop a prompt; lock the file if one goes missing.
+// Held from reading the queue to sending from it, so two hooks never take the same prompt or write
+// back a list the other has changed; it lets go when dropped.
+pub fn lock_queue(path: &Path) -> io::Result<File> {
+    let lock = create_private(&path.with_extension("lock"))?;
+    lock.lock()?;
+    Ok(lock)
+}
+
 pub fn write_queue(path: &Path, queue: &[Queued]) -> io::Result<()> {
     let saved: Vec<SavedPrompt> = (queue.iter())
         .map(|queued| SavedPrompt {
