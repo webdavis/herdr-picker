@@ -104,7 +104,8 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
             ("tests", "ctrl-t t"),
             ("processes", "ctrl-t p"),
             ("network", "ctrl-t n"),
-            ("data", "ctrl-t i")
+            ("data", "ctrl-t i"),
+            ("agents", "ctrl-t a")
         ]
     );
     assert!(

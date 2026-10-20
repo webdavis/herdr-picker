@@ -11,11 +11,11 @@ use herdr_picker_protocol::{
 };
 
 use crate::{
-    builtin, generate, handing, last_workspace, launch, path::expand_tilde, pick, picker,
-    picker_chrome, picker_popup, popup, record, run,
+    agent_hook, builtin, generate, handing, last_workspace, launch, path::expand_tilde, pick,
+    picker, picker_chrome, picker_popup, popup, record, run,
 };
 
-pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker launch <base> | herdr-picker launcher | herdr-picker deliver <picker> <pane> --after-pid <pid> | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker capture <output> <cwd> <category> <framework> -- <command>... | herdr-picker network ping <address> <page> | herdr-picker network wake <mac> <broadcast>... | herdr-picker init bash";
+pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker agent-changed | herdr-picker launch <base> | herdr-picker launcher | herdr-picker deliver <picker> <pane> --after-pid <pid> | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker capture <output> <cwd> <category> <framework> -- <command>... | herdr-picker network ping <address> <page> | herdr-picker network wake <mac> <broadcast>... | herdr-picker init bash";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -97,6 +97,10 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ["generate", options @ ..] => generate::run(options),
         ["record"] => {
             record::run(&env::var("HERDR_PLUGIN_EVENT_JSON").unwrap_or_default());
+            Ok(())
+        }
+        ["agent-changed"] => {
+            agent_hook::run(&env::var("HERDR_PLUGIN_EVENT_JSON").unwrap_or_default());
             Ok(())
         }
         ["launch", base] => launch::open(

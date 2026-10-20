@@ -1,7 +1,8 @@
-use herdr_picker_domain::{Action, Location, PickerCall};
+use herdr_picker_domain::{Action, HerdrCall, Location, NewPane, PickerCall};
 
 use super::wire::{
-    Bare, OneOrMany, Tagged, WireAction, WireConfirm, WireLocation, WireNext, Words,
+    Bare, OneOrMany, Tagged, WireAction, WireConfirm, WireHerdr, WireInPane, WireLocation,
+    WireNext, Words,
 };
 use crate::shell::shell_word;
 
@@ -24,9 +25,9 @@ fn copied(words: Words) -> String {
     }
 }
 
-pub(super) fn into_action(wire: WireAction, value: Option<&Words>) -> Result<Action, String> {
+pub(super) fn into_action(wire: WireAction, words: Option<&Words>) -> Result<Action, String> {
     let value = || {
-        value
+        words
             .cloned()
             .ok_or_else(|| "an action uses the row's value, but the row has none".to_string())
     };
@@ -60,6 +61,13 @@ pub(super) fn into_action(wire: WireAction, value: Option<&Words>) -> Result<Act
             },
             Tagged::Source(source) => Action::Source(source),
             Tagged::State(state) => Action::State(state.to_string()),
+            Tagged::Herdr(call) => Action::Herdr(into_call(call)),
+            Tagged::InPane(opened) => Action::InPane {
+                pane: NewPane::parse(&opened.pane).ok_or_else(|| {
+                    format!("{} is not left, below, above, right or tab", opened.pane)
+                })?,
+                action: Box::new(into_action(*opened.action, words)?),
+            },
         },
     })
 }
@@ -111,6 +119,30 @@ pub(super) fn from_action(action: &Action) -> WireAction {
         Action::Reload => return WireAction::Bare(Bare::Reload),
         Action::Nothing => return WireAction::Bare(Bare::None),
         Action::Back => return WireAction::Bare(Bare::Back),
-        Action::InPane { action, .. } => return from_action(action),
+        Action::InPane { pane, action } => Tagged::InPane(WireInPane {
+            pane: pane.word().to_string(),
+            action: Box::new(from_action(action)),
+        }),
+        Action::Herdr(call) => Tagged::Herdr(from_call(call)),
     })
+}
+
+pub(crate) fn into_call(wire: WireHerdr) -> HerdrCall {
+    match wire {
+        WireHerdr::FocusPane(id) => HerdrCall::FocusPane(id),
+        WireHerdr::FocusTab(id) => HerdrCall::FocusTab(id),
+        WireHerdr::FocusWorkspace(id) => HerdrCall::FocusWorkspace(id),
+        WireHerdr::CloseTab(id) => HerdrCall::CloseTab(id),
+        WireHerdr::Prompt { pane_id, text } => HerdrCall::Prompt { pane_id, text },
+    }
+}
+
+pub(crate) fn from_call(call: &HerdrCall) -> WireHerdr {
+    match call.clone() {
+        HerdrCall::FocusPane(id) => WireHerdr::FocusPane(id),
+        HerdrCall::FocusTab(id) => WireHerdr::FocusTab(id),
+        HerdrCall::FocusWorkspace(id) => WireHerdr::FocusWorkspace(id),
+        HerdrCall::CloseTab(id) => WireHerdr::CloseTab(id),
+        HerdrCall::Prompt { pane_id, text } => WireHerdr::Prompt { pane_id, text },
+    }
 }

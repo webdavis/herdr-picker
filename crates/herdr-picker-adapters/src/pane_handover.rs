@@ -14,6 +14,10 @@ use crate::herdr_socket::HerdrSocket;
 use crate::program::on_path;
 use crate::response::jump_error;
 
+mod calls;
+
+pub use calls::{Sent, drain_queue, send_prompt};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HandoverError {
     Unreadable(String),
@@ -106,6 +110,7 @@ pub fn hand_over(
     target: &str,
     line: &str,
     editor: &str,
+    queue: &Path,
 ) -> Result<(), HandoverError> {
     let instruction =
         parse_instruction(line).ok_or_else(|| HandoverError::Unreadable(line.to_string()))?;
@@ -120,6 +125,7 @@ pub fn hand_over(
         is_program: &|word| on_path(word, path_variable.as_deref()).is_some(),
     };
     match handover(&instruction, &underneath)? {
+        Handover::Herdr(call) => calls::carry_out(panes, queue, &call),
         Handover::Type { text, submit } => {
             if matches!(kind, PaneKind::Claude | PaneKind::Codex) {
                 guard(&kind, &pane.status, &panes.screen(target)?)?;

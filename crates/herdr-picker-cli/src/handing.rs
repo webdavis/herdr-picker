@@ -2,13 +2,14 @@ use std::env;
 use std::path::Path;
 
 use herdr_picker_adapters::{DEADLINE, SocketPanes, hand_over};
-use herdr_picker_protocol::{SOCKET_PATH_VARIABLE, parse_instruction};
+use herdr_picker_protocol::{SOCKET_PATH_VARIABLE, Verb, parse_instruction};
 
+use crate::agent_hook::queue_path;
 use crate::command::{CommandError, config_path, failed};
 use crate::{pick, picker, picker_popup};
 
 // A shell key prints its result for the bash function to apply in that shell, except a result
-// for a new pane, which only herdr can open.
+// only herdr can carry out, such as a new pane or a focus.
 pub(crate) fn answer(
     socket: Option<&Path>,
     instruction: Option<String>,
@@ -16,17 +17,25 @@ pub(crate) fn answer(
     let Some(instruction) = instruction else {
         return Ok(());
     };
-    let for_new_pane = parse_instruction(&instruction).is_some_and(|parsed| parsed.pane.is_some());
+    let for_herdr = parse_instruction(&instruction)
+        .is_some_and(|parsed| parsed.pane.is_some() || parsed.verb == Verb::Herdr);
     let shell_pane = env::var("HERDR_PANE_ID")
         .ok()
         .filter(|pane| !pane.is_empty());
-    match (for_new_pane, socket, shell_pane) {
+    match (for_herdr, socket, shell_pane) {
         (false, _, _) => println!("{instruction}"),
         (true, Some(socket), Some(pane)) => {
             let mut panes = SocketPanes::at(socket, DEADLINE);
-            hand_over(&mut panes, &pane, &instruction, &picker::editor()).map_err(failed)?;
+            hand_over(
+                &mut panes,
+                &pane,
+                &instruction,
+                &picker::editor(),
+                &queue_path(),
+            )
+            .map_err(failed)?;
         }
-        (true, _, _) => return Err(failed("a new pane opens only inside herdr")),
+        (true, _, _) => return Err(failed("only herdr can do that, and herdr isn't running")),
     }
     Ok(())
 }
@@ -47,7 +56,8 @@ pub(crate) fn deliver(name: &str, target: &str, spawner: &str) -> Result<(), Com
         picker_popup::in_popup(&socket, name, &config_path(), refused).and_then(|instruction| {
             match instruction {
                 Some(line) => {
-                    hand_over(&mut panes, target, &line, &picker::editor()).map_err(failed)
+                    hand_over(&mut panes, target, &line, &picker::editor(), &queue_path())
+                        .map_err(failed)
                 }
                 None => Ok(()),
             }

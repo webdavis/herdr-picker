@@ -1,13 +1,17 @@
 use crate::picker_header::title;
-use crate::picker_row::{Action, PickerRow};
+use crate::picker_row::{Action, HerdrCall, PickerRow};
 
 const HELP_KEY: &str = "F1 help";
 const CHOOSE: (&str, &str) = ("ctrl-space", "choose a source");
-const GENERAL: [(&str, &str); 4] = [
+const GENERAL: [(&str, &str); 5] = [
     ("tab", "mark a row; a key then acts on every marked row"),
     (
         "ctrl-q",
         "save the marked rows' files and lines as the quickfix list",
+    ),
+    (
+        "alt-o",
+        "send the marked rows to an agent, copy them, or ask a quick question about them",
     ),
     ("esc", "back to the previous step, or close on the first"),
     ("F1", "this help"),
@@ -60,6 +64,9 @@ fn verb(action: &Action) -> Option<&'static str> {
         Action::Reload => "reload",
         Action::Back => "back",
         Action::InPane { .. } => "open in a new pane",
+        Action::Herdr(HerdrCall::Prompt { .. }) => "send",
+        Action::Herdr(HerdrCall::CloseTab(_)) => "close",
+        Action::Herdr(_) => "focus",
         Action::Nothing => return None,
     })
 }
@@ -86,6 +93,13 @@ fn detail(action: &Action) -> Option<String> {
         Action::Next(call) => Some(title(&call.name)),
         Action::Confirm { question, .. } => Some(question.clone()),
         Action::InPane { action, .. } => detail(action),
+        Action::Herdr(
+            HerdrCall::FocusPane(id)
+            | HerdrCall::FocusTab(id)
+            | HerdrCall::FocusWorkspace(id)
+            | HerdrCall::CloseTab(id)
+            | HerdrCall::Prompt { pane_id: id, .. },
+        ) => Some(id.clone()),
         Action::State(_) | Action::Reload | Action::Back | Action::Nothing => None,
     }
 }

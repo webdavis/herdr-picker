@@ -10,6 +10,7 @@ use herdr_picker_protocol::{
 
 use crate::command::{CommandError, failed};
 
+pub(crate) mod agents;
 mod clock;
 mod data;
 mod files;
@@ -28,7 +29,7 @@ mod rows;
 pub(crate) use data::data_command;
 pub(crate) use git::git_preview;
 pub(crate) use network::network_tool;
-pub(crate) use places::Places;
+pub(crate) use places::{HerdrPlaces, Places};
 pub(crate) use project::save_check;
 
 use rows::{RowWriter, in_home};
@@ -84,6 +85,9 @@ pub(crate) fn print_rows(
         return written(rows.finish());
     }
     match (name, arguments, asked.source) {
+        (name @ ("agents" | "send-to" | "quick-answer" | "answer"), [], _) => {
+            agents::agents(name, &asked, places, &mut rows)?
+        }
         ("files", [], Some(source)) => files::files(source, places, &mut rows)?,
         ("folders", [], Some(source)) => folders::folders(source, places, &mut rows)?,
         ("recipes", [], _) => recipes::recipes_rows(places, &mut rows)?,

@@ -37,6 +37,7 @@ impl Tree {
             bookmarks: self.0.join("state/bookmarks"),
             quickfix: self.0.join("state/quickfix.json"),
             captures: self.0.join("state/captures"),
+            herdr: HerdrPlaces::outside(&self.0.join("state")),
         }
     }
 }
@@ -84,6 +85,7 @@ fn unused_places() -> Places {
         bookmarks: PathBuf::from("/unused/bookmarks"),
         quickfix: PathBuf::from("/unused/quickfix.json"),
         captures: PathBuf::from("/unused/captures"),
+        herdr: HerdrPlaces::outside(Path::new("/unused")),
     }
 }
 

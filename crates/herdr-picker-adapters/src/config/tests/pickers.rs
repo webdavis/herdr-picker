@@ -68,7 +68,8 @@ fn pickers_sit_beside_workspaces() {
             "tests",
             "processes",
             "network",
-            "data"
+            "data",
+            "agents"
         ]
     );
 }
@@ -133,6 +134,11 @@ fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
                 "data",
                 "ctrl-t i",
                 "JSON, YAML, TOON and SQLite files here, or the clipboard, by path and value"
+            ),
+            builtin(
+                "agents",
+                "ctrl-t a",
+                "Agents and tabs in herdr, the files that instruct agents here, saved failures, and past sessions"
             ),
         ]
     );
@@ -347,7 +353,8 @@ fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
             "tests",
             "processes",
             "network",
-            "data"
+            "data",
+            "agents"
         ]
     );
 }
@@ -374,7 +381,8 @@ fn a_configured_picker_turned_off_is_not_declared() {
             "tests",
             "processes",
             "network",
-            "data"
+            "data",
+            "agents"
         ]
     );
 }
@@ -429,7 +437,8 @@ fn without_a_config_file_the_pickers_are_the_builtin_ones() {
             "tests",
             "processes",
             "network",
-            "data"
+            "data",
+            "agents"
         ]
     );
     assert_eq!(config.targets, Vec::new());

@@ -35,6 +35,25 @@ pub(super) enum Tagged {
     Confirm(WireConfirm),
     Source(String),
     State(serde_json::Value),
+    Herdr(WireHerdr),
+    InPane(WireInPane),
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct WireInPane {
+    pub(super) pane: String,
+    pub(super) action: Box<WireAction>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub(crate) enum WireHerdr {
+    FocusPane(String),
+    FocusTab(String),
+    FocusWorkspace(String),
+    CloseTab(String),
+    Prompt { pane_id: String, text: String },
 }
 
 #[derive(Deserialize, Serialize)]

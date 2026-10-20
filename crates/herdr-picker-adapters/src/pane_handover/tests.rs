@@ -4,33 +4,39 @@ use super::*;
 use crate::socket_server::{Reply, SocketServer};
 
 const OK: &str = r#"{"id":"req_1","result":{"type":"ok"}}"#;
-const EMPTY_CLAUDE: &str = "  Done.\n───\n❯ \n───\n";
-const DRAFT_CLAUDE: &str = "  Done.\n───\n❯ fix the flaky\n───\n";
+pub(super) const EMPTY_CLAUDE: &str = "  Done.\n───\n❯ \n───\n";
+pub(super) const DRAFT_CLAUDE: &str = "  Done.\n───\n❯ fix the flaky\n───\n";
 
-fn pane(pane_id: &str, agent: Option<&str>, status: &str) -> Reply {
+pub(super) fn pane(pane_id: &str, agent: Option<&str>, status: &str) -> Reply {
     let agent = agent.map_or("null".to_string(), |agent| format!("\"{agent}\""));
     Reply::Line(format!(
         r#"{{"id":"req_1","result":{{"type":"pane_info","pane":{{"pane_id":"{pane_id}","workspace_id":"w1","tab_id":"w1:t1","cwd":"/nowhere/repo","agent":{agent},"agent_status":"{status}"}}}}}}"#
     ))
 }
 
-fn screen(text: &str) -> Reply {
+pub(super) fn screen(text: &str) -> Reply {
     let text = serde_json::to_string(text).expect("JSON text");
     Reply::Line(format!(
         r#"{{"id":"req_1","result":{{"type":"pane_read","read":{{"text":{text}}}}}}}"#
     ))
 }
 
-fn ok() -> Reply {
+pub(super) fn ok() -> Reply {
     Reply::Line(OK.into())
 }
 
 fn hand(server: &SocketServer, line: &str) -> Result<(), HandoverError> {
     let mut panes = SocketPanes::at(&server.path, Duration::from_millis(150));
-    hand_over(&mut panes, "w1:p2", line, "nvim")
+    hand_over(
+        &mut panes,
+        "w1:p2",
+        line,
+        "nvim",
+        Path::new("/nowhere/queue"),
+    )
 }
 
-fn method_and_params(server: &SocketServer) -> (String, serde_json::Value) {
+pub(super) fn method_and_params(server: &SocketServer) -> (String, serde_json::Value) {
     let request = server.seen();
     (
         request["method"].as_str().unwrap_or_default().to_string(),
@@ -153,4 +159,44 @@ fn an_instruction_herdr_picker_cannot_read_is_refused_before_herdr_is_asked() {
         hand(&server, "copy\tx"),
         Err(HandoverError::Unreadable("copy\tx".to_string()))
     );
+}
+
+#[test]
+fn a_herdr_call_goes_to_herdr_and_types_nothing() {
+    let server = SocketServer::start(vec![pane("w1:p2", None, "unknown"), ok()]);
+
+    assert_eq!(hand(&server, "herdr\t{\"focus_pane\":\"w1:p7\"}"), Ok(()));
+    assert_eq!(method_and_params(&server).0, "pane.get");
+    assert_eq!(
+        method_and_params(&server),
+        (
+            "pane.focus".to_string(),
+            serde_json::json!({"pane_id": "w1:p7"})
+        )
+    );
+}
+
+#[test]
+fn a_prompt_the_agent_cannot_take_yet_is_queued_and_herdr_says_so() {
+    let server = SocketServer::start(vec![
+        pane("w1:p2", None, "unknown"),
+        pane("w1:p5", Some("claude"), "blocked"),
+        screen(EMPTY_CLAUDE),
+        ok(),
+    ]);
+    let queue = std::env::temp_dir().join(format!("hp-handover-queue-{}", std::process::id()));
+    let mut panes = SocketPanes::at(&server.path, Duration::from_millis(150));
+    let line = "herdr\t{\"prompt\":{\"pane_id\":\"w1:p5\",\"text\":\"hi\"}}";
+
+    assert_eq!(hand_over(&mut panes, "w1:p2", line, "nvim", &queue), Ok(()));
+    let _ = (server.seen(), server.seen(), server.seen());
+    assert_eq!(
+        method_and_params(&server),
+        (
+            "notification.show".to_string(),
+            serde_json::json!({"title": "herdr-picker",
+                "body": "Queued: it waits on an answer. It is sent once the agent is free."})
+        )
+    );
+    let _ = std::fs::remove_file(&queue);
 }

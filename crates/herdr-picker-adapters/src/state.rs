@@ -21,6 +21,12 @@ pub fn spawned_jump_log_file(state_dir: Option<&str>, home: Option<&str>) -> Pat
 pub fn places_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
     plugin_state_dir(state_dir, home).join("places")
 }
+pub fn snapshot_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
+    plugin_state_dir(state_dir, home).join("agents.json")
+}
+pub fn send_queue_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
+    plugin_state_dir(state_dir, home).join("send-queue.json")
+}
 pub fn bookmarks_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
     plugin_state_dir(state_dir, home).join("bookmarks")
 }

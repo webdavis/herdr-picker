@@ -1,4 +1,7 @@
+use herdr_picker_domain::Action;
+
 use super::*;
+use crate::shell::Shell;
 
 mod guard;
 
@@ -174,5 +177,35 @@ fn the_agent_a_pane_runs_names_its_kind() {
             PaneKind::Codex,
             PaneKind::Agent("pi".to_string())
         ]
+    );
+}
+
+#[test]
+fn a_herdr_call_is_handed_to_herdr_whatever_runs_underneath() {
+    let call = HerdrCall::Prompt {
+        pane_id: "w1:p2".to_string(),
+        text: "two\nlines".to_string(),
+    };
+    let shell = Shell {
+        editor: "hx",
+        cwd: "/work/repo",
+        opener: "open",
+    };
+    let line = crate::shell::instruction(&Action::Herdr(call.clone()), &shell)
+        .expect("quotes close")
+        .expect("a line");
+
+    assert_eq!(
+        line,
+        r#"herdr	{"prompt":{"pane_id":"w1:p2","text":"two\nlines"}}"#
+    );
+    assert_eq!(
+        over(PaneKind::Shell, &line),
+        Ok(Handover::Herdr(call.clone()))
+    );
+    assert_eq!(over(PaneKind::Claude, &line), Ok(Handover::Herdr(call)));
+    assert_eq!(
+        over(PaneKind::Shell, "right\therdr\t{\"focus_tab\":\"w1:t1\"}"),
+        Err(Refusal::NothingToOpen)
     );
 }

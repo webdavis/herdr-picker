@@ -1,13 +1,15 @@
 use std::path::Path;
 
-use herdr_picker_domain::NewPane;
+use herdr_picker_domain::{HerdrCall, NewPane};
 
 use crate::shell::{shell_word, split_words};
 
+mod delivery;
 mod guard;
 mod instruction;
 mod terminal;
 
+pub use delivery::{Delivery, delivery};
 pub use guard::{Refusal, guard};
 pub use instruction::{Instruction, Verb, parse_instruction};
 use terminal::needs_terminal;
@@ -53,13 +55,20 @@ pub enum Handover {
         folder: Option<String>,
         run: Option<String>,
     },
+    Herdr(HerdrCall),
 }
 
 pub fn handover(instruction: &Instruction, underneath: &Underneath) -> Result<Handover, Refusal> {
     let text = instruction.text.clone();
+    if instruction.verb == Verb::Herdr {
+        return match (instruction.pane, crate::rows::parse_herdr_call(&text)) {
+            (None, Some(call)) => Ok(Handover::Herdr(call)),
+            _ => Err(Refusal::NothingToOpen),
+        };
+    }
     if let Some(pane) = instruction.pane {
         return match instruction.verb {
-            Verb::Insert => Err(Refusal::NothingToOpen),
+            Verb::Insert | Verb::Herdr => Err(Refusal::NothingToOpen),
             Verb::Cd => Ok(Handover::Open {
                 pane,
                 folder: Some(absolute(&text, underneath.cwd)),
@@ -90,6 +99,7 @@ pub fn handover(instruction: &Instruction, underneath: &Underneath) -> Result<Ha
             run: Some(text),
         }),
         Verb::Run => typed(format!("! {text}"), true),
+        Verb::Herdr => Err(Refusal::NothingToOpen),
     }
 }
 
@@ -97,7 +107,7 @@ fn into_shell(verb: Verb, text: String) -> Handover {
     let (text, submit) = match verb {
         Verb::Insert => (text, false),
         Verb::Cd => (format!("cd {}", shell_word(&text)), true),
-        Verb::Run => (text, true),
+        Verb::Run | Verb::Herdr => (text, true),
     };
     Handover::Type { text, submit }
 }

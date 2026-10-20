@@ -1,3 +1,4 @@
+mod agent;
 mod chord;
 mod field;
 mod fuzzy;
@@ -20,8 +21,10 @@ mod picker_trail;
 mod picker_view;
 mod place;
 mod popup;
+mod send_queue;
 mod target;
 
+pub use agent::{Agent, AgentStatus, age, carry_since, ordered};
 pub use chord::{Chord, Stroke};
 pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Match, Matcher};
@@ -41,11 +44,12 @@ pub use picker_header::{header, title};
 pub use picker_help::{footer_hint, help_entries};
 pub use picker_key::{Key, bindable_keys};
 pub use picker_quickfix::{QuickfixEntry, quickfix_entries};
-pub use picker_row::{Action, Location, PickerCall, PickerRow, Preview};
+pub use picker_row::{Action, HerdrCall, Location, PickerCall, PickerRow, Preview};
 pub use picker_trail::{Page, Spot, Step, Trail, Turn};
 pub use picker_view::{
     View, ViewKey, ViewResponse, ViewState, chooser_entries, groups, press, shown,
 };
 pub use place::{Place, RECENT_PLACES, remember};
 pub use popup::{Size, popup_size, preview_popup_size};
+pub use send_queue::{Queued, take_next};
 pub use target::{JumpTarget, TargetError, WorkspaceDeclaration, action_id, jump_targets};

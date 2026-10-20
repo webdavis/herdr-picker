@@ -75,4 +75,16 @@ pub enum Action {
         pane: NewPane,
         action: Box<Action>,
     },
+    Herdr(HerdrCall),
+}
+
+// What only herdr can do, done once the picker is gone, so a closing popup cannot undo it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HerdrCall {
+    FocusPane(String),
+    FocusTab(String),
+    FocusWorkspace(String),
+    CloseTab(String),
+    // Sent when the agent can take it, or queued until it can.
+    Prompt { pane_id: String, text: String },
 }

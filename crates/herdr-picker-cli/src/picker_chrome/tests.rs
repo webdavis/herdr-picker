@@ -132,6 +132,7 @@ fn help_lists_the_highlighted_rows_keys_then_the_general_ones_under_the_header()
          ctrl-space  choose a source\n\
          tab         mark a row; a key then acts on every marked row\n\
          ctrl-q      save the marked rows' files and lines as the quickfix list\n\
+         alt-o       send the marked rows to an agent, copy them, or ask a quick question about them\n\
          esc         back to the previous step, or close on the first\n\
          F1          this help"
     );

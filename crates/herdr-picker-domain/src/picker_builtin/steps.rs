@@ -1,7 +1,7 @@
 use super::Live;
 
 // The built-in steps a picker's next action opens; no key runs them.
-pub(super) const STEP_BUILTINS: [(&str, Live); 15] = [
+pub(super) const STEP_BUILTINS: [(&str, Live); 18] = [
     ("commit-files", Live::Never),
     ("checkout", Live::Never),
     ("stash-files", Live::Always),
@@ -17,6 +17,9 @@ pub(super) const STEP_BUILTINS: [(&str, Live); 15] = [
     ("network-command", Live::Always),
     ("data-file", Live::Never),
     ("data-copy", Live::Never),
+    ("send-to", Live::Never),
+    ("quick-answer", Live::Always),
+    ("answer", Live::Never),
 ];
 
 // The step builtins that read more than one source; the first is the one a step opens on.

@@ -1,8 +1,10 @@
 use std::env;
 use std::path::PathBuf;
 
-use herdr_picker_adapters::{bookmarks_file, captures_dir, on_path, quickfix_file};
+use herdr_picker_adapters::{bookmarks_file, captures_dir, on_path, places_file, quickfix_file};
+use herdr_picker_protocol::SOCKET_PATH_VARIABLE;
 
+use crate::agent_hook::snapshot_path;
 use crate::command::{CommandError, failed};
 
 pub(crate) struct Places {
@@ -13,12 +15,42 @@ pub(crate) struct Places {
     pub(crate) bookmarks: PathBuf,
     pub(crate) quickfix: PathBuf,
     pub(crate) captures: PathBuf,
+    pub(crate) herdr: HerdrPlaces,
+}
+
+// Where the agents picker finds herdr and what the plugin saved about it.
+pub(crate) struct HerdrPlaces {
+    // None outside herdr.
+    pub(crate) socket: Option<PathBuf>,
+    pub(crate) tab: Option<String>,
+    pub(crate) snapshot: PathBuf,
+    pub(crate) places: PathBuf,
+    // The herdr CLI, which previews an agent's latest reply.
+    pub(crate) bin: String,
+}
+
+impl HerdrPlaces {
+    #[cfg(test)]
+    pub(crate) fn outside(state: &std::path::Path) -> Self {
+        Self {
+            socket: None,
+            tab: None,
+            snapshot: state.join("agents.json"),
+            places: state.join("places"),
+            bin: "herdr".to_string(),
+        }
+    }
 }
 
 impl Places {
     pub(crate) fn here() -> Result<Self, CommandError> {
         let home = env::var("HOME").ok().filter(|home| !home.is_empty());
         let state = env::var("HERDR_PLUGIN_STATE_DIR").ok();
+        let set = |name| {
+            env::var(name)
+                .ok()
+                .filter(|value: &String| !value.is_empty())
+        };
         Ok(Self {
             cwd: env::current_dir().map_err(failed)?,
             fd: on_path("fd", env::var_os("PATH").as_deref()),
@@ -26,6 +58,13 @@ impl Places {
             bookmarks: bookmarks_file(state.as_deref(), home.as_deref()),
             quickfix: quickfix_file(state.as_deref(), home.as_deref()),
             captures: captures_dir(state.as_deref(), home.as_deref()),
+            herdr: HerdrPlaces {
+                socket: set(SOCKET_PATH_VARIABLE).map(PathBuf::from),
+                tab: set("HERDR_TAB_ID"),
+                snapshot: snapshot_path(),
+                places: places_file(state.as_deref(), home.as_deref()),
+                bin: set("HERDR_BIN_PATH").unwrap_or_else(|| "herdr".to_string()),
+            },
             home: home.map(PathBuf::from),
         })
     }

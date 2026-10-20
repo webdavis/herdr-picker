@@ -79,6 +79,7 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
         Action::Open(_) => select_one("open"),
         Action::Confirm { .. } => select_one("confirm"),
         Action::InPane { .. } => select_one("open in a new pane"),
+        Action::Herdr(_) => select_one("act on"),
     }
 }
 

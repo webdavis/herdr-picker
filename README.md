@@ -81,8 +81,8 @@ directory the `config.toml` sits in.
 Each workspace gets the action id `jump_` plus its label, lowercased with every character outside
 `a-z0-9` replaced by an underscore, so `Ivy` is `jump_ivy` and `casually-concerned` is
 `jump_casually_concerned`. Two labels deriving the same id is refused rather than dropping one
-silently. The `last_workspace` action and the `record` event hook are always rendered and need no
-configuration.
+silently. The `last_workspace` action, the `record` event hooks and the `agent-changed` hook are always
+rendered and need no configuration.
 
 Then bind the actions in `~/.config/herdr/config.toml`:
 
@@ -204,6 +204,36 @@ the shell keys inside herdr too, and say so in the footer outside it.
 
 The `record` hook also runs on every pane focus and keeps the last 200 places, each pane and folder
 once, in `places` in the plugin's state folder, for a picker of recent places.
+
+## The agents picker
+
+`ctrl-t a` lists herdr's agents, one row each: herdr's status glyph (`◉` needs you, `◐` working,
+`●` done, `✓` idle), the session's title, then the agent, workspace and tab, folder, branch and how
+long it has been in that state. Agents that need you or just finished come first, then the panes
+visited most recently; the current tab's agents come last. The preview is the agent's latest
+output. Enter focuses the agent's pane, alt+x closes its tab after asking, and ctrl+r asks herdr
+again.
+
+Its sources are everything, needs you, done, agents, terminals (tabs with no agent), workspaces,
+recent (the places the `record` hook logged), worktrees (agents in a linked git worktree),
+instructions (every file that tells an agent how to work here; Enter opens it in the editor),
+failures (saved test and check runs that failed), start (Claude on the personal or Broccoli clauth
+profile, Codex, or Hermes and its profiles, in a new pane here) and sessions (past Claude and Codex
+sessions started in this repository, with their first prompt; Enter resumes one in a new pane).
+Outside herdr the running sources say herdr isn't running; the others still work.
+
+A third hook, on `pane.agent_status_changed`, saves herdr's agents in `agents.json` in the plugin's
+state folder, so the picker opens without asking herdr; a list older than 30 seconds is asked for
+again.
+
+alt+o in every picker sends the marked rows, as text, to a running agent. An agent that is free or
+working, with nothing typed in its input line, gets them at once. One that waits on a question, or
+whose input line holds your typing, gets them later: the rows wait in `send-queue.json`, and the
+status hook sends them once that agent finishes its turn with an empty input line. Your draft is
+never touched. The same step offers "copy instead", and "quick answer", which takes a question as
+you type it, asks `claude -p` through clauth on the personal or Broccoli profile, and shows the
+answer as a page: Enter copies it and Esc goes back. A Broccoli picker's rows are only asked on the
+Broccoli profile.
 
 ## Developing
 

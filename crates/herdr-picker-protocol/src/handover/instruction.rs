@@ -5,6 +5,8 @@ pub enum Verb {
     Insert,
     Cd,
     Run,
+    // The text is a herdr call's JSON.
+    Herdr,
 }
 
 // A line `instruction` printed, read back: `<verb>\t<text>`, led by `<new pane>\t` for Alt-H/J/K/L/N.
@@ -28,6 +30,7 @@ pub fn parse_instruction(line: &str) -> Option<Instruction> {
         "insert" => Verb::Insert,
         "cd" => Verb::Cd,
         "run" => Verb::Run,
+        "herdr" => Verb::Herdr,
         _ => return None,
     };
     Some(Instruction {

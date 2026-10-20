@@ -1,16 +1,16 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use herdr_picker_domain::{Action, Key, PickerRow, Preview};
+use herdr_picker_domain::{Action, HerdrCall, Key, PickerRow, Preview};
 use serde::{Deserialize, Serialize};
 
 mod action;
 mod header;
 mod wire;
 
-use action::{from_action, into_action};
+use action::{from_action, from_call, into_action, into_call};
 pub use header::{encode_header, parse_header};
-use wire::{WireAction, WirePreview, Words};
+use wire::{WireAction, WireHerdr, WirePreview, Words};
 
 // The state a next action hands the picker it opens, as the JSON the action carried.
 pub const PICKER_STATE_VARIABLE: &str = "HERDR_PICKER_STATE";
@@ -123,6 +123,15 @@ pub fn encode_row(row: &PickerRow) -> String {
 pub fn parse_action(text: &str) -> Result<Action, String> {
     let wire: WireAction = serde_json::from_str(text).map_err(|failure| failure.to_string())?;
     into_action(wire, None)
+}
+
+// One line of JSON, so a herdr call rides in an instruction line whatever text it carries.
+pub fn encode_herdr_call(call: &HerdrCall) -> String {
+    serde_json::to_string(&from_call(call)).expect("a herdr call always encodes")
+}
+
+pub fn parse_herdr_call(text: &str) -> Option<HerdrCall> {
+    serde_json::from_str::<WireHerdr>(text).ok().map(into_call)
 }
 
 pub fn encode_action(action: &Action) -> String {

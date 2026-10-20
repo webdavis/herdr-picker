@@ -33,6 +33,9 @@ pub const SWITCH_SOURCE: &str = "source";
 // What fzf prints in place of a key when Ctrl-Q saved the quickfix list for Neovim to open.
 pub const SAVE_QUICKFIX: &str = "quickfix";
 
+// What fzf prints in place of a key when Alt-O sends the marked rows on.
+pub const SEND_ROWS: &str = "send";
+
 pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
     entries
         .iter()

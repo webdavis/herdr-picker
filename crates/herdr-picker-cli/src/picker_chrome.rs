@@ -2,8 +2,8 @@ use std::env;
 use std::path::Path;
 
 use herdr_picker_adapters::{
-    Helper, cached_rows, chooser_lines, help_page, list_lines, read_config, read_run_error,
-    read_step_header, read_view, rerun_step, step_footer,
+    Helper, SEND_ROWS, cached_rows, chooser_lines, help_page, leave, list_lines, read_config,
+    read_run_error, read_step_header, read_view, rerun_step, step_footer,
 };
 use herdr_picker_domain::{
     PickerRow, Theme, View, chooser_entries, footer_hint, groups, header, help_entries,
@@ -48,6 +48,7 @@ pub(crate) fn answer(
         ("header", []) => picker_header(cache),
         ("rows", []) => view_rows(cache),
         ("live", [query]) => live_rows(cache, query),
+        ("view", ["send"]) => Ok(leave(SEND_ROWS)),
         ("view", ["quickfix", fields @ ..]) => {
             quickfix::save_marked(cache, fields, &Quickfix::here(), theme)
         }

@@ -29,6 +29,7 @@ pub fn instruction(action: &Action, shell: &Shell) -> Result<Option<String>, Unc
         Action::Run(command) => Some(format!("run\t{command}")),
         Action::Edit(locations) => Some(format!("run\t{}", edit_command(locations, shell)?)),
         Action::Open(target) => Some(format!("run\t{} {}", shell.opener, shell_word(target))),
+        Action::Herdr(call) => Some(format!("herdr\t{}", crate::rows::encode_herdr_call(call))),
         Action::InPane { pane, action } => {
             instruction(action, shell)?.map(|inner| format!("{}\t{inner}", pane.word()))
         }

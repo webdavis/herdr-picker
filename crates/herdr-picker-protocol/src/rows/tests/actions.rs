@@ -190,3 +190,32 @@ fn a_next_with_a_query_and_a_state_switch_write_back_as_they_read() {
         assert_eq!(encode_row(&row), line);
     }
 }
+
+#[test]
+fn a_herdr_call_and_a_new_pane_survive_the_row_json() {
+    let cases = [
+        (
+            r#"{"herdr":{"focus_pane":"w1:p2"}}"#,
+            Action::Herdr(herdr_picker_domain::HerdrCall::FocusPane(
+                "w1:p2".to_string(),
+            )),
+        ),
+        (
+            r#"{"in_pane":{"pane":"right","action":{"run":"codex resume 1"}}}"#,
+            Action::InPane {
+                pane: herdr_picker_domain::NewPane::Right,
+                action: Box::new(Action::Run("codex resume 1".to_string())),
+            },
+        ),
+    ];
+
+    for (json, action) in cases {
+        let line = format!(r#"{{"label":"x","enter":{json}}}"#);
+        assert_eq!(enter_of(&line), Ok(action.clone()), "{json}");
+        assert_eq!(encode_action(&action), json);
+    }
+    assert_eq!(
+        enter_of(r#"{"label":"x","enter":{"in_pane":{"pane":"sideways","action":"none"}}}"#),
+        Err("sideways is not left, below, above, right or tab".to_string())
+    );
+}

@@ -82,6 +82,7 @@ fn init_bash_binds_each_configured_picker() {
             "bind -x '\"\\C-tp\": __herdr_picker processes'\n",
             "bind -x '\"\\C-tn\": __herdr_picker network'\n",
             "bind -x '\"\\C-ti\": __herdr_picker data'\n",
+            "bind -x '\"\\C-ta\": __herdr_picker agents'\n",
         )),
         "{script}"
     );

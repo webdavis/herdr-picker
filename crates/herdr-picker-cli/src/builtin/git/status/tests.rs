@@ -182,6 +182,7 @@ fn outside_a_repository_the_picker_says_it_needs_one() {
         bookmarks: std::env::temp_dir().join("bookmarks"),
         quickfix: std::env::temp_dir().join("quickfix.json"),
         captures: std::env::temp_dir().join("captures"),
+        herdr: crate::builtin::HerdrPlaces::outside(&std::env::temp_dir()),
     };
 
     let refusal =

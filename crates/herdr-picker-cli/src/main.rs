@@ -1,3 +1,4 @@
+mod agent_hook;
 mod builtin;
 mod command;
 mod generate;

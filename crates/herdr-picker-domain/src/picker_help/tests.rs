@@ -63,11 +63,15 @@ fn help_lists_the_rows_keys_in_detail_then_the_keys_every_picker_has() {
                 "ctrl-q",
                 "save the marked rows' files and lines as the quickfix list"
             ),
+            entry(
+                "alt-o",
+                "send the marked rows to an agent, copy them, or ask a quick question about them"
+            ),
             entry("esc", "back to the previous step, or close on the first"),
             entry("F1", "this help"),
         ]
     );
-    assert_eq!(help_entries(None, false).len(), 4);
+    assert_eq!(help_entries(None, false).len(), 5);
 }
 
 #[test]

@@ -10,10 +10,12 @@ use crate::command::CommandError;
 mod capture;
 mod diagnostics;
 mod errors;
+mod failures;
 mod saved;
 mod suites;
 
 pub(crate) use capture::save_check;
+pub(super) use failures::failures;
 
 const JUSTFILES: [&str; 3] = ["justfile", "Justfile", ".justfile"];
 

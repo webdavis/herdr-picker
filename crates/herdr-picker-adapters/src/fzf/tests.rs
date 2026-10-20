@@ -80,6 +80,7 @@ fn fzf_draws_the_picker_like_the_pick_popup_in_the_theme_colors() {
             "--bind=ctrl-space:transform('/bin/herdr-picker' view '/state/rows' choose)",
             "--bind=esc:transform('/bin/herdr-picker' view '/state/rows' back)",
             "--bind=ctrl-q:transform('/bin/herdr-picker' view '/state/rows' quickfix {+1})",
+            "--bind=alt-o:transform('/bin/herdr-picker' view '/state/rows' send)",
         ]
     );
 }

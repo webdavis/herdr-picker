@@ -70,6 +70,10 @@ command = ["./target/release/herdr-picker", "record"]
 on = "pane.focused"
 command = ["./target/release/herdr-picker", "record"]
 
+[[events]]
+on = "pane.agent_status_changed"
+command = ["./target/release/herdr-picker", "agent-changed"]
+
 [[panes]]
 id = "pick"
 title = "Workspace picker"

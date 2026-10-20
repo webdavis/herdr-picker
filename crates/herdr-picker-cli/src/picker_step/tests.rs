@@ -9,6 +9,8 @@ use herdr_picker_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE};
 
 use super::*;
 
+mod send;
+
 fn config(name: &str, body: &str) -> PluginConfig {
     let directory = env::temp_dir().join(format!("hwj-cli-step-{name}-{}", std::process::id()));
     std::fs::create_dir_all(&directory).expect("a config directory");
@@ -154,15 +156,15 @@ fn esc_goes_back_and_any_other_key_does_what_the_marked_rows_say() {
     };
 
     assert_eq!(
-        chosen_action(&picked("esc"), None, Path::new("/q.json")),
+        chosen_action(&picked("esc"), None, Path::new("/q.json"), "Files"),
         Action::Back
     );
     assert_eq!(
-        chosen_action(&picked("ctrl-o"), None, Path::new("/q.json")),
+        chosen_action(&picked("ctrl-o"), None, Path::new("/q.json"), "Files"),
         Action::Nothing
     );
     assert_eq!(
-        chosen_action(&picked("enter"), None, Path::new("/q.json")),
+        chosen_action(&picked("enter"), None, Path::new("/q.json"), "Files"),
         Action::Edit(vec![
             Location {
                 path: "a".to_string(),
@@ -185,7 +187,7 @@ fn leaving_to_save_the_quickfix_list_opens_neovim_with_it() {
     };
 
     assert_eq!(
-        chosen_action(&picked, None, Path::new("/state/quickfix.json")),
+        chosen_action(&picked, None, Path::new("/state/quickfix.json"), "Files"),
         Action::Run(
             "nvim -c 'call setqflist(json_decode(join(readfile('\\''/state/quickfix.json'\\''))))' -c copen"
                 .to_string()
@@ -227,7 +229,7 @@ fn a_source_picked_in_the_chooser_shows_the_step_again_from_that_source() {
     };
 
     assert_eq!(
-        chosen_action(&picked, Some("hidden"), Path::new("/q.json")),
+        chosen_action(&picked, Some("hidden"), Path::new("/q.json"), "Files"),
         Action::Source("hidden".to_string())
     );
 }

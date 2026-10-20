@@ -1,12 +1,14 @@
 use std::path::Path;
 
 use herdr_picker_adapters::{
-    Chrome, Helper, Picked, Placement, PluginConfig, SAVE_QUICKFIX, SWITCH_SOURCE, fzf_arguments,
-    open_quickfix, read_view, remove_run_files, run_picker, save_step_command, write_view,
+    Chrome, Helper, Picked, Placement, PluginConfig, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE,
+    fzf_arguments, open_quickfix, read_view, remove_run_files, run_picker, save_step_command,
+    write_view,
 };
 use herdr_picker_domain::{Action, Key, Page, Spot, Trail, View, ViewState, act, header};
 use herdr_picker_protocol::PICKER_QUERY_VARIABLE;
 
+use crate::builtin::agents::send_call;
 use crate::command::{CommandError, failed};
 
 mod command;
@@ -33,6 +35,7 @@ impl Run<'_> {
             live,
         } = step_command(&step.page, step.spot.source.as_deref(), self.config)?;
         let titles = trail.titles();
+        let from = titles.first().cloned().unwrap_or_default();
         let first_view = View::Streamed {
             group: step.spot.group.clone(),
         };
@@ -67,7 +70,7 @@ impl Run<'_> {
         };
         let picked = picked.map_err(|failure| failed(format!("picker {name}: {failure}")))?;
         Ok(picked.map(|picked| {
-            let action = chosen_action(&picked, left.source.as_deref(), self.quickfix);
+            let action = chosen_action(&picked, left.source.as_deref(), self.quickfix, &from);
             // The query a switch leaves behind filtered the chooser, not the rows.
             let switched = picked.key == SWITCH_SOURCE;
             let spot = Spot {
@@ -88,9 +91,11 @@ impl Run<'_> {
     }
 }
 
-fn chosen_action(picked: &Picked, source: Option<&str>, quickfix: &Path) -> Action {
+// `from` is the title of the picker the trail began in.
+fn chosen_action(picked: &Picked, source: Option<&str>, quickfix: &Path, from: &str) -> Action {
     match picked.key.as_str() {
         "esc" => return Action::Back,
+        SEND_ROWS => return Action::Next(send_call(&picked.rows, from)),
         SAVE_QUICKFIX => return Action::Run(open_quickfix(quickfix, None)),
         SWITCH_SOURCE => {
             return source.map_or(Action::Nothing, |source| Action::Source(source.to_string()));

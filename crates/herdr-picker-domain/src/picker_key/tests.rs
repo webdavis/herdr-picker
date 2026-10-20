@@ -40,6 +40,7 @@ fn keys_that_type_or_steer_the_picker_are_not_a_rows_to_claim() {
         "ctrl-n",
         "ctrl-p",
         "ctrl-q",
+        "alt-o",
         "tab",
         "shift-tab",
         "up",
@@ -68,7 +69,7 @@ fn ctrl_enter_is_the_alt_enter_fzf_receives_and_is_shown_as_ctrl_enter() {
 fn every_claimable_key_is_bound_enter_first() {
     let bound = names(bindable_keys());
 
-    assert_eq!(bound.len(), 2 + 19 + 26 + 2 + 11);
+    assert_eq!(bound.len(), 2 + 19 + 25 + 2 + 11);
     assert_eq!(&bound[..4], ["enter", "alt-enter", "ctrl-a", "ctrl-b"]);
     assert_eq!(bound.last().map(String::as_str), Some("f12"));
 }

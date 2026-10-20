@@ -17,7 +17,7 @@ struct Manifest<'a> {
     platforms: [&'static str; 2],
     build: [BuildStep; 1],
     actions: Vec<Action>,
-    events: [Event; 2],
+    events: [Event; 3],
     panes: [Pane; 3],
 }
 
@@ -106,9 +106,9 @@ pub fn render_manifest(
             &["launch", &name],
         )
     }));
-    let record = |on| Event {
+    let event = |on, subcommand| Event {
         on,
-        command: herdr_picker(&["record"]),
+        command: herdr_picker(&[subcommand]),
     };
     let manifest = Manifest {
         id: PLUGIN_ID,
@@ -123,7 +123,11 @@ pub fn render_manifest(
                 .to_vec(),
         }],
         actions,
-        events: [record("workspace.focused"), record("pane.focused")],
+        events: [
+            event("workspace.focused", "record"),
+            event("pane.focused", "record"),
+            event("pane.agent_status_changed", "agent-changed"),
+        ],
         panes: [
             popup(WORKSPACE_PICKER_PANE, "Workspace picker", "pick"),
             popup(CONFIGURED_PICKER_PANE, "Picker", "run-in-popup"),

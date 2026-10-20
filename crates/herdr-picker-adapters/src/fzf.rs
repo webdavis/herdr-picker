@@ -8,8 +8,8 @@ mod colors;
 mod unbound;
 
 pub use chrome::{
-    SAVE_QUICKFIX, SWITCH_SOURCE, change_footer, chooser_lines, error_footer, finder_actions,
-    help_page, leave, list_lines, step_footer,
+    SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer, chooser_lines, error_footer,
+    finder_actions, help_page, leave, list_lines, step_footer,
 };
 pub use unbound::unbound_action;
 
@@ -62,10 +62,11 @@ const LAYOUT: [&str; 16] = [
     "--print-query",
 ];
 
-const VIEW_KEYS: [(&str, &str); 3] = [
+const VIEW_KEYS: [(&str, &str); 4] = [
     ("ctrl-space", "choose"),
     ("esc", "back"),
     ("ctrl-q", "quickfix {+1}"),
+    ("alt-o", "send"),
 ];
 
 pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec<String> {
