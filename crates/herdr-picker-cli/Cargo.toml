@@ -1,0 +1,18 @@
+[package]
+name = "herdr-picker-cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "herdr-picker"
+path = "src/main.rs"
+
+[dependencies]
+herdr-picker-protocol = { path = "../herdr-picker-protocol" }
+herdr-picker-domain = { path = "../herdr-picker-domain" }
+herdr-picker-application = { path = "../herdr-picker-application" }
+herdr-picker-adapters = { path = "../herdr-picker-adapters" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+toml = "1"
+

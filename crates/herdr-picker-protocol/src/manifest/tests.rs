@@ -1,0 +1,188 @@
+use super::*;
+
+const LAUNCHER_BASES: [Stroke; 2] = [Stroke::Ctrl('t'), Stroke::Ctrl('g')];
+
+const GOLDEN_MANIFEST: &str = r#"id = "herdr-picker"
+name = "Picker"
+version = "1.2.3"
+min_herdr_version = "0.7.4"
+description = "Pickers for files, git, agents, workspaces and more, opened from shell keys or a herdr popup."
+platforms = ["macos", "linux"]
+
+[[build]]
+command = ["cargo", "build", "--release", "--locked"]
+
+[[actions]]
+id = "jump_ivy"
+title = "Jump to the Ivy workspace"
+command = ["./target/release/herdr-picker", "jump", "Ivy", "~/workspaces/Ivy"]
+
+[[actions]]
+id = "jump_casually_concerned"
+title = "Jump to the casually-concerned workspace"
+command = ["./target/release/herdr-picker", "jump", "casually-concerned", "~/repos/casually-concerned"]
+
+[[actions]]
+id = "jump_homelab"
+title = "Jump to the homelab workspace"
+command = ["./target/release/herdr-picker", "jump", "homelab", "/srv/homelab"]
+
+[[actions]]
+id = "jump_justdavis_ansible"
+title = "Jump to the justdavis-ansible workspace"
+command = ["./target/release/herdr-picker", "jump", "justdavis-ansible", "~/repos/justdavis-ansible"]
+
+[[actions]]
+id = "jump_netpulse"
+title = "Jump to the netpulse workspace"
+command = ["./target/release/herdr-picker", "jump", "netpulse", "/opt/netpulse"]
+
+[[actions]]
+id = "last_workspace"
+title = "Last workspace (most-recently-used toggle)"
+command = ["./target/release/herdr-picker", "last-workspace"]
+
+[[actions]]
+id = "pick"
+title = "Pick a workspace"
+command = ["./target/release/herdr-picker", "popup"]
+
+[[actions]]
+id = "bookmark"
+title = "Bookmark the focused pane's folder"
+command = ["./target/release/herdr-picker", "run", "bookmark"]
+
+[[actions]]
+id = "launch_ctrl_t"
+title = "Pickers on ctrl-t, over the focused pane"
+command = ["./target/release/herdr-picker", "launch", "ctrl-t"]
+
+[[actions]]
+id = "launch_ctrl_g"
+title = "Pickers on ctrl-g, over the focused pane"
+command = ["./target/release/herdr-picker", "launch", "ctrl-g"]
+
+[[events]]
+on = "workspace.focused"
+command = ["./target/release/herdr-picker", "record"]
+
+[[events]]
+on = "pane.focused"
+command = ["./target/release/herdr-picker", "record"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["./target/release/herdr-picker", "agent-changed"]
+
+[[panes]]
+id = "pick"
+title = "Workspace picker"
+placement = "popup"
+command = ["./target/release/herdr-picker", "pick"]
+
+[[panes]]
+id = "run_picker"
+title = "Picker"
+placement = "popup"
+command = ["./target/release/herdr-picker", "run-in-popup"]
+
+[[panes]]
+id = "launcher"
+title = "Picker launcher"
+placement = "popup"
+command = ["./target/release/herdr-picker", "launcher"]
+"#;
+
+fn target(label: &str, directory: &str) -> JumpTarget {
+    JumpTarget {
+        action_id: herdr_picker_domain::action_id(label),
+        label: label.to_string(),
+        directory: directory.to_string(),
+        pick_key: 'x',
+    }
+}
+
+fn five_targets() -> Vec<JumpTarget> {
+    vec![
+        target("Ivy", "~/workspaces/Ivy"),
+        target("casually-concerned", "~/repos/casually-concerned"),
+        target("homelab", "/srv/homelab"),
+        target("justdavis-ansible", "~/repos/justdavis-ansible"),
+        target("netpulse", "/opt/netpulse"),
+    ]
+}
+
+#[test]
+fn render_manifest_renders_one_action_per_target_in_the_order_given() {
+    let rendered = render_manifest("1.2.3", &five_targets(), &LAUNCHER_BASES).expect("a manifest");
+
+    assert_eq!(rendered, GOLDEN_MANIFEST);
+}
+
+#[test]
+fn render_manifest_carries_the_version_the_caller_passes() {
+    let rendered = render_manifest("0.9.4", &five_targets(), &[]).expect("a manifest");
+
+    assert!(rendered.contains("version = \"0.9.4\""), "{rendered}");
+}
+
+#[test]
+fn render_manifest_escapes_a_label_that_would_otherwise_break_the_toml() {
+    let awkward = target(r#"say "hi"\"#, "/opt/quoted");
+
+    let rendered = render_manifest("1.2.3", &[awkward], &[]).expect("a manifest");
+
+    let parsed: toml::Value = toml::from_str(&rendered).expect("the manifest parses back");
+    assert_eq!(
+        parsed["actions"][0]["command"][2].as_str(),
+        Some(r#"say "hi"\"#)
+    );
+    assert_eq!(parsed["actions"][0]["id"].as_str(), Some("jump_say__hi__"));
+}
+
+#[test]
+fn the_rendered_manifest_round_trips_with_argv_arrays_for_every_action() {
+    let rendered = render_manifest("1.2.3", &five_targets(), &[]).expect("a manifest");
+
+    let parsed: toml::Value = toml::from_str(&rendered).expect("the manifest parses back");
+    let actions = parsed["actions"].as_array().expect("an array of actions");
+    let argv: Vec<Vec<&str>> = actions
+        .iter()
+        .map(|action| {
+            action["command"]
+                .as_array()
+                .expect("an argv array")
+                .iter()
+                .map(|word| word.as_str().expect("an argv word"))
+                .collect()
+        })
+        .collect();
+    assert_eq!(
+        argv.first(),
+        Some(&vec![
+            "./target/release/herdr-picker",
+            "jump",
+            "Ivy",
+            "~/workspaces/Ivy"
+        ])
+    );
+    assert_eq!(
+        argv.last(),
+        Some(&vec!["./target/release/herdr-picker", "run", "bookmark"])
+    );
+    assert_eq!(
+        argv.len(),
+        8,
+        "five jumps, the toggle, the picker and the bookmark"
+    );
+    assert_eq!(parsed["panes"][0]["placement"].as_str(), Some("popup"));
+    assert_eq!(
+        parsed["events"][0]["on"].as_str(),
+        Some("workspace.focused")
+    );
+    assert_eq!(
+        parsed["build"][0]["command"][0].as_str(),
+        Some("cargo"),
+        "the build step survives the round trip"
+    );
+}
