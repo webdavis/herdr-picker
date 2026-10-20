@@ -32,7 +32,14 @@ pub(super) fn errors(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
             &folder.to_string_lossy(),
         ]);
         let label = "Run Swift build and save diagnostics";
-        rows.push(capture_row(label, &build, folder, "swift", places));
+        rows.push(capture_row(
+            label,
+            &build,
+            folder,
+            "diagnostics",
+            "swift",
+            places,
+        ));
     }
     if let Some(rust) = nearest(cwd, &["Cargo.toml"]) {
         let manifest = rust.to_string_lossy();
@@ -43,6 +50,7 @@ pub(super) fn errors(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
             label,
             &check,
             rust.parent().unwrap_or(cwd),
+            "diagnostics",
             "rust",
             places,
         ));
@@ -56,6 +64,7 @@ pub(super) fn errors(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
                     &recipe.name,
                     &recipe.command,
                     cwd,
+                    "diagnostics",
                     &framework,
                     places,
                 ));

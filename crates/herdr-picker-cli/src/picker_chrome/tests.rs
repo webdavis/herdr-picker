@@ -77,7 +77,7 @@ fn the_footer_shows_the_highlighted_rows_keys_above_the_description() {
             Theme::CatppuccinMocha
         )
         .expect("a footer"),
-        "enter insert · ctrl-o open · F1 help\nEvery file"
+        "enter insert · ctrl-o open · alt-o send · F1 help\nEvery file"
     );
     assert_eq!(
         picker_footer(&sandbox.cache(), None, None, Theme::CatppuccinMocha).expect("a footer"),
@@ -131,7 +131,7 @@ fn help_lists_the_highlighted_rows_keys_then_the_general_ones_under_the_header()
          ctrl-o      open https://example.com/main\n\
          ctrl-space  choose a source\n\
          tab         mark a row; a key then acts on every marked row\n\
-         ctrl-q      save the marked rows' files and lines as the quickfix list\n\
+         ctrl-q      save the marked rows' files and lines as Neovim's quickfix list and open it\n\
          alt-o       send the marked rows to an agent, copy them, or ask a quick question about them\n\
          esc         back to the previous step, or close on the first\n\
          F1          this help"

@@ -1,13 +1,11 @@
 use std::env;
-use std::fmt;
 use std::path::Path;
 use std::time::Duration;
 
 use herdr_picker_application::JumpError;
 use herdr_picker_domain::NewPane;
 use herdr_picker_protocol::{
-    self as protocol, Handover, PaneInfo, PaneKind, Refusal, Underneath, guard, handover,
-    parse_instruction,
+    self as protocol, Handover, PaneInfo, PaneKind, Underneath, guard, handover, parse_instruction,
 };
 
 use crate::herdr_socket::HerdrSocket;
@@ -15,37 +13,10 @@ use crate::program::on_path;
 use crate::response::jump_error;
 
 mod calls;
+mod error;
 
 pub use calls::{Sent, drain_queue, send_prompt};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum HandoverError {
-    Unreadable(String),
-    Refused(Refusal),
-    Herdr(JumpError),
-}
-
-impl fmt::Display for HandoverError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Unreadable(line) => write!(formatter, "the picker answered {line:?}"),
-            Self::Refused(refusal) => write!(formatter, "{refusal}"),
-            Self::Herdr(failure) => write!(formatter, "{failure}"),
-        }
-    }
-}
-
-impl From<Refusal> for HandoverError {
-    fn from(refusal: Refusal) -> Self {
-        Self::Refused(refusal)
-    }
-}
-
-impl From<JumpError> for HandoverError {
-    fn from(failure: JumpError) -> Self {
-        Self::Herdr(failure)
-    }
-}
+pub use error::HandoverError;
 
 pub struct SocketPanes {
     socket: HerdrSocket,
@@ -127,7 +98,8 @@ pub fn hand_over(
     match handover(&instruction, &underneath)? {
         Handover::Herdr(call) => calls::carry_out(panes, queue, &call),
         Handover::Type { text, submit } => {
-            if matches!(kind, PaneKind::Claude | PaneKind::Codex) {
+            // An insert lands at the shell's cursor, after any draft; a cd or run would submit it.
+            if submit || kind != PaneKind::Shell {
                 guard(&kind, &pane.status, &panes.screen(target)?)?;
             }
             Ok(panes.type_text(target, &text, submit)?)

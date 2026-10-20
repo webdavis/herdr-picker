@@ -41,6 +41,7 @@ fn the_project_s_suites_bash_tests_and_test_recipes_are_listed() {
     assert_eq!(
         labels(&tests(&tree)),
         vec![
+            format!("Discover Rust tests  {DIM}save tests{RESET}"),
             "Run all Rust tests".to_string(),
             "tests/unit/run.sh".to_string(),
             "tests/unit/smoke.test.sh: test_adds".to_string(),
@@ -56,7 +57,7 @@ fn a_bash_test_is_prepared_or_run_with_bashunit_at_its_line_and_can_be_edited_th
     let file = tree.path("tests/unit/smoke.test.sh");
     let rows = tests(&tree);
 
-    let subtracts = &rows[3];
+    let subtracts = &rows[4];
     let command = format!("bashunit {file}:5");
     assert_eq!(subtracts.enter, Action::Insert(command.clone()));
     assert_eq!(
@@ -71,7 +72,7 @@ fn a_bash_test_is_prepared_or_run_with_bashunit_at_its_line_and_can_be_edited_th
         }]))
     );
     assert_eq!(
-        rows[0].enter,
+        rows[1].enter,
         Action::Insert(format!(
             "cargo test --manifest-path {}",
             tree.path("Cargo.toml")

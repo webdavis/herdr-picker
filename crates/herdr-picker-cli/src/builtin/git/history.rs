@@ -65,7 +65,10 @@ fn commit_row(repo: &Repo, fields: &[String; 4], sort: Sort) -> PickerRow {
                 next("checkout", &["commit", &commit], None, None),
             ),
             (key("ctrl-t"), next("commit-files", &[&commit], None, None)),
-            (key("alt-s"), Action::State(sort.flipped().state())),
+            (
+                key("alt-s").labelled("toggle oldest first"),
+                Action::State(sort.flipped().state()),
+            ),
             (key("alt-i"), Action::Run(repo.shell(&["show", &commit]))),
         ],
         group: None,

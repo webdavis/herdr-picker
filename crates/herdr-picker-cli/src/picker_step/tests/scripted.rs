@@ -100,3 +100,45 @@ fn a_picker_is_titled_as_the_config_says_and_a_step_by_its_name() {
     assert_eq!(picker_title("note-actions", &config), "Note Actions");
     assert_eq!(picker_title("files", &config), "Files");
 }
+
+const LIVE: &str = r#"
+[pickers.grep]
+key = "ctrl-t g"
+command = "grep.sh"
+live = true
+
+[pickers.grep.steps.lines]
+command = "grep.sh lines"
+sources = ["matches", "files"]
+live = true
+
+[pickers.grep.steps.open]
+command = "grep.sh open"
+"#;
+
+#[test]
+fn a_scripted_picker_or_step_declared_live_runs_again_as_the_query_changes() {
+    let config = config("scripted-live", LIVE);
+    let step = |name: &str| {
+        step_command(&call(name, &[], None), None, &config, &["grep"]).expect("a command")
+    };
+
+    assert!(step("grep").live);
+    assert!(step("lines").live);
+    assert!(!step("open").live);
+}
+
+#[test]
+fn a_scripted_step_reads_its_first_source_until_another_is_chosen() {
+    let config = config("scripted-step-sources", LIVE);
+    let lines = call("lines", &["a.md"], None);
+
+    let first = step_command(&lines, None, &config, &["grep"]).expect("a command");
+    let chosen = step_command(&lines, Some("files"), &config, &["grep"]).expect("a command");
+
+    assert_eq!(first.sources, ["matches", "files"]);
+    assert_eq!(first.source.as_deref(), Some("matches"));
+    assert_eq!(source_of(&first).as_deref(), Some("matches"));
+    assert_eq!(chosen.source.as_deref(), Some("files"));
+    assert_eq!(source_of(&chosen).as_deref(), Some("files"));
+}

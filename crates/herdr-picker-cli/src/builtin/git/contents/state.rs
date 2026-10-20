@@ -56,16 +56,29 @@ impl Switches {
     // Alt-X, Alt-., Alt-S and, in a repository, Alt-U: each shows the search again switched.
     pub(super) fn keys(&self, in_git: bool) -> Vec<(Key, Action)> {
         let mut flips = vec![
-            ("alt-x", self.flipped(|on| on.regex = !on.regex)),
-            ("alt-.", self.flipped(|on| on.hidden = !on.hidden)),
-            ("alt-s", self.flipped(|on| on.sort = !on.sort)),
+            (
+                "alt-x",
+                "toggle regex",
+                self.flipped(|on| on.regex = !on.regex),
+            ),
+            (
+                "alt-.",
+                "toggle hidden files",
+                self.flipped(|on| on.hidden = !on.hidden),
+            ),
+            (
+                "alt-s",
+                "toggle recently changed first",
+                self.flipped(|on| on.sort = !on.sort),
+            ),
         ];
         if in_git {
-            flips.push(("alt-u", self.flipped(|on| on.untracked = !on.untracked)));
+            let untracked = self.flipped(|on| on.untracked = !on.untracked);
+            flips.push(("alt-u", "toggle untracked files", untracked));
         }
         flips
             .into_iter()
-            .map(|(name, state)| (key(name), Action::State(state)))
+            .map(|(name, label, state)| (key(name).labelled(label), Action::State(state)))
             .collect()
     }
 }

@@ -9,8 +9,11 @@ use crate::command::CommandError;
 
 mod capture;
 mod diagnostics;
+mod discovered;
 mod errors;
 mod failures;
+mod frameworks;
+mod packages;
 mod saved;
 mod suites;
 

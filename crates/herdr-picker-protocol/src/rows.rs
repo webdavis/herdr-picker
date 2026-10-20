@@ -1,14 +1,16 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use herdr_picker_domain::{Action, HerdrCall, Key, PickerRow, Preview};
+use herdr_picker_domain::{Action, HerdrCall, PickerRow, Preview};
 use serde::{Deserialize, Serialize};
 
 mod action;
+mod claims;
 mod header;
 mod wire;
 
 use action::{from_action, from_call, into_action, into_call};
+use claims::claimed_keys;
 pub use header::{encode_header, parse_header};
 use wire::{WireAction, WireHerdr, WirePreview, Words};
 
@@ -44,6 +46,9 @@ struct WireRow {
     enter: WireAction,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     keys: BTreeMap<String, WireAction>,
+    // What a claimed key does on this row, in a few words, for help and the footer.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    labels: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     value: Option<Words>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -67,15 +72,7 @@ pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
     {
         return Err(refusal("the group holds a control character".to_string()));
     }
-    let value = wire.value.as_ref();
-    let mut keys: Vec<(Key, Action)> = Vec::new();
-    for (name, action) in wire.keys {
-        let key = claimable(&name).map_err(refusal)?;
-        if keys.iter().any(|(claimed, _)| *claimed == key) {
-            return Err(refusal(format!("{name} is a key the row already claims")));
-        }
-        keys.push((key, into_action(action, value).map_err(refusal)?));
-    }
+    let keys = claimed_keys(wire.keys, wire.labels, wire.value.as_ref()).map_err(refusal)?;
     Ok(PickerRow {
         label: wire.label,
         preview: wire.preview.map(|preview| match preview {
@@ -83,21 +80,13 @@ pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
             WirePreview::Path { path } => Preview::Path(path),
             WirePreview::Command { command } => Preview::Command(command),
         }),
-        enter: into_action(wire.enter, value).map_err(refusal)?,
+        enter: into_action(wire.enter, wire.value.as_ref()).map_err(refusal)?,
         keys,
         group: wire
             .group
             .filter(|group| !group.is_empty())
             .map(|group| group.to_lowercase()),
     })
-}
-
-fn claimable(name: &str) -> Result<Key, String> {
-    match Key::parse(name) {
-        Some(key) if key != Key::enter() => Ok(key),
-        Some(_) => Err("enter belongs in the row's enter field".to_string()),
-        None => Err(format!("{name} is not a key a row can claim")),
-    }
 }
 
 pub fn encode_row(row: &PickerRow) -> String {
@@ -113,6 +102,11 @@ pub fn encode_row(row: &PickerRow) -> String {
             .keys
             .iter()
             .map(|(key, action)| (key.name().to_string(), from_action(action)))
+            .collect(),
+        labels: row
+            .keys
+            .iter()
+            .filter_map(|(key, _)| Some((key.name().to_string(), key.label()?.to_string())))
             .collect(),
         value: None,
         group: row.group.clone(),

@@ -13,6 +13,7 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         title: None,
         sources: Vec::new(),
         steps: BTreeMap::new(),
+        live: false,
     }
 }
 
@@ -35,6 +36,7 @@ fn pickers_parse_each_key_into_a_chord_and_keep_the_rest() {
                 args: Vec::new(),
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
+                live: false,
             },
             Picker {
                 name: "files".to_string(),
@@ -45,6 +47,7 @@ fn pickers_parse_each_key_into_a_chord_and_keep_the_rest() {
                 args: Vec::new(),
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
+                live: false,
             },
         ])
     );
@@ -190,6 +193,8 @@ fn a_step_follows_the_query_when_its_builtin_reads_it_for_that_source() {
     assert!(!follows_query("checkout", None));
     assert!(!follows_query("files", Some("this folder")));
     assert!(!follows_query("my-script", None));
+    assert!(follows_query("capture-command", None));
+    assert!(!follows_query("network-dns", None));
 }
 
 #[test]
@@ -208,6 +213,9 @@ fn the_steps_only_a_next_reaches_are_builtins_too() {
         "message-history",
         "message-links",
         "message-attachments",
+        "network-hosts",
+        "iperf-command",
+        "captures-in",
     ] {
         assert!(is_step_builtin(name), "{name}");
     }

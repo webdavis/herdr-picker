@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use herdr_picker_domain::{
-    BUILTIN_PICKERS, BuiltinPicker, Picker, PickerCommand, PickerDeclaration, PickerError, pickers,
+    BUILTIN_PICKERS, BuiltinPicker, Picker, PickerCommand, PickerDeclaration, PickerError,
+    PickerStep, pickers,
 };
 use serde::Deserialize;
 
@@ -28,15 +29,21 @@ pub(super) struct PickerEntry {
     sources: Vec<String>,
     #[serde(default)]
     steps: BTreeMap<String, StepEntry>,
+    #[serde(default)]
+    live: bool,
     pub(super) unifi: Option<UnifiSettings>,
     pub(super) bluebubbles: Option<BlueBubblesSettings>,
 }
 
-// A script only a row's next opens: it runs on no key, so it needs nothing but its command.
+// A script only a row's next opens: it runs on no key, so it has no key, title or description.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct StepEntry {
     command: CommandLine,
+    #[serde(default)]
+    sources: Vec<String>,
+    #[serde(default)]
+    live: bool,
 }
 
 fn on() -> bool {
@@ -61,6 +68,7 @@ pub(super) fn declared_pickers(
             title: None,
             sources: Vec::new(),
             steps: BTreeMap::new(),
+            live: false,
         })
         .collect::<Vec<_>>();
     let declarations = entries
@@ -106,12 +114,17 @@ impl PickerEntry {
             .steps
             .into_iter()
             .map(|(step, entry)| {
-                let words = program_words(
+                let command = program_words(
                     entry.command,
                     pickers_directory,
                     &format!("{name}.steps.{step}"),
                 )?;
-                Ok((step, words))
+                let declared = PickerStep {
+                    command,
+                    sources: entry.sources,
+                    live: entry.live,
+                };
+                Ok((step, declared))
             })
             .collect::<Result<_, PickerError>>()?;
         Ok(PickerDeclaration {
@@ -123,6 +136,7 @@ impl PickerEntry {
             title: self.title,
             sources: self.sources,
             steps,
+            live: self.live,
         })
     }
 }

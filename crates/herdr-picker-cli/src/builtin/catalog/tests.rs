@@ -25,6 +25,7 @@ fn declared(name: &str, key: &str, description: &str, command: PickerCommand) ->
         title: None,
         sources: Vec::new(),
         steps: BTreeMap::new(),
+        live: false,
     }
 }
 

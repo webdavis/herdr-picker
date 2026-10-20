@@ -1,13 +1,21 @@
-use crate::picker_header::title;
-use crate::picker_row::{Action, HerdrCall, PickerRow};
+use crate::new_pane::NewPane;
+use crate::picker_key::Key;
+use crate::picker_quickfix::quickfix_entries;
+use crate::picker_row::PickerRow;
+
+mod verbs;
+
+use verbs::{describe, detail, verb};
 
 const HELP_KEY: &str = "F1 help";
+const SEND_KEY: &str = "alt-o send";
+const QUICKFIX_KEY: &str = "ctrl-q quickfix";
 const CHOOSE: (&str, &str) = ("ctrl-space", "choose a source");
 const GENERAL: [(&str, &str); 5] = [
     ("tab", "mark a row; a key then acts on every marked row"),
     (
         "ctrl-q",
-        "save the marked rows' files and lines as the quickfix list",
+        "save the marked rows' files and lines as Neovim's quickfix list and open it",
     ),
     (
         "alt-o",
@@ -19,88 +27,63 @@ const GENERAL: [(&str, &str); 5] = [
 
 // One short entry a key, for the footer to lay out.
 pub fn footer_hint(row: &PickerRow) -> Vec<String> {
-    row.offered()
-        .filter_map(|(key, action)| verb(action).map(|verb| format!("{} {verb}", key.label())))
-        .chain(std::iter::once(HELP_KEY.to_string()))
+    let claimed = row.offered().filter_map(|(key, action)| {
+        let does = key.label().or_else(|| verb(action))?;
+        Some(format!("{} {does}", key.shown()))
+    });
+    let (panes, tab): (Vec<_>, Vec<_>) =
+        new_panes(row).partition(|(_, pane)| *pane != NewPane::Tab);
+    let letters: Vec<&str> = panes
+        .iter()
+        .filter_map(|(key, _)| key.name().strip_prefix("alt-"))
+        .collect();
+    let panes = (!letters.is_empty()).then(|| format!("alt-{} new pane", letters.join("/")));
+    let tab = tab
+        .first()
+        .map(|(key, _)| format!("{} new tab", key.shown()));
+    let quickfix = (!quickfix_entries(&[row]).is_empty()).then(|| QUICKFIX_KEY.to_string());
+    claimed
+        .chain(panes)
+        .chain(tab)
+        .chain(quickfix)
+        .chain([SEND_KEY, HELP_KEY].map(str::to_string))
         .collect()
 }
 
-// Each key the row claims, then the keys every picker has.
+// Each key the row claims, the new-pane keys it leaves free, then the keys every picker has.
 pub fn help_entries(row: Option<&PickerRow>, grouped: bool) -> Vec<(String, String)> {
     let claimed = row.into_iter().flat_map(|row| {
         row.offered().filter_map(|(key, action)| {
-            describe(action).map(|text| (key.label().to_string(), text))
+            let text = match (key.label(), detail(action)) {
+                (Some(label), Some(detail)) => format!("{label} {detail}"),
+                (Some(label), None) => label.to_string(),
+                (None, _) => describe(action)?,
+            };
+            Some((key.shown().to_string(), text))
         })
+    });
+    let panes = row.into_iter().flat_map(|row| {
+        new_panes(row).map(|(key, pane)| (key.shown().to_string(), opens_in(pane).to_string()))
     });
     let general = grouped
         .then_some(CHOOSE)
         .into_iter()
         .chain(GENERAL)
         .map(|(key, text)| (key.to_string(), text.to_string()));
-    claimed.chain(general).collect()
+    claimed.chain(panes).chain(general).collect()
 }
 
-fn describe(action: &Action) -> Option<String> {
-    let verb = verb(action)?;
-    Some(match detail(action) {
-        Some(detail) => format!("{verb} {detail}"),
-        None => verb.to_string(),
-    })
+fn new_panes(row: &PickerRow) -> impl Iterator<Item = (Key, NewPane)> + '_ {
+    NewPane::keys().filter(|(key, _)| NewPane::takes(&row.enter) && row.action(key).is_none())
 }
 
-fn verb(action: &Action) -> Option<&'static str> {
-    Some(match action {
-        Action::Insert(_) => "insert",
-        Action::Copy(_) => "copy",
-        Action::CopyStay(_) => "copy and stay",
-        Action::Cd(_) => "cd",
-        Action::Run(_) => "run",
-        Action::Edit(_) => "edit",
-        Action::Open(_) => "open",
-        Action::Next(_) => "go to",
-        Action::Confirm { .. } => "confirm",
-        Action::Source(_) => "show",
-        Action::State(_) => "switch",
-        Action::Reload => "reload",
-        Action::Back => "back",
-        Action::InPane { .. } => "open in a new pane",
-        Action::Herdr(HerdrCall::Prompt { .. }) => "send",
-        Action::Herdr(HerdrCall::CloseTab(_)) => "close",
-        Action::Herdr(_) => "focus",
-        Action::Nothing => return None,
-    })
-}
-
-fn detail(action: &Action) -> Option<String> {
-    match action {
-        Action::Insert(text)
-        | Action::Copy(text)
-        | Action::CopyStay(text)
-        | Action::Cd(text)
-        | Action::Run(text)
-        | Action::Open(text)
-        | Action::Source(text) => Some(text.clone()),
-        Action::Edit(locations) => Some(
-            locations
-                .iter()
-                .map(|location| match location.line {
-                    Some(line) => format!("{}:{line}", location.path),
-                    None => location.path.clone(),
-                })
-                .collect::<Vec<_>>()
-                .join(" "),
-        ),
-        Action::Next(call) => Some(title(&call.name)),
-        Action::Confirm { question, .. } => Some(question.clone()),
-        Action::InPane { action, .. } => detail(action),
-        Action::Herdr(
-            HerdrCall::FocusPane(id)
-            | HerdrCall::FocusTab(id)
-            | HerdrCall::FocusWorkspace(id)
-            | HerdrCall::CloseTab(id)
-            | HerdrCall::Prompt { pane_id: id, .. },
-        ) => Some(id.clone()),
-        Action::State(_) | Action::Reload | Action::Back | Action::Nothing => None,
+fn opens_in(pane: NewPane) -> &'static str {
+    match pane {
+        NewPane::Left => "open the result in a new pane to the left",
+        NewPane::Below => "open the result in a new pane below",
+        NewPane::Above => "open the result in a new pane above",
+        NewPane::Right => "open the result in a new pane to the right",
+        NewPane::Tab => "open the result in a new tab",
     }
 }
 

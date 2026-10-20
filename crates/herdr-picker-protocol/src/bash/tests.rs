@@ -12,11 +12,12 @@ fn picker(name: &str, key: &str) -> Picker {
         title: String::new(),
         sources: Vec::new(),
         steps: Default::default(),
+        live: false,
     }
 }
 
 #[test]
-fn bash_init_defines_one_function_and_binds_each_picker_to_its_readline_keys() {
+fn bash_init_defines_one_function_and_binds_each_picker_in_the_emacs_and_both_vi_keymaps() {
     let script = bash_init(&[picker("branches", "ctrl-g b"), picker("files", "alt-f")]);
 
     assert_eq!(
@@ -38,8 +39,12 @@ fn bash_init_defines_one_function_and_binds_each_picker_to_its_readline_keys() {
     ;;
   esac
 }
-bind -x '"\C-gb": __herdr_picker branches'
-bind -x '"\ef": __herdr_picker files'
+bind -m emacs-standard -x '"\C-gb": __herdr_picker branches'
+bind -m vi-insert -x '"\C-gb": __herdr_picker branches'
+bind -m vi-command -x '"\C-gb": __herdr_picker branches'
+bind -m emacs-standard -x '"\ef": __herdr_picker files'
+bind -m vi-insert -x '"\ef": __herdr_picker files'
+bind -m vi-command -x '"\ef": __herdr_picker files'
 "#
     );
 }

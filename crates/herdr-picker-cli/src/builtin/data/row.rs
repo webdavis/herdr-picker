@@ -57,13 +57,17 @@ pub(super) fn node_row(
     let mut keys = vec![(key("ctrl-enter"), opened(doc, place, value))];
     let (shown, visible) = (text(&redacted(value, place.last_key())), text(value));
     if shown.len() <= LARGEST_ROW_COPY {
-        keys.push((key("alt-y"), Action::CopyStay(shown.clone())));
-        if shown != visible {
-            keys.push((key("alt-u"), Action::CopyStay(visible)));
+        if shown == visible {
+            keys.push((key("alt-y"), Action::CopyStay(shown.clone())));
+        } else {
+            let hidden = key("alt-y").labelled("copy and stay, secrets hidden");
+            keys.push((hidden, Action::CopyStay(shown.clone())));
+            let secrets = key("alt-u").labelled("copy and stay, with secrets");
+            keys.push((secrets, Action::CopyStay(visible)));
         }
     }
     keys.push((
-        key("alt-;"),
+        key("alt-;").labelled("copy as JSON, YAML or another format"),
         next("data-copy", vec![origin.clone()], Some(state.clone())),
     ));
     let preview = match container(value) {

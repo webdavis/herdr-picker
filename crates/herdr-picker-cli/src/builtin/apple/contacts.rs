@@ -55,7 +55,7 @@ fn contact_row(person: &Person, mode: &str, offset: i64) -> PickerRow {
     let mut keys = vec![(key("alt-y"), Action::CopyStay(copied.clone()))];
     keys.extend(MODES.iter().enumerate().map(|(digit, mode)| {
         (
-            key(&format!("alt-{digit}")),
+            key(&format!("alt-{digit}")).labelled(&format!("enter copies {mode}")),
             Action::State(json!(mode).to_string()),
         )
     }));

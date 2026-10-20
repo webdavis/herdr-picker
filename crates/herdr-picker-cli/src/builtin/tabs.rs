@@ -121,7 +121,7 @@ fn shown(browser: &str) -> &'static str {
 // Alt-B reads the other browser's tabs.
 fn switch(browser: &str) -> (Key, Action) {
     (
-        key("alt-b"),
+        key("alt-b").labelled(&format!("{} tabs", shown(other(browser)))),
         Action::State(json!(other(browser)).to_string()),
     )
 }

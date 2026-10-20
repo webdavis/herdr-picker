@@ -36,6 +36,7 @@ fn a_config_of_only_pickers_is_valid_and_declares_no_workspace() {
                 args: Vec::new(),
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
+                live: false,
             },
             Picker {
                 name: "files".to_string(),
@@ -46,6 +47,7 @@ fn a_config_of_only_pickers_is_valid_and_declares_no_workspace() {
                 args: Vec::new(),
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
+                live: false,
             },
         ]
     );
@@ -334,6 +336,7 @@ fn builtin(name: &str, key: &str, description: &str) -> Picker {
                     .collect()
             }),
         steps: BTreeMap::new(),
+        live: false,
     }
 }
 

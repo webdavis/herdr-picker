@@ -235,6 +235,13 @@ purpose = "Search controller devices, clients and locally observed neighbours."
 next = "devices"
 
 [[action]]
+id = "hosts"
+title = "Saved hosts"
+tool = "SSH / Tailscale / hosts"
+purpose = "Search static SSH hosts, hosts-file names and Tailscale peers."
+next = "network-hosts"
+
+[[action]]
 id = "routes"
 title = "Routing table"
 tool = "netstat"
@@ -256,6 +263,20 @@ tool = "route"
 purpose = "Show the selected route to a host without sending a probe."
 command = "route -n get <host>"
 params = ["host"]
+
+[[action]]
+id = "dns-records"
+title = "DNS record inspection"
+tool = "dig"
+purpose = "Inspect a selected DNS record type and optional resolver."
+next = "network-dns"
+
+[[action]]
+id = "capture"
+title = "Build a packet capture"
+tool = "tshark / tcpdump"
+purpose = "Choose interface, filter and bounded capture settings."
+next = "network-capture"
 
 [[action]]
 id = "captures"
@@ -294,6 +315,13 @@ tool = "mtr"
 purpose = "Report path latency and probe loss using UDP."
 command = "mtr --report --report-cycles 20 --udp <host>"
 params = ["host"]
+
+[[action]]
+id = "iperf"
+title = "Throughput test"
+tool = "iperf3"
+purpose = "Choose client/server, direction, protocol and duration."
+next = "network-iperf"
 
 [[action]]
 id = "quality"

@@ -152,3 +152,32 @@ fn a_header_line_is_text_for_the_header_and_never_a_row() {
         r#"{"header":"Pull into main?"}"#
     );
 }
+
+#[test]
+fn a_row_may_label_the_keys_it_claims_and_the_labels_survive_a_round_trip() {
+    let line = r#"{"label":"a","enter":"insert","value":"a","keys":{"alt-y":"copy_stay","alt-u":{"copy":"b"}},"labels":{"alt-y":"copy redacted"}}"#;
+
+    let parsed = parse_row(line, 1).expect("a row");
+
+    let labels: Vec<(&str, Option<&str>)> = parsed
+        .keys
+        .iter()
+        .map(|(key, _)| (key.name(), key.label()))
+        .collect();
+    assert_eq!(labels, [("alt-u", None), ("alt-y", Some("copy redacted"))]);
+    let again = parse_row(&encode_row(&parsed), 1).expect("a row");
+    assert_eq!(again.keys[1].0.label(), Some("copy redacted"));
+}
+
+#[test]
+fn a_label_for_a_key_the_row_does_not_claim_is_refused() {
+    let line = r#"{"label":"a","enter":{"insert":"a"},"labels":{"alt-y":"copy"}}"#;
+
+    assert_eq!(
+        parse_row(line, 4),
+        Err(RowError {
+            line: 4,
+            reason: "alt-y has a label, but the row claims no such key".to_string()
+        })
+    );
+}

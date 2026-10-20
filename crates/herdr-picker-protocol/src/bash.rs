@@ -19,14 +19,19 @@ const APPLY_INSTRUCTION: &str = r#"__herdr_picker() {
 }
 "#;
 
+// Bound in every keymap, so the keys work whichever editing mode the shell is in or switches to.
+const KEYMAPS: [&str; 3] = ["emacs-standard", "vi-insert", "vi-command"];
+
 pub fn bash_init(pickers: &[Picker]) -> String {
     let mut script = APPLY_INSTRUCTION.to_string();
     for picker in pickers {
-        script.push_str(&format!(
-            "bind -x '\"{}\": __herdr_picker {}'\n",
-            readline_keys(&picker.chord),
-            picker.name
-        ));
+        for keymap in KEYMAPS {
+            script.push_str(&format!(
+                "bind -m {keymap} -x '\"{}\": __herdr_picker {}'\n",
+                readline_keys(&picker.chord),
+                picker.name
+            ));
+        }
     }
     script
 }

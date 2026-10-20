@@ -5,8 +5,12 @@ use crate::picker_builtin::BUILTIN_PICKERS;
 use crate::picker_header::title;
 
 mod error;
+mod step;
+mod words;
 
 pub use error::PickerError;
+pub use step::PickerStep;
+use words::{checked_sources, is_bare_word};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PickerDeclaration {
@@ -19,8 +23,10 @@ pub struct PickerDeclaration {
     pub title: Option<String>,
     // The first is the one the picker opens on; a built-in picker reads its own.
     pub sources: Vec<String>,
-    // The scripts its rows' next opens, by name, as a program then its arguments.
-    pub steps: BTreeMap<String, Vec<String>>,
+    // The scripts its rows' next opens, by name.
+    pub steps: BTreeMap<String, PickerStep>,
+    // A scripted picker's rows follow the query; a built-in picker decides that itself.
+    pub live: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -40,7 +46,8 @@ pub struct Picker {
     pub command: PickerCommand,
     pub args: Vec<String>,
     pub sources: Vec<String>,
-    pub steps: BTreeMap<String, Vec<String>>,
+    pub steps: BTreeMap<String, PickerStep>,
+    pub live: bool,
 }
 
 pub fn pickers(
@@ -71,6 +78,7 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
         title: declared_title,
         sources,
         steps,
+        live,
     } = declaration;
     if !is_bare_word(&name) {
         return Err(PickerError::UnusableName { name });
@@ -78,14 +86,15 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
     let Some(chord) = Chord::parse(&key) else {
         return Err(PickerError::UnusableKey { name, key });
     };
-    if let Some(source) = sources.iter().find(|source| !is_lowercase_text(source)) {
-        let source = source.clone();
-        return Err(PickerError::UnusableSource { name, source });
+    checked_sources(&name, &sources)?;
+    for (step, declared) in &steps {
+        checked_sources(&format!("{name}.steps.{step}"), &declared.sources)?;
     }
     let sources = match &command {
         PickerCommand::Builtin(_) if !sources.is_empty() => {
             return Err(PickerError::BuiltinSources { name });
         }
+        PickerCommand::Builtin(_) if live => return Err(PickerError::BuiltinLive { name }),
         PickerCommand::Builtin(builtin) => builtin_sources(builtin),
         PickerCommand::Program(_) => sources,
     };
@@ -98,6 +107,7 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
         args,
         sources,
         steps,
+        live,
     })
 }
 
@@ -112,21 +122,6 @@ fn builtin_sources(name: &str) -> Vec<String> {
                 .map(|source| source.to_string())
                 .collect()
         })
-}
-
-// A source is shown in the header and chooser and kept on one tab-separated line.
-fn is_lowercase_text(source: &str) -> bool {
-    !source.is_empty()
-        && source
-            .chars()
-            .all(|character| !character.is_uppercase() && !character.is_control())
-}
-
-fn is_bare_word(name: &str) -> bool {
-    !name.is_empty()
-        && name
-            .chars()
-            .all(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_'))
 }
 
 #[cfg(test)]

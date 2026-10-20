@@ -26,7 +26,10 @@ pub(super) fn copy_rows(value: &Value, place: &Place) -> Vec<PickerRow> {
                 (Ok(hidden), Ok(visible)) => {
                     let mut keys = Vec::new();
                     if hidden != visible {
-                        keys.push((key("alt-u"), Action::Copy(visible)));
+                        keys.push((
+                            key("alt-u").labelled("copy with secrets"),
+                            Action::Copy(visible),
+                        ));
                     }
                     PickerRow {
                         label: output.name().to_string(),

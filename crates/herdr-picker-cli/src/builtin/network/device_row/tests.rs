@@ -45,7 +45,7 @@ fn a_device_row_pastes_its_address_and_offers_ssh_scans_its_web_page_and_wake_up
     assert_eq!(row.label, "nas  \u{1b}[2m192.168.1.20\u{1b}[0m");
     assert_eq!(row.group.as_deref(), Some("Bonjour"));
     assert_eq!(row.enter, Action::Insert("192.168.1.20".to_string()));
-    let claimed: Vec<&str> = row.keys.iter().map(|(key, _)| key.label()).collect();
+    let claimed: Vec<&str> = row.keys.iter().map(|(key, _)| key.shown()).collect();
     assert_eq!(
         claimed,
         ["ctrl-s", "ctrl-x", "alt-x", "ctrl-g", "ctrl-o", "ctrl-y"]

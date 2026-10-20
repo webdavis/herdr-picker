@@ -27,12 +27,13 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
     if let Some(pane) = NewPane::of(key)
         && rows.iter().all(|row| row.action(key).is_none())
     {
-        return Ok(match act(rows, &Key::enter())? {
-            action @ (Action::Run(_) | Action::Edit(_) | Action::Cd(_)) => Action::InPane {
+        let action = act(rows, &Key::enter())?;
+        return Ok(match NewPane::takes(&action) {
+            true => Action::InPane {
                 pane,
                 action: Box::new(action),
             },
-            _ => Action::Nothing,
+            false => Action::Nothing,
         });
     }
     let actions: Vec<&Action> = rows.iter().filter_map(|row| row.action(key)).collect();
@@ -44,7 +45,7 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
         .all(|action| discriminant(*action) == discriminant(first));
     if actions.len() < rows.len() || !alike {
         return Err(ActRefusal::Mixed {
-            key: key.label().to_string(),
+            key: key.shown().to_string(),
         });
     }
     if actions.len() == 1 {

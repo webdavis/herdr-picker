@@ -11,7 +11,7 @@ use crate::builtin::rows::key;
 const SKIPPED: [&str; 4] = ["node_modules", "target", ".build", ".git"];
 const SUFFIXES: [&str; 3] = ["pcap", "pcapng", "cap"];
 
-// Alt-. shows hidden captures and Ctrl-T sorts newest first; the step keeps both in its state.
+// Alt-. shows hidden captures and Ctrl-T sorts newest first, kept in the state; Alt-F picks the folder.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(super) struct Shown {
     pub(super) hidden: bool,
@@ -29,8 +29,8 @@ impl Shown {
         }
     }
 
-    fn state(self) -> String {
-        json!({"hidden": self.hidden, "sort": self.newest_first}).to_string()
+    fn shown(self) -> Action {
+        Action::State(json!({"hidden": self.hidden, "sort": self.newest_first}).to_string())
     }
 }
 
@@ -42,26 +42,29 @@ pub(super) fn captures(root: &Path, shown: Shown) -> Vec<PickerRow> {
         true => found.sort_by(|(left, at, _), (right, then, _)| then.cmp(at).then(left.cmp(right))),
         false => found.sort(),
     }
+    let (hidden, newest_first) = (!shown.hidden, !shown.newest_first);
+    let folder = PickerCall {
+        name: "capture-folder".into(),
+        args: Vec::new(),
+        state: None,
+        query: None,
+    };
     let toggles = vec![
         (
-            key("alt-."),
-            Action::State(
-                Shown {
-                    hidden: !shown.hidden,
-                    ..shown
-                }
-                .state(),
-            ),
+            key("alt-.").labelled("toggle hidden captures"),
+            Shown { hidden, ..shown }.shown(),
         ),
         (
-            key("ctrl-t"),
-            Action::State(
-                Shown {
-                    newest_first: !shown.newest_first,
-                    ..shown
-                }
-                .state(),
-            ),
+            key("ctrl-t").labelled("toggle newest first"),
+            Shown {
+                newest_first,
+                ..shown
+            }
+            .shown(),
+        ),
+        (
+            key("alt-f").labelled("captures in another folder"),
+            Action::Next(folder),
         ),
     ];
     if found.is_empty() {

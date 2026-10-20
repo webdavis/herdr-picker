@@ -1,6 +1,6 @@
 use std::fs;
 
-use herdr_picker_domain::{Action, Key, Location, PickerCall, PickerRow, Preview};
+use herdr_picker_domain::{Action, Key, Location, PickerCall, PickerRow, Preview, footer_hint};
 
 use crate::builtin::Asked;
 use crate::builtin::git::fixture::{labels, read};
@@ -150,6 +150,19 @@ fn a_secret_copies_hidden_on_alt_y_and_visible_on_alt_u() {
         Action::CopyStay("hunter2".to_string())
     );
     assert_eq!(on(&rows[3], "alt-u"), Action::Nothing);
+    assert_eq!(
+        footer_hint(&rows[5]),
+        [
+            "enter insert",
+            "alt-; copy as JSON, YAML or another format",
+            "ctrl-enter edit",
+            "alt-u copy and stay, with secrets",
+            "alt-y copy and stay, secrets hidden",
+            "ctrl-q quickfix",
+            "alt-o send",
+            "F1 help"
+        ]
+    );
 }
 
 #[test]

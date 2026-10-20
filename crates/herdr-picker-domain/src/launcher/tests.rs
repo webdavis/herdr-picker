@@ -11,6 +11,7 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         title: None,
         sources: Vec::new(),
         steps: Default::default(),
+        live: false,
     }
 }
 

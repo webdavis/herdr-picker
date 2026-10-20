@@ -1,4 +1,5 @@
 use super::*;
+use crate::fuzzy::Match;
 use crate::{ReadlineField, Workspace, WorkspaceDeclaration, jump_targets};
 
 mod browsing;

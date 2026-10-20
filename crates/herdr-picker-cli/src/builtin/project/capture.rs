@@ -10,7 +10,7 @@ use crate::builtin::page::own_program;
 use crate::builtin::paint::dim;
 use crate::command::{CommandError, failed};
 
-const MANIFESTS: [&str; 6] = [
+pub(super) const MANIFESTS: [&str; 6] = [
     "Cargo.toml",
     "Package.swift",
     "package.json",
@@ -29,26 +29,27 @@ pub(super) fn saved_dir(places: &Places) -> PathBuf {
         .join(scope.to_string_lossy().replace('/', "%"))
 }
 
-// A check that runs only when asked, its output saved for the errors source to list.
+// A check or test listing that runs only when asked, its output saved for the picker to list.
 pub(super) fn capture_row(
     label: &str,
     command: &str,
     cwd: &Path,
+    category: &str,
     framework: &str,
     places: &Places,
 ) -> PickerRow {
-    let output = saved_dir(places).join(format!("diagnostics-{framework}.json"));
+    let output = saved_dir(places).join(format!("{category}-{framework}.json"));
     let program = own_program();
     let saving = words(&[
         "capture",
         &output.to_string_lossy(),
         &cwd.to_string_lossy(),
-        "diagnostics",
+        category,
         framework,
         "--",
     ]);
     let detail = "Saves this run's results for the picker to read.\nIt may build code, run project scripts and reach the network, so it runs only when you ask.";
-    let label = format!("{label}  {}", dim("save diagnostics"));
+    let label = format!("{label}  {}", dim(&format!("save {category}")));
     command_row(label, format!("{program} {saving} {command}"), detail)
 }
 

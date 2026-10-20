@@ -5,12 +5,43 @@ const ENGINE_CTRL_LETTERS: &str = "chimnpq";
 const ENGINE_ALT_LETTERS: &str = "o";
 
 // A key a row may claim: the finder binds every one, and keeps its own meaning where no row claims it.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Key(String);
+// Two keys are the same key whatever their labels, which only name what one row does with it.
+#[derive(Debug, Clone)]
+pub struct Key {
+    name: String,
+    label: Option<String>,
+}
+
+impl PartialEq for Key {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl Eq for Key {}
 
 impl Key {
     pub fn enter() -> Self {
-        Self("enter".to_string())
+        Self::named("enter")
+    }
+
+    fn named(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            label: None,
+        }
+    }
+
+    // A short name for what the key does, which help and the footer show in place of its verb.
+    pub fn labelled(self, label: &str) -> Self {
+        Self {
+            label: Some(label.to_string()),
+            ..self
+        }
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_deref()
     }
 
     pub fn parse(name: &str) -> Option<Self> {
@@ -20,18 +51,19 @@ impl Key {
         } else {
             name
         };
-        bindable_keys().find(|key| key.0 == name)
+        bindable_keys().find(|key| key.name == name)
     }
 
     pub fn name(&self) -> &str {
-        &self.0
+        &self.name
     }
 
-    pub fn label(&self) -> &str {
-        if self.0 == "alt-enter" {
+    // How the key is written for the user.
+    pub fn shown(&self) -> &str {
+        if self.name == "alt-enter" {
             "ctrl-enter"
         } else {
-            &self.0
+            &self.name
         }
     }
 }
@@ -54,7 +86,7 @@ pub fn bindable_keys() -> impl Iterator<Item = Key> {
         .chain(digits)
         .chain(dot)
         .chain(function)
-        .map(Key)
+        .map(|name| Key::named(&name))
 }
 
 #[cfg(test)]

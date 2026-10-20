@@ -43,6 +43,9 @@ fn captures_under_the_folder_list_by_path_skipping_hidden_and_build_folders() {
             Action::State(r#"{"hidden":false,"sort":true}"#.to_string())
         )
     );
+    assert!(
+        matches!(&rows[0].keys[2], (pressed, Action::Next(call)) if *pressed == key("alt-f") && call.name == "capture-folder" && call.args.is_empty())
+    );
 
     let hidden = captures(&tree.0, Shown::from_state(Some(r#"{"hidden":true}"#)));
     assert_eq!(labels(&hidden), [".hidden/b.pcapng", "a.pcap", "sub/d.CAP"]);
@@ -59,7 +62,7 @@ fn without_captures_one_row_says_so_and_still_offers_the_toggles() {
         rows[0].label,
         "\u{1b}[2mNo captures under this folder\u{1b}[0m"
     );
-    assert_eq!(rows[0].keys.len(), 2);
+    assert_eq!(rows[0].keys.len(), 3);
 }
 
 #[test]

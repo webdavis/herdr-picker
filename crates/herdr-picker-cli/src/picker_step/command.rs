@@ -3,7 +3,7 @@ use std::process::Command;
 
 use herdr_picker_adapters::PluginConfig;
 use herdr_picker_domain::{
-    Page, PickerCommand, follows_query, is_step_builtin, step_sources, title,
+    Page, PickerCommand, PickerStep, follows_query, is_step_builtin, step_sources, title,
 };
 use herdr_picker_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, encode_action};
 
@@ -37,16 +37,17 @@ pub(super) fn step_command(
             });
         }
     };
-    if let Some(words) = own_step(&call.name, config, trail) {
-        let mut command = program(words, &call.name)?;
+    if let Some(step) = own_step(&call.name, config, trail) {
+        let mut command = program(&step.command, &call.name)?;
         command.args(&call.args);
-        with_variables(&mut command, &call.state, &None);
+        let source = chosen_or_first(chosen, &step.sources);
+        with_variables(&mut command, &call.state, &source);
         return Ok(StepCommand {
             command,
             description: String::new(),
-            source: None,
-            sources: Vec::new(),
-            live: false,
+            source,
+            sources: step.sources.clone(),
+            live: step.live,
         });
     }
     if is_step_builtin(&call.name) && config.pickers.iter().all(|picker| picker.name != call.name) {
@@ -74,13 +75,11 @@ pub(super) fn step_command(
     };
     command.args(&picker.args).args(&call.args);
     let sources = picker.sources.clone();
-    let source = chosen
-        .map(str::to_string)
-        .or_else(|| sources.first().cloned());
+    let source = chosen_or_first(chosen, &sources);
     with_variables(&mut command, &call.state, &source);
     let live = match &picker.command {
         PickerCommand::Builtin(name) => follows_query(name, source.as_deref()),
-        PickerCommand::Program(_) => false,
+        PickerCommand::Program(_) => picker.live,
     };
     Ok(StepCommand {
         command,
@@ -91,11 +90,20 @@ pub(super) fn step_command(
     })
 }
 
-fn own_step<'a>(name: &str, config: &'a PluginConfig, trail: &[&str]) -> Option<&'a [String]> {
+fn own_step<'a>(name: &str, config: &'a PluginConfig, trail: &[&str]) -> Option<&'a PickerStep> {
     trail.iter().rev().find_map(|owner| {
         let picker = config.pickers.iter().find(|picker| picker.name == *owner)?;
-        picker.steps.get(name).map(Vec::as_slice)
+        picker.steps.get(name)
     })
+}
+
+// A source the step does not offer, such as one carried from another step, falls back to its first.
+fn chosen_or_first(chosen: Option<&str>, sources: &[String]) -> Option<String> {
+    let offered = |chosen: &&str| sources.iter().any(|source| source == chosen);
+    chosen
+        .filter(offered)
+        .map(str::to_string)
+        .or_else(|| sources.first().cloned())
 }
 
 pub(super) fn picker_title(name: &str, config: &PluginConfig) -> String {

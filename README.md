@@ -163,6 +163,112 @@ popup once the popup's command exits, which would undo it, so `pick` spawns a de
 `jump <label> <cwd> --after-pid <pid>` and exits at once. That child waits for the popup to be gone
 before it asks herdr for anything, and gives up waiting after two seconds.
 
+## Pickers in the shell
+
+`herdr-picker init bash` prints a function and one `bind -x` line per picker, for each of the
+`emacs-standard`, `vi-insert` and `vi-command` keymaps, so the keys work whichever editing mode the
+shell is in or switches to. The function calls `herdr-picker run`, so the binary has to be on
+`PATH`. Load it from `~/.bashrc`:
+
+```bash
+eval "$(herdr-picker init bash)"
+```
+
+A picker's result comes back to the prompt: text is typed at the cursor, a folder is changed into,
+and a command is run and added to the history. The pickers need no config file; without one the
+built-in pickers run on their own keys.
+
+## The built-in pickers
+
+| Key | Picker | Sources, the first opened on |
+| --- | --- | --- |
+| `ctrl-t f` | files | this folder, hidden, home, whole disk, recent |
+| `ctrl-t d` | folders | subfolders, parents, git, bookmarks |
+| `ctrl-t ctrl-b` | bookmark | none: bookmarks the current folder for the folders picker |
+| `ctrl-g s` | status | all, conflicts, staged, unstaged, untracked, stashes, tracked, ignored |
+| `ctrl-g l` | history | commits, reflog, changes (live) |
+| `ctrl-g b` | branches | branches, repos |
+| `ctrl-g /` | contents | none (live) |
+| `ctrl-g v` | git-config | none |
+| `ctrl-t j` | recipes | none |
+| `ctrl-t t` | tests | tests, errors, quickfix |
+| `ctrl-t p` | processes | processes, services, logs |
+| `ctrl-t n` | network | devices, captures, web checks (live), commands |
+| `ctrl-t i` | data | files, clipboard, temporal |
+| `ctrl-t a` | agents | everything, needs you, done, agents, terminals, workspaces, recent, worktrees, instructions, failures, start, sessions |
+| `ctrl-t ;` | pickers | pickers, bindings |
+| `ctrl-t m` | apple | messages, contacts, shortcuts |
+| `ctrl-t w` | tabs | none |
+
+A live source runs again as you type, rather than filtering what it listed. Each picker's keys
+besides enter show in its footer and, in full, on F1. The ones worth knowing before you open it:
+
+- **files.** Enter types the path. ctrl+enter edits, ctrl+o opens, alt+c changes into its folder,
+  alt+y copies and stays, alt+. switches between this folder and hidden.
+- **folders.** Enter changes into the folder; alt+y copies it, ctrl+o opens it.
+- **status.** Enter types the path. A changed file adds ctrl+z, which stashes it. A stash's
+  ctrl+enter applies it after asking. In ignored, ctrl+enter edits the rule that ignores the file.
+- **history.** Enter types the hash. ctrl+enter checks it out, asking first when the tree is dirty;
+  ctrl+t lists its files; alt+i shows it; alt+s toggles oldest first. changes lists the commits
+  whose changes match what is typed.
+- **branches.** Enter types the name. ctrl+enter checks out the branch or changes into its
+  worktree, ctrl+t opens it in its own worktree, ctrl+e renames it, ctrl+x removes its worktree,
+  alt+i shows it, ctrl+f fetches, ctrl+l pulls and alt+d prunes. repos lists the repositories with
+  something to prune.
+- **contents.** Lines matching what is typed; enter edits the file at the line. alt+x toggles
+  regex, alt+. hidden files, alt+s recently changed first, alt+u untracked files, and alt+b shows
+  the line's history.
+- **git-config.** Enter types the setting's name, ctrl+enter edits where it is set, ctrl+v changes
+  it and ctrl+x removes it. Secrets show as `[redacted]`.
+- **recipes.** Enter types the recipe's command, ctrl+enter runs it.
+- **tests.** tests lists, in order: the tests each saved discovery found, one row per test that
+  runs only that test (a discovery that failed shows its exit code and output first); the nearest
+  `package.json`'s scripts with "test" in their name, run with `npm --prefix <folder> run`; one
+  "Project:" row for each project folder below the current one, which changes into it; for the
+  nearest Swift, Cargo, pytest and Go project, a "Discover … tests" row that saves its test listing
+  (`swift test list`, `cargo test -- --list`, `pytest --collect-only`, `go test -list`) only when
+  you run it, plus "Run all Swift tests" and "Run all Rust tests"; Bashunit tests and scripts in
+  unit, integration and e2e folders; and justfile recipes with "test" in their name. Reopen the
+  picker after a discovery to see its tests. errors lists the saved compiler and linter messages,
+  enter editing the file at the line, and rows that save a fresh `swift build`, `cargo check` or
+  lint recipe. quickfix is the list ctrl+q saved.
+- **processes.** Enter types the pid, alt+d the command listing its sockets. services lists
+  Homebrew, launchd and Docker services, alt+d typing the command for their logs and alt+e a shell
+  in a container. logs opens the last hour of unified logs or the crash reports.
+- **network.** devices merges ARP, Bonjour, UniFi and the last scan: enter types the address,
+  ctrl+s `ssh` to it, ctrl+x scans the network and alt+x types the scan instead, ctrl+o opens it
+  in the browser, ctrl+y wakes it, ctrl+g reloads. captures lists `.pcap`, `.pcapng` and `.cap`
+  files under this folder: enter opens the analysis menu, alt+. toggles hidden captures, ctrl+t
+  newest first, and alt+f asks for another folder. web checks times a URL you type and checks its
+  certificate. commands is the network command catalog: enter types a command, ctrl+enter runs it,
+  alt+y copies it, and a command with blanks asks you to type them. Some entries open a step of
+  their own: saved hosts lists `~/.ssh/config` aliases, following `Include`, `/etc/hosts` names and
+  Tailscale peers; DNS record inspection takes a record type, then a host and an optional server
+  for `dig`; build a packet capture takes an interface, then `name=value` settings (`host`,
+  `proto`, `port`, `count`, `seconds`, `tool`, `file`); throughput test takes an iperf3 mode, then
+  the server and optional seconds, port and bitrate.
+- **data.** Opens a JSON, JSON Lines, YAML, TOON or SQLite file, or the clipboard, by its paths,
+  zoomed into one value, by keys, by levels, by shape, or by tables. Enter types the jq path or
+  zooms in, ctrl+enter edits the file at the value, alt+y copies the value with secrets hidden and
+  alt+u with them, and alt+; copies it as JSON, YAML or TOON.
+- **agents, apple, tabs.** See the sections below.
+
+## Keys in every picker
+
+| Key | Does |
+| --- | --- |
+| tab | Marks a row; a key then acts on every marked row |
+| ctrl+space | Chooses a source or group |
+| alt+h, alt+j, alt+k, alt+l | Open a row that runs, edits or changes folder in a new pane left, below, above or right, inside herdr |
+| alt+n | The same, in a new tab |
+| alt+o | Sends the marked rows to an agent, copies them, or asks a quick question about them |
+| ctrl+q | Saves the marked rows' files and lines as Neovim's quickfix list and opens it |
+| esc | Back a step, or closes on the first |
+| F1 | Help: every key of the highlighted row, then these |
+
+The footer names the highlighted row's keys in a few words, then the new-pane keys it leaves free,
+ctrl+q when it has a file and line, alt+o and F1.
+
 ## Pickers over any pane
 
 The pickers' shell keys, such as `ctrl-t f`, have a herdr twin: `prefix+ctrl+t f`. `generate` renders
@@ -198,6 +304,13 @@ Before typing into an agent, herdr-picker reads its input line. If it holds typi
 waits on a question, nothing is sent and a herdr notification says why; the draft is never
 cleared. Any other agent is refused the same way.
 
+A shell gets the same care for a folder or a command to run, since Enter would submit whatever is
+already typed. herdr-picker reads the shell's current line, the last line on its screen with text,
+and takes what follows the first prompt character on it (`❯` or `❮` from Starship, or `$`, `#`,
+`%` or `>` followed by a space) as typing. When there is typing, or no prompt character, the `cd`
+or command is refused with a notification. Text or paths are typed at the cursor, after any typing,
+without reading the line.
+
 On a row that runs, edits or changes folder, alt+h, alt+j, alt+k and alt+l open the result in a new
 pane left of, below, above or right of the pane underneath, and alt+n in a new tab. They work from
 the shell keys inside herdr too, and say so in the footer outside it.
@@ -211,12 +324,26 @@ or `~/.local/state/herdr/plugins/herdr-picker` without `XDG_STATE_HOME`.
 
 ## Your own pickers
 
-A `[pickers.<name>]` table with a `command` runs a script from the `pickers` folder beside
-`config.toml`. `title` replaces the name in the header. `sources` lists the sources the
-script reads, in lowercase. The first is the one it opens on, ctrl-space chooses another, the
-header says `Source: <source>`, and the script reads the chosen one in `HERDR_PICKER_SOURCE`. A
-table under `steps` names a script that only a row's `next` opens. It runs on no key, from the
-same folder, with the row's arguments after its own:
+A `[pickers.<name>]` table adds a picker or changes a built-in one. The name is letters, digits,
+`-` and `_`. Every field is optional except that a new picker needs a `key` and exactly one of
+`command` or `builtin`; an unknown field is refused at its line.
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `key` | the built-in's key | The chord, such as `"ctrl-t m"`: ctrl or alt and a letter, then plain letters or punctuation |
+| `description` | the built-in's | The line under the rows |
+| `command` | | A command line, split like the shell, or an array of a program and its arguments. A relative program is a script in the `pickers` folder beside `config.toml`, so a program on `PATH` needs its full path |
+| `builtin` | | Runs one of the built-in pickers under this name |
+| `args` | `[]` | Arguments after the command's own, before a `next`'s |
+| `enabled` | `true` | `false` turns the picker off, a built-in one included |
+| `title` | the name, title-cased | The header's title |
+| `sources` | `[]` | The sources a script reads, in lowercase; refused on a built-in picker |
+| `live` | `false` | The script runs again as the query changes; refused on a built-in picker, which decides that itself |
+| `steps.<step>` | | A script only a row's `next` opens, with its own `command`, `sources` and `live` |
+
+A table named for a built-in picker that names no `command` changes that built-in picker: its
+`key` moves it, `enabled = false` turns it off. A configured picker that takes a built-in picker's
+key replaces it there; two configured pickers on one key are refused, naming both.
 
 ```toml
 [pickers.notes]
@@ -228,11 +355,64 @@ sources = ["folders", "tags", "recent"]
 
 [pickers.notes.steps.note-actions]
 command = "notes.py actions"
+
+[pickers.notes.steps.grep]
+command = "notes.py grep"
+sources = ["titles", "bodies"]
+live = true
 ```
 
-A row of `notes.py` that names `note-actions` as its next picker opens that step. A step belongs to
-its picker: a next finds it from that picker or from any step opened after it, so two pickers may
-each have a step of the same name, and a picker's own step wins over a built-in step.
+The first source is the one a picker or step opens on, ctrl-space chooses another, the header says
+`Source: <source>`, and the script reads the chosen one in `HERDR_PICKER_SOURCE`. A picker or step
+with `live = true` is run again each time the query changes, with the query in
+`HERDR_PICKER_QUERY`, and fzf shows its rows as they are rather than filtering them. Without it
+the script runs once and fzf filters what it printed.
+
+A step belongs to its picker: a row's `next` finds it from that picker or from any step opened
+after it, so two pickers may each have a step of the same name, and a picker's own step wins over a
+built-in step. A step runs from the same folder, with the row's arguments after its own.
+
+### What a script prints
+
+A script prints one JSON object per line. A line `{"header": "text"}` shows under the title; every
+other line is a row, and a line that is neither is refused with its line number in the footer.
+
+| Row field | Meaning |
+| --- | --- |
+| `label` | The text shown, on one line; ANSI colors are kept |
+| `enter` | The action enter takes |
+| `keys` | Other keys and their actions, as `{"ctrl-o": action}` |
+| `labels` | A few words for what a claimed key does, as `{"alt-y": "copy URL"}`, which help and the footer show in place of the action's verb; every labelled key must be in `keys` |
+| `value` | Text, or a list of words, for a bare `insert`, `copy` or `copy_stay`; a list inserts as shell words and copies as lines |
+| `preview` | Text, `{"path": "<file or folder>"}`, or `{"command": ["<program>", ...]}`, drawn when the row is highlighted |
+| `group` | A lowercase group, which ctrl-space narrows the rows to |
+
+A row may claim ctrl-enter (sent as alt-enter), ctrl and a letter, alt and a letter or digit,
+alt-. , alt-; and F2 to F12, except the engine's own: ctrl-c, ctrl-h, ctrl-i, ctrl-m, ctrl-n,
+ctrl-p, ctrl-q and alt-o. A key no row claims keeps fzf's meaning, such as ctrl-a for the start of
+the line.
+
+| Action | Does |
+| --- | --- |
+| `"insert"`, `{"insert": text or words}` | Types the text at the prompt |
+| `"copy"`, `{"copy": ...}` | Copies the text and closes |
+| `"copy_stay"`, `{"copy_stay": ...}` | Copies the text and stays |
+| `{"cd": "<folder>"}` | Changes into the folder |
+| `{"run": "<command>"}` | Runs the command |
+| `{"edit": {"path": "...", "line": 3}}`, or a list of them | Opens the files in the editor |
+| `{"open": "<file or URL>"}` | Opens it with the system's opener |
+| `{"next": {"picker": "<name>", "args": [], "state": <json>, "query": "..."}}` | Opens a step, handing it `args` and `state` and typing `query` |
+| `{"confirm": {"question": "...", "action": <action>}}` | Asks yes or no first |
+| `{"source": "<source>"}` | Shows the same step from another source |
+| `{"state": <json>}` | Runs the same step again with this state, as a toggle does |
+| `"reload"`, `"back"`, `"none"` | Runs the step again, goes back a step, or does nothing |
+| `{"herdr": {"focus_pane": id}}`, `focus_tab`, `focus_workspace`, `close_tab`, `{"prompt": {"pane_id": id, "text": "..."}}` | Asks herdr once the picker has closed |
+| `{"in_pane": {"pane": "left", "action": <action>}}` | Opens a run, edit or cd in a new pane `left`, `below`, `above`, `right` or `tab` |
+
+A command gets the picker's `args`, then the `next`'s `args`, and three variables:
+`HERDR_PICKER_SOURCE`, the chosen source (unset without sources); `HERDR_PICKER_STATE`, the JSON a
+`next` or `state` action carried (unset without one); and `HERDR_PICKER_QUERY`, what is typed, for
+a live picker or step only.
 
 `ctrl-t ;` lists every picker by its key; Enter starts one. Its bindings source lists every shell
 key herdr-picker binds, then the rows of `~/.config/chord/bindings-menu.tsv` if there is one: Enter

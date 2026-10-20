@@ -11,7 +11,7 @@ fn the_catalog_lists_every_command_and_the_selectors_this_picker_has() {
             .expect(title)
     };
 
-    assert_eq!(rows.len(), 42);
+    assert_eq!(rows.len(), 46);
     assert_eq!(
         titled("Hostname").label,
         "Hostname  \u{1b}[2mhostname\u{1b}[0m"
@@ -34,7 +34,21 @@ fn the_catalog_lists_every_command_and_the_selectors_this_picker_has() {
     assert!(
         matches!(&titled("Probe host and port").enter, Action::Next(call) if call.args == ["port"])
     );
-    assert!(!rows.iter().any(|row| row.label.starts_with("Saved hosts")));
+    let opens = |title: &str| match &titled(title).enter {
+        Action::Next(call) if call.args.is_empty() => call.name.clone(),
+        other => panic!("{title} opens {other:?}"),
+    };
+    assert_eq!(opens("Saved hosts"), "network-hosts");
+    assert_eq!(opens("DNS record inspection"), "network-dns");
+    assert_eq!(opens("Build a packet capture"), "network-capture");
+    assert_eq!(opens("Throughput test"), "network-iperf");
+    assert_eq!(
+        titled("Saved hosts").preview,
+        Some(Preview::Text(
+            "Search static SSH hosts, hosts-file names and Tailscale peers.\nEnter opens the selector."
+                .to_string()
+        ))
+    );
 }
 
 #[test]

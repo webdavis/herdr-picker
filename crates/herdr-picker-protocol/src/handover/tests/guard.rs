@@ -32,7 +32,38 @@ fn an_agent_waiting_on_a_question_or_whose_input_line_cannot_be_seen_is_left_alo
     );
 }
 
+const EMPTY_STARSHIP: &str = "~/repo on main\n❯ ls\nsrc\n\n~/repo on main\n❯ \n\n\n";
+
 #[test]
-fn a_shell_is_typed_into_as_its_own_key_would() {
-    assert_eq!(guard(&PaneKind::Shell, "unknown", "$ git sta"), Ok(()));
+fn a_shell_whose_prompt_line_is_empty_may_be_typed_into() {
+    assert_eq!(guard(&PaneKind::Shell, "unknown", EMPTY_STARSHIP), Ok(()));
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "out\nme@box:~$ "),
+        Ok(())
+    );
+    assert_eq!(guard(&PaneKind::Shell, "unknown", "~/repo\n❮ "), Ok(()));
+}
+
+#[test]
+fn a_shell_draft_after_the_prompt_is_never_typed_over() {
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "~/repo on main\n❯ git sta\n"),
+        Err(Refusal::Draft("git sta".to_string()))
+    );
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "me@box:~$ make te"),
+        Err(Refusal::Draft("make te".to_string()))
+    );
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "❯ echo $"),
+        Err(Refusal::Draft("echo $".to_string()))
+    );
+}
+
+#[test]
+fn a_shell_whose_prompt_cannot_be_found_is_left_alone() {
+    assert_eq!(
+        guard(&PaneKind::Shell, "unknown", "~\n:wq"),
+        Err(Refusal::InputUnseen)
+    );
 }

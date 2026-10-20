@@ -41,7 +41,8 @@ pub fn guard(kind: &PaneKind, status: &str, screen: &str) -> Result<(), Refusal>
     let prompt = match kind {
         PaneKind::Claude => '❯',
         PaneKind::Codex => '›',
-        PaneKind::Shell | PaneKind::Agent(_) => return Ok(()),
+        PaneKind::Shell => return shell_guard(screen),
+        PaneKind::Agent(_) => return Ok(()),
     };
     if status == "blocked" {
         return Err(Refusal::Blocked);
@@ -52,6 +53,33 @@ pub fn guard(kind: &PaneKind, status: &str, screen: &str) -> Result<(), Refusal>
         .find_map(|line| line.trim_start().strip_prefix(prompt))
         .ok_or(Refusal::InputUnseen)?;
     match input.trim() {
+        "" => Ok(()),
+        draft => Err(Refusal::Draft(draft.to_string())),
+    }
+}
+
+// Starship's prompt characters and the classic shell ones, each followed by a space or the end.
+const SHELL_PROMPTS: [&str; 6] = ["❯", "❮", "$", "#", "%", ">"];
+
+// The cursor sits on the last line holding text; what follows its first prompt character is typed,
+// so a draft holding a prompt character of its own still reads as a draft.
+// shortcut: a prompt ending in none of SHELL_PROMPTS reads as unseen and refuses; teach it that prompt.
+fn shell_guard(screen: &str) -> Result<(), Refusal> {
+    let line = screen
+        .lines()
+        .rev()
+        .find(|line| !line.trim().is_empty())
+        .ok_or(Refusal::InputUnseen)?;
+    let typed = SHELL_PROMPTS
+        .iter()
+        .filter_map(|prompt| {
+            line.match_indices(prompt)
+                .map(|(at, _)| &line[at + prompt.len()..])
+                .find(|rest| rest.is_empty() || rest.starts_with(' '))
+        })
+        .max_by_key(|rest| rest.len())
+        .ok_or(Refusal::InputUnseen)?;
+    match typed.trim() {
         "" => Ok(()),
         draft => Err(Refusal::Draft(draft.to_string())),
     }

@@ -66,29 +66,34 @@ fn init_bash_binds_each_configured_picker() {
     let script = init("bash", &config).expect("a bash script");
 
     assert!(script.starts_with("__herdr_picker() {\n"), "{script}");
-    assert!(
-        script.ends_with(concat!(
-            "}\n",
-            "bind -x '\"\\C-tf\": __herdr_picker files'\n",
-            "bind -x '\"\\C-td\": __herdr_picker folders'\n",
-            "bind -x '\"\\C-t\\C-b\": __herdr_picker bookmark'\n",
-            "bind -x '\"\\C-gs\": __herdr_picker status'\n",
-            "bind -x '\"\\C-gl\": __herdr_picker history'\n",
-            "bind -x '\"\\C-gb\": __herdr_picker branches'\n",
-            "bind -x '\"\\C-g/\": __herdr_picker contents'\n",
-            "bind -x '\"\\C-gv\": __herdr_picker git-config'\n",
-            "bind -x '\"\\C-tj\": __herdr_picker recipes'\n",
-            "bind -x '\"\\C-tt\": __herdr_picker tests'\n",
-            "bind -x '\"\\C-tp\": __herdr_picker processes'\n",
-            "bind -x '\"\\C-tn\": __herdr_picker network'\n",
-            "bind -x '\"\\C-ti\": __herdr_picker data'\n",
-            "bind -x '\"\\C-ta\": __herdr_picker agents'\n",
-            "bind -x '\"\\C-t;\": __herdr_picker pickers'\n",
-            "bind -x '\"\\C-tm\": __herdr_picker apple'\n",
-            "bind -x '\"\\C-tw\": __herdr_picker tabs'\n",
-        )),
-        "{script}"
+    let in_vi_command: Vec<&str> = script
+        .lines()
+        .filter(|line| line.starts_with("bind -m vi-command "))
+        .collect();
+    assert_eq!(
+        in_vi_command,
+        [
+            "bind -m vi-command -x '\"\\C-tf\": __herdr_picker files'",
+            "bind -m vi-command -x '\"\\C-td\": __herdr_picker folders'",
+            "bind -m vi-command -x '\"\\C-t\\C-b\": __herdr_picker bookmark'",
+            "bind -m vi-command -x '\"\\C-gs\": __herdr_picker status'",
+            "bind -m vi-command -x '\"\\C-gl\": __herdr_picker history'",
+            "bind -m vi-command -x '\"\\C-gb\": __herdr_picker branches'",
+            "bind -m vi-command -x '\"\\C-g/\": __herdr_picker contents'",
+            "bind -m vi-command -x '\"\\C-gv\": __herdr_picker git-config'",
+            "bind -m vi-command -x '\"\\C-tj\": __herdr_picker recipes'",
+            "bind -m vi-command -x '\"\\C-tt\": __herdr_picker tests'",
+            "bind -m vi-command -x '\"\\C-tp\": __herdr_picker processes'",
+            "bind -m vi-command -x '\"\\C-tn\": __herdr_picker network'",
+            "bind -m vi-command -x '\"\\C-ti\": __herdr_picker data'",
+            "bind -m vi-command -x '\"\\C-ta\": __herdr_picker agents'",
+            "bind -m vi-command -x '\"\\C-t;\": __herdr_picker pickers'",
+            "bind -m vi-command -x '\"\\C-tm\": __herdr_picker apple'",
+            "bind -m vi-command -x '\"\\C-tw\": __herdr_picker tabs'",
+        ]
     );
+    assert_eq!(script.matches("bind -m emacs-standard -x ").count(), 17);
+    assert_eq!(script.matches("bind -m vi-insert -x ").count(), 17);
 }
 
 #[test]
@@ -98,7 +103,7 @@ fn init_bash_without_a_config_file_binds_the_builtin_pickers() {
     let script = init("bash", &sandbox.0.join("config.toml")).expect("a bash script");
 
     assert!(
-        script.contains("bind -x '\"\\C-tf\": __herdr_picker files'\n"),
+        script.contains("bind -m vi-insert -x '\"\\C-tf\": __herdr_picker files'\n"),
         "{script}"
     );
 }

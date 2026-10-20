@@ -5,6 +5,8 @@ use std::process::Command;
 use herdr_picker_adapters::{Entry, Walk, walk};
 use herdr_picker_domain::{Action, Location, PickerRow};
 
+use super::discovered::{discovered, discoveries};
+use super::packages::{nested_projects, npm_scripts};
 use super::{JUSTFILES, command_row, nearest, notice, root, words};
 use crate::builtin::Places;
 use crate::builtin::git::{output, strings};
@@ -16,21 +18,13 @@ const SCRIPT_FOLDERS: [&str; 3] = ["unit", "integration", "e2e"];
 
 pub(super) fn suites(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
     let cwd = &places.cwd;
-    let mut rows = Vec::new();
-    if let Some(swift) = nearest(cwd, &["Package.swift"]) {
-        let folder = swift.parent().unwrap_or(cwd).to_string_lossy();
-        let command = words(&["swift", "test", "--package-path", &folder]);
-        rows.push(command_row("Run all Swift tests".into(), command, ""));
-    }
-    if let Some(rust) = nearest(cwd, &["Cargo.toml"]) {
-        let command = words(&["cargo", "test", "--manifest-path", &rust.to_string_lossy()]);
-        rows.push(command_row("Run all Rust tests".into(), command, ""));
-    }
     let root = root(cwd);
-    for path in files(&root, places)
-        .iter()
-        .filter(|path| path.starts_with(cwd))
-    {
+    let files = files(&root, places);
+    let mut rows = discovered(places);
+    rows.extend(npm_scripts(cwd));
+    rows.extend(nested_projects(&files, places));
+    rows.extend(discoveries(places));
+    for path in files.iter().filter(|path| path.starts_with(cwd)) {
         rows.extend(bash_rows(path, &root));
     }
     if nearest(cwd, &JUSTFILES).is_some() {
@@ -43,7 +37,8 @@ pub(super) fn suites(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
         rows.extend(tests.iter().map(|recipe| recipe_row(recipe, width, places)));
     }
     if rows.is_empty() {
-        let detail = "Cargo, Swift, Bashunit and test recipes in a justfile are supported.";
+        let detail =
+            "npm, Cargo, Swift, pytest, Go, Bashunit and test recipes in a justfile are supported.";
         rows.push(notice("No supported tests found", detail));
     }
     Ok(rows)

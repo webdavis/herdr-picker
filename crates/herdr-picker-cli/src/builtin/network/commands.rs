@@ -8,7 +8,7 @@ use crate::builtin::page::notice;
 use crate::builtin::paint::dim;
 
 const CATALOG: &str = include_str!("actions.toml");
-// Catalog entries that open another of this picker's sources.
+// Catalog entries that open another of this picker's sources; any other next is a step.
 const SOURCES: [(&str, &str); 3] = [
     ("devices", "devices"),
     ("captures", "captures"),
@@ -43,15 +43,21 @@ pub(super) fn command_rows() -> Vec<PickerRow> {
         .filter_map(|entry| {
             let label = format!("{}  {}", entry.title, dim(&entry.tool));
             let (Some(text), None) = (&entry.command, &entry.next) else {
-                let source = SOURCES
-                    .iter()
-                    .find(|(next, _)| Some(*next) == entry.next.as_deref())?
-                    .1;
+                let next = entry.next.as_deref()?;
+                let enter = match SOURCES.iter().find(|(name, _)| *name == next) {
+                    Some((_, source)) => Action::Source(source.to_string()),
+                    None => Action::Next(PickerCall {
+                        name: next.to_string(),
+                        args: Vec::new(),
+                        state: None,
+                        query: None,
+                    }),
+                };
                 let detail = format!("{}\nEnter opens the selector.", entry.purpose);
                 return Some(PickerRow {
                     label,
                     preview: Some(Preview::Text(detail)),
-                    enter: Action::Source(source.to_string()),
+                    enter,
                     keys: Vec::new(),
                     group: None,
                 });

@@ -28,14 +28,23 @@ fn a_picker_is_titled_by_its_name_unless_it_declares_a_title() {
     );
 }
 
+fn step(command: &[&str], sources: &[&str], live: bool) -> PickerStep {
+    PickerStep {
+        command: command.iter().map(|word| word.to_string()).collect(),
+        sources: sources.iter().map(|source| source.to_string()).collect(),
+        live,
+    }
+}
+
 #[test]
-fn a_picker_keeps_the_steps_it_declares_by_name() {
+fn a_picker_keeps_the_steps_it_declares_by_name_with_their_sources_and_live() {
     let steps = BTreeMap::from([(
         "note-actions".to_string(),
-        vec![
-            "/config/pickers/notes.py".to_string(),
-            "actions".to_string(),
-        ],
+        step(
+            &["/config/pickers/notes.py", "actions"],
+            &["open", "move"],
+            true,
+        ),
     )]);
 
     assert_eq!(
@@ -45,6 +54,48 @@ fn a_picker_keeps_the_steps_it_declares_by_name() {
         })
         .steps,
         steps
+    );
+}
+
+#[test]
+fn a_scripted_picker_follows_the_query_only_when_declared_live() {
+    assert!(!only(scripted(&[])).live);
+    assert!(
+        only(PickerDeclaration {
+            live: true,
+            ..scripted(&[])
+        })
+        .live
+    );
+}
+
+#[test]
+fn a_steps_unusable_source_is_refused_naming_the_step() {
+    let steps = BTreeMap::from([("open".to_string(), step(&["/notes.py"], &["Tags"], false))]);
+
+    assert_eq!(
+        pickers([PickerDeclaration {
+            steps,
+            ..scripted(&[])
+        }])
+        .expect_err("an unusable step source is refused")
+        .to_string(),
+        "the picker my-notes.steps.open offers the source \"Tags\", which is not lowercase text"
+    );
+}
+
+#[test]
+fn a_builtin_picker_declared_live_is_refused_since_it_decides_that_itself() {
+    let refusal = pickers([PickerDeclaration {
+        command: PickerCommand::Builtin("files".to_string()),
+        live: true,
+        ..scripted(&[])
+    }])
+    .expect_err("live on a builtin is refused");
+
+    assert_eq!(
+        refusal.to_string(),
+        "the picker my-notes runs a built-in picker, which decides itself whether it follows the query"
     );
 }
 

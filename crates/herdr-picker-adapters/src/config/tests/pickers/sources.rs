@@ -1,3 +1,5 @@
+use herdr_picker_domain::PickerStep;
+
 use super::*;
 
 const NOTES: &str = r#"
@@ -8,15 +10,19 @@ description = "Notes by folder, tag, or lately opened"
 command = "notes.py --vault ~/notes"
 sources = ["folders", "tags", "recent"]
 
+live = true
+
 [pickers.notes.steps.note-actions]
 command = "notes.py actions"
+sources = ["open", "move"]
+live = true
 
 [pickers.notes.steps.links]
 command = ["/opt/links", "--all"]
 "#;
 
 #[test]
-fn a_scripted_picker_declares_its_title_sources_and_steps() {
+fn a_scripted_picker_declares_its_title_sources_steps_and_live() {
     let sandbox = TempDirectory::new("picker-sources");
     let pickers = read_config(&sandbox.write(NOTES))
         .expect("a readable config")
@@ -26,21 +32,42 @@ fn a_scripted_picker_declares_its_title_sources_and_steps() {
     assert_eq!(notes.name, "notes");
     assert_eq!(notes.title, "Vault");
     assert_eq!(notes.sources, ["folders", "tags", "recent"]);
+    assert!(notes.live);
     assert_eq!(
         notes.steps,
         BTreeMap::from([
             (
                 "links".to_string(),
-                vec!["/opt/links".to_string(), "--all".to_string()]
+                PickerStep {
+                    command: vec!["/opt/links".to_string(), "--all".to_string()],
+                    sources: Vec::new(),
+                    live: false,
+                }
             ),
             (
                 "note-actions".to_string(),
-                match script(&sandbox, "notes.py", &["actions"]) {
-                    PickerCommand::Program(words) => words,
-                    PickerCommand::Builtin(_) => unreachable!(),
+                PickerStep {
+                    command: match script(&sandbox, "notes.py", &["actions"]) {
+                        PickerCommand::Program(words) => words,
+                        PickerCommand::Builtin(_) => unreachable!(),
+                    },
+                    sources: vec!["open".to_string(), "move".to_string()],
+                    live: true,
                 }
             ),
         ])
+    );
+}
+
+#[test]
+fn a_builtin_picker_set_live_is_refused() {
+    let (_, rendered) = refusal_for("builtin-live", "[pickers.files]\nlive = true\n");
+
+    assert!(
+        rendered.ends_with(
+            ": the picker files runs a built-in picker, which decides itself whether it follows the query"
+        ),
+        "{rendered}"
     );
 }
 

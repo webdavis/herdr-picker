@@ -63,8 +63,8 @@ fn ctrl_enter_is_the_alt_enter_fzf_receives_and_is_shown_as_ctrl_enter() {
 
     assert_eq!(key, Key::parse("alt-enter").expect("a key"));
     assert_eq!(key.name(), "alt-enter");
-    assert_eq!(key.label(), "ctrl-enter");
-    assert_eq!(Key::enter().label(), "enter");
+    assert_eq!(key.shown(), "ctrl-enter");
+    assert_eq!(Key::enter().shown(), "enter");
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn every_claimable_key_is_bound_enter_first() {
 #[test]
 fn alt_dot_is_a_key_a_row_may_claim() {
     assert_eq!(
-        Key::parse("alt-.").map(|key| key.label().to_string()),
+        Key::parse("alt-.").map(|key| key.shown().to_string()),
         Some("alt-.".to_string())
     );
 }
@@ -87,7 +87,16 @@ fn alt_dot_is_a_key_a_row_may_claim() {
 #[test]
 fn alt_semicolon_is_a_key_a_row_may_claim() {
     assert_eq!(
-        Key::parse("alt-;").map(|key| key.label().to_string()),
+        Key::parse("alt-;").map(|key| key.shown().to_string()),
         Some("alt-;".to_string())
     );
+}
+
+#[test]
+fn a_label_names_what_a_key_does_without_changing_which_key_it_is() {
+    let labelled = Key::parse("alt-y").expect("a key").labelled("copy URL");
+
+    assert_eq!(labelled, Key::parse("alt-y").expect("a key"));
+    assert_eq!(labelled.label(), Some("copy URL"));
+    assert_eq!(Key::parse("alt-y").expect("a key").label(), None);
 }

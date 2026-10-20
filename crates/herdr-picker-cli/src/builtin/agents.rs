@@ -53,7 +53,10 @@ fn sources(source: &str, asked: &Asked, places: &Places) -> Vec<PickerRow> {
             Some(Ok(view)) => running::rows(running, &view, places.home.as_deref()),
         },
     };
-    let refresh = (key("ctrl-r"), Action::State(FRESH.to_string()));
+    let refresh = (
+        key("ctrl-r").labelled("ask herdr again"),
+        Action::State(FRESH.to_string()),
+    );
     listed
         .into_iter()
         .map(|row| PickerRow {

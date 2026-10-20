@@ -35,7 +35,7 @@ pub use look::{RowLook, Theme, unstyled};
 pub use mru::{Bounce, Mru, decide_bounce, next_mru};
 pub use new_pane::NewPane;
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
-pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, pickers};
+pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, PickerStep, pickers};
 pub use picker_act::{ActRefusal, act};
 pub use picker_builtin::{
     BUILTIN_PICKERS, BuiltinPicker, Live, follows_query, is_step_builtin, step_sources,

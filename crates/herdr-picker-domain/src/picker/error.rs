@@ -28,6 +28,9 @@ pub enum PickerError {
     BuiltinSources {
         name: String,
     },
+    BuiltinLive {
+        name: String,
+    },
 }
 
 impl fmt::Display for PickerError {
@@ -60,6 +63,10 @@ impl fmt::Display for PickerError {
             Self::BuiltinSources { name } => write!(
                 formatter,
                 "the picker {name} runs a built-in picker, which reads its own sources"
+            ),
+            Self::BuiltinLive { name } => write!(
+                formatter,
+                "the picker {name} runs a built-in picker, which decides itself whether it follows the query"
             ),
         }
     }

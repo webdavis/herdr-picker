@@ -1,7 +1,7 @@
 use super::{BUILTIN_PICKERS, Live};
 
 // The built-in steps a picker's next action opens; no key runs them.
-pub(super) const STEP_BUILTINS: [(&str, Live); 24] = [
+pub(super) const STEP_BUILTINS: [(&str, Live); 33] = [
     ("commit-files", Live::Never),
     ("checkout", Live::Never),
     ("stash-files", Live::Always),
@@ -15,6 +15,15 @@ pub(super) const STEP_BUILTINS: [(&str, Live); 24] = [
     ("capture-analysis", Live::Never),
     ("capture-filter", Live::Always),
     ("network-command", Live::Always),
+    ("network-hosts", Live::Never),
+    ("network-dns", Live::Never),
+    ("dns-lookup", Live::Always),
+    ("network-iperf", Live::Never),
+    ("iperf-command", Live::Always),
+    ("network-capture", Live::Never),
+    ("capture-command", Live::Always),
+    ("capture-folder", Live::Always),
+    ("captures-in", Live::Never),
     ("data-file", Live::Never),
     ("data-copy", Live::Never),
     ("send-to", Live::Never),
