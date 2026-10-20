@@ -12,7 +12,7 @@ use crate::builtin::{self, Places};
 use crate::command::{CommandError, config_path, failed};
 use crate::picker_chrome::QuotedHelper;
 use crate::quickfix::quickfix_path;
-use crate::{picker_popup, picker_step};
+use crate::{handing, picker_popup, picker_step};
 
 const OPENER: &str = if cfg!(target_os = "macos") {
     "open"
@@ -34,14 +34,12 @@ pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), Command
         eprintln!("{}", builtin::bookmark(&folder, &places)?);
         return Ok(());
     }
-    let instruction = match picker_popup::popup_socket(socket_path) {
-        Some(socket) => picker_popup::pick(&socket, name, &config)?,
+    let socket = picker_popup::popup_socket(socket_path);
+    let instruction = match &socket {
+        Some(socket) => picker_popup::pick(socket, name, &config)?,
         None => pick(name, &config, Placement::Inline)?,
     };
-    if let Some(instruction) = instruction {
-        println!("{instruction}");
-    }
-    Ok(())
+    handing::answer(socket.as_deref(), instruction)
 }
 
 // Each step is one finder run; next, confirm, reload and Esc start the next run.
@@ -87,15 +85,7 @@ fn finish(action: &Action) -> Result<Option<String>, CommandError> {
     if let Action::Copy(text) = action {
         return copy_to_clipboard(text).map(|()| None).map_err(failed);
     }
-    let editor = ["EDITOR_CMD", "EDITOR"]
-        .iter()
-        .find_map(|name| {
-            env::var(name)
-                .ok()
-                .filter(|editor| !editor.trim().is_empty())
-        })
-        .unwrap_or_else(|| "nvim".to_string());
-    let editor = bare_program(&editor, env::var_os("PATH").as_deref());
+    let editor = editor();
     let cwd = env::current_dir().map_err(failed)?;
     let shell = Shell {
         editor: &editor,
@@ -104,6 +94,18 @@ fn finish(action: &Action) -> Result<Option<String>, CommandError> {
     };
     instruction(action, &shell)
         .map_err(|refusal| failed(format!("the editor {editor:?}: {refusal}")))
+}
+
+pub(crate) fn editor() -> String {
+    let editor = ["EDITOR_CMD", "EDITOR"]
+        .iter()
+        .find_map(|name| {
+            env::var(name)
+                .ok()
+                .filter(|editor| !editor.trim().is_empty())
+        })
+        .unwrap_or_else(|| "nvim".to_string());
+    bare_program(&editor, env::var_os("PATH").as_deref())
 }
 
 pub(crate) fn preview(cache: &Path, field: &str) -> Result<String, CommandError> {

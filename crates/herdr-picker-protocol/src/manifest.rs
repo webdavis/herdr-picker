@@ -1,7 +1,7 @@
-use herdr_picker_domain::JumpTarget;
+use herdr_picker_domain::{JumpTarget, Stroke};
 use serde::Serialize;
 
-use crate::popup::{CONFIGURED_PICKER_PANE, WORKSPACE_PICKER_PANE};
+use crate::popup::{CONFIGURED_PICKER_PANE, LAUNCHER_PANE, WORKSPACE_PICKER_PANE};
 
 pub const PLUGIN_ID: &str = "herdr-picker";
 const EXECUTABLE_FROM_PLUGIN_ROOT: &str = "./target/release/herdr-picker";
@@ -17,8 +17,8 @@ struct Manifest<'a> {
     platforms: [&'static str; 2],
     build: [BuildStep; 1],
     actions: Vec<Action>,
-    events: [Event; 1],
-    panes: [Pane; 2],
+    events: [Event; 2],
+    panes: [Pane; 3],
 }
 
 #[derive(Serialize)]
@@ -47,45 +47,69 @@ struct Pane {
     command: Vec<String>,
 }
 
+fn herdr_picker(arguments: &[&str]) -> Vec<String> {
+    std::iter::once(EXECUTABLE_FROM_PLUGIN_ROOT)
+        .chain(arguments.iter().copied())
+        .map(str::to_string)
+        .collect()
+}
+
+fn action(id: &str, title: &str, arguments: &[&str]) -> Action {
+    Action {
+        id: id.to_string(),
+        title: title.to_string(),
+        command: herdr_picker(arguments),
+    }
+}
+
+fn popup(id: &'static str, title: &'static str, subcommand: &str) -> Pane {
+    Pane {
+        id,
+        title,
+        placement: "popup",
+        command: herdr_picker(&[subcommand]),
+    }
+}
+
+// `bases` are the keys the launcher reads a second key after, such as ctrl-t; each gets an action.
 pub fn render_manifest(
     binary_version: &str,
     targets: &[JumpTarget],
+    bases: &[Stroke],
 ) -> Result<String, toml::ser::Error> {
     let mut actions: Vec<Action> = targets
         .iter()
-        .map(|target| Action {
-            id: target.action_id.clone(),
-            title: format!("Jump to the {} workspace", target.label),
-            command: vec![
-                EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
-                "jump".to_string(),
-                target.label.clone(),
-                target.directory.clone(),
-            ],
+        .map(|target| {
+            action(
+                &target.action_id,
+                &format!("Jump to the {} workspace", target.label),
+                &["jump", &target.label, &target.directory],
+            )
         })
         .collect();
-    actions.push(Action {
-        id: "last_workspace".to_string(),
-        title: "Last workspace (most-recently-used toggle)".to_string(),
-        command: vec![
-            EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
-            "last-workspace".to_string(),
-        ],
-    });
-    actions.push(Action {
-        id: PICKER_ACTION.to_string(),
-        title: "Pick a workspace".to_string(),
-        command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "popup".to_string()],
-    });
-    actions.push(Action {
-        id: "bookmark".to_string(),
-        title: "Bookmark the focused pane's folder".to_string(),
-        command: vec![
-            EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
-            "run".to_string(),
-            "bookmark".to_string(),
-        ],
-    });
+    actions.push(action(
+        "last_workspace",
+        "Last workspace (most-recently-used toggle)",
+        &["last-workspace"],
+    ));
+    actions.push(action(PICKER_ACTION, "Pick a workspace", &["popup"]));
+    actions.push(action(
+        "bookmark",
+        "Bookmark the focused pane's folder",
+        &["run", "bookmark"],
+    ));
+    actions.extend(bases.iter().map(|base| {
+        let name = base.name();
+        action(
+            &format!("launch_{}", name.replace('-', "_")),
+            &format!("Pickers on {name}, over the focused pane"),
+            &["launch", &name],
+        )
+    }));
+    let record = |on| Event {
+        on,
+        command: herdr_picker(&["record"]),
+    };
     let manifest = Manifest {
         id: PLUGIN_ID,
         name: "Picker",
@@ -94,37 +118,16 @@ pub fn render_manifest(
         description: "Workspace navigation herdr has no built-in for: create-or-focus by label, a most-recently-used toggle, and a workspace picker.",
         platforms: ["macos", "linux"],
         build: [BuildStep {
-            command: vec![
-                "cargo".to_string(),
-                "build".to_string(),
-                "--release".to_string(),
-                "--locked".to_string(),
-            ],
+            command: ["cargo", "build", "--release", "--locked"]
+                .map(str::to_string)
+                .to_vec(),
         }],
         actions,
-        events: [Event {
-            on: "workspace.focused",
-            command: vec![
-                EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
-                "record".to_string(),
-            ],
-        }],
+        events: [record("workspace.focused"), record("pane.focused")],
         panes: [
-            Pane {
-                id: WORKSPACE_PICKER_PANE,
-                title: "Workspace picker",
-                placement: "popup",
-                command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "pick".to_string()],
-            },
-            Pane {
-                id: CONFIGURED_PICKER_PANE,
-                title: "Picker",
-                placement: "popup",
-                command: vec![
-                    EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
-                    "run-in-popup".to_string(),
-                ],
-            },
+            popup(WORKSPACE_PICKER_PANE, "Workspace picker", "pick"),
+            popup(CONFIGURED_PICKER_PANE, "Picker", "run-in-popup"),
+            popup(LAUNCHER_PANE, "Picker launcher", "launcher"),
         ],
     };
     toml::to_string(&manifest)

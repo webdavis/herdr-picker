@@ -1,3 +1,4 @@
+use crate::new_pane::NewPane;
 use crate::picker_key::Key;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -69,4 +70,9 @@ pub enum Action {
     Reload,
     Back,
     Nothing,
+    // A run, edit or cd row's own action, opened in a new pane rather than the one underneath.
+    InPane {
+        pane: NewPane,
+        action: Box<Action>,
+    },
 }

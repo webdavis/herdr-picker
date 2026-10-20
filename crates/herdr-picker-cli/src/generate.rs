@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use herdr_picker_adapters::{read_config, write_manifest};
+use herdr_picker_domain::launcher_bases;
 
 use crate::command::{CommandError, config_path, failed};
 
@@ -12,8 +13,15 @@ struct Options {
 pub(crate) fn run(arguments: &[&str]) -> Result<(), CommandError> {
     let options = parse(arguments)?;
     let config = options.config.unwrap_or_else(config_path);
-    let targets = read_config(&config).map_err(failed)?.targets;
-    write_manifest(&options.output, env!("CARGO_PKG_VERSION"), &targets).map_err(failed)
+    let config = read_config(&config).map_err(failed)?;
+    let bases = launcher_bases(&config.pickers);
+    write_manifest(
+        &options.output,
+        env!("CARGO_PKG_VERSION"),
+        &config.targets,
+        &bases,
+    )
+    .map_err(failed)
 }
 
 fn parse(arguments: &[&str]) -> Result<Options, CommandError> {

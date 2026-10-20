@@ -1,5 +1,7 @@
 use super::*;
 
+const LAUNCHER_BASES: [Stroke; 2] = [Stroke::Ctrl('t'), Stroke::Ctrl('g')];
+
 const GOLDEN_MANIFEST: &str = r#"id = "herdr-picker"
 name = "Picker"
 version = "1.2.3"
@@ -50,8 +52,22 @@ id = "bookmark"
 title = "Bookmark the focused pane's folder"
 command = ["./target/release/herdr-picker", "run", "bookmark"]
 
+[[actions]]
+id = "launch_ctrl_t"
+title = "Pickers on ctrl-t, over the focused pane"
+command = ["./target/release/herdr-picker", "launch", "ctrl-t"]
+
+[[actions]]
+id = "launch_ctrl_g"
+title = "Pickers on ctrl-g, over the focused pane"
+command = ["./target/release/herdr-picker", "launch", "ctrl-g"]
+
 [[events]]
 on = "workspace.focused"
+command = ["./target/release/herdr-picker", "record"]
+
+[[events]]
+on = "pane.focused"
 command = ["./target/release/herdr-picker", "record"]
 
 [[panes]]
@@ -65,6 +81,12 @@ id = "run_picker"
 title = "Picker"
 placement = "popup"
 command = ["./target/release/herdr-picker", "run-in-popup"]
+
+[[panes]]
+id = "launcher"
+title = "Picker launcher"
+placement = "popup"
+command = ["./target/release/herdr-picker", "launcher"]
 "#;
 
 fn target(label: &str, directory: &str) -> JumpTarget {
@@ -88,14 +110,14 @@ fn five_targets() -> Vec<JumpTarget> {
 
 #[test]
 fn render_manifest_renders_one_action_per_target_in_the_order_given() {
-    let rendered = render_manifest("1.2.3", &five_targets()).expect("a manifest");
+    let rendered = render_manifest("1.2.3", &five_targets(), &LAUNCHER_BASES).expect("a manifest");
 
     assert_eq!(rendered, GOLDEN_MANIFEST);
 }
 
 #[test]
 fn render_manifest_carries_the_version_the_caller_passes() {
-    let rendered = render_manifest("0.9.4", &five_targets()).expect("a manifest");
+    let rendered = render_manifest("0.9.4", &five_targets(), &[]).expect("a manifest");
 
     assert!(rendered.contains("version = \"0.9.4\""), "{rendered}");
 }
@@ -104,7 +126,7 @@ fn render_manifest_carries_the_version_the_caller_passes() {
 fn render_manifest_escapes_a_label_that_would_otherwise_break_the_toml() {
     let awkward = target(r#"say "hi"\"#, "/opt/quoted");
 
-    let rendered = render_manifest("1.2.3", &[awkward]).expect("a manifest");
+    let rendered = render_manifest("1.2.3", &[awkward], &[]).expect("a manifest");
 
     let parsed: toml::Value = toml::from_str(&rendered).expect("the manifest parses back");
     assert_eq!(
@@ -116,7 +138,7 @@ fn render_manifest_escapes_a_label_that_would_otherwise_break_the_toml() {
 
 #[test]
 fn the_rendered_manifest_round_trips_with_argv_arrays_for_every_action() {
-    let rendered = render_manifest("1.2.3", &five_targets()).expect("a manifest");
+    let rendered = render_manifest("1.2.3", &five_targets(), &[]).expect("a manifest");
 
     let parsed: toml::Value = toml::from_str(&rendered).expect("the manifest parses back");
     let actions = parsed["actions"].as_array().expect("an array of actions");

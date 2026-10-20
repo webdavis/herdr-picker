@@ -3,22 +3,19 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use herdr_picker_adapters::{
-    FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, mru_file, read_config,
-    spawned_jump_log_file,
+    FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, read_config, spawned_jump_log_file,
 };
-use herdr_picker_application::record;
-use herdr_picker_protocol::parse_focused_id;
 use herdr_picker_protocol::{
     ACTIVE_WORKSPACE_VARIABLE, PICKER_CONFIG_VARIABLE, PICKER_NAME_VARIABLE,
     PICKER_RESULT_VARIABLE, SOCKET_PATH_VARIABLE,
 };
 
 use crate::{
-    builtin, generate, last_workspace, path::expand_tilde, pick, picker, picker_chrome,
-    picker_popup, popup, run,
+    builtin, generate, handing, last_workspace, launch, path::expand_tilde, pick, picker,
+    picker_chrome, picker_popup, popup, record, run,
 };
 
-pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker capture <output> <cwd> <category> <framework> -- <command>... | herdr-picker network ping <address> <page> | herdr-picker network wake <mac> <broadcast>... | herdr-picker init bash";
+pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker launch <base> | herdr-picker launcher | herdr-picker deliver <picker> <pane> --after-pid <pid> | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker live <rows-file> <query> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker git-preview <diff|stages|blob> <args> | herdr-picker capture <output> <cwd> <category> <framework> -- <command>... | herdr-picker network ping <address> <page> | herdr-picker network wake <mac> <broadcast>... | herdr-picker init bash";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -42,24 +39,11 @@ pub(crate) fn picker_config_path() -> PathBuf {
     env::var_os(PICKER_CONFIG_VARIABLE).map_or_else(config_path, PathBuf::from)
 }
 
-fn mru_path() -> PathBuf {
-    mru_file(
-        env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-    )
-}
-
 pub(crate) fn spawned_jump_log_path() -> PathBuf {
     spawned_jump_log_file(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
     )
-}
-
-pub(crate) fn record_at(state: &Path, event: &str) {
-    if let Some(new_id) = parse_focused_id(event) {
-        record(&mut FileWorkspaceHistory::at(state), &new_id);
-    }
 }
 
 fn jump_to(label: &str, raw_cwd: &str) -> Result<(), CommandError> {
@@ -102,7 +86,7 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ["last-workspace"] => last_workspace::run(
             env::var(SOCKET_PATH_VARIABLE).ok(),
             env::var("HERDR_BIN_PATH").ok(),
-            &mut FileWorkspaceHistory::at(&mru_path()),
+            &mut FileWorkspaceHistory::at(&record::mru_path()),
         )
         .map(|_| ())
         .map_err(|failure| {
@@ -112,11 +96,19 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         }),
         ["generate", options @ ..] => generate::run(options),
         ["record"] => {
-            record_at(
-                &mru_path(),
-                &env::var("HERDR_PLUGIN_EVENT_JSON").unwrap_or_default(),
-            );
+            record::run(&env::var("HERDR_PLUGIN_EVENT_JSON").unwrap_or_default());
             Ok(())
+        }
+        ["launch", base] => launch::open(
+            env::var(SOCKET_PATH_VARIABLE).ok(),
+            env::var("HERDR_PLUGIN_ID").ok(),
+            env::var("HERDR_PLUGIN_CONTEXT_JSON").ok(),
+            base,
+            &config_path(),
+        ),
+        ["launcher"] => launch::choose(),
+        ["deliver", name, target, pick::AFTER_PID, spawner] => {
+            handing::deliver(name, target, spawner)
         }
         ["run", name] => picker::run(env::var(SOCKET_PATH_VARIABLE).ok(), name),
         ["run-in-popup"] => picker_popup::answer_in_popup(

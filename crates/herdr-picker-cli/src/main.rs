@@ -1,7 +1,9 @@
 mod builtin;
 mod command;
 mod generate;
+mod handing;
 mod last_workspace;
+mod launch;
 mod path;
 mod pick;
 mod picker;
@@ -11,6 +13,7 @@ mod picker_popup;
 mod picker_step;
 mod popup;
 mod quickfix;
+mod record;
 mod run;
 
 use std::env;

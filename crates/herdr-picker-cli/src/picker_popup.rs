@@ -20,10 +20,22 @@ pub(crate) fn popup_socket(socket_path: Option<String>) -> Option<PathBuf> {
         .map(PathBuf::from)
 }
 
+// herdr refuses when this plugin is not linked or another popup is open: run in place.
 pub(crate) fn pick(
     socket: &Path,
     name: &str,
     config: &Path,
+) -> Result<Option<String>, CommandError> {
+    in_popup(socket, name, config, |_| {
+        picker::pick(name, config, Placement::Inline)
+    })
+}
+
+pub(crate) fn in_popup(
+    socket: &Path,
+    name: &str,
+    config: &Path,
+    refused: impl FnOnce(JumpError) -> Result<Option<String>, CommandError>,
 ) -> Result<Option<String>, CommandError> {
     let result = picker_result_file(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
@@ -41,9 +53,8 @@ pub(crate) fn pick(
         &result.to_string_lossy(),
         cwd.as_deref().map(Path::to_string_lossy).as_deref(),
     );
-    // herdr refuses when this plugin is not linked or another popup is open: run in place.
-    if open(socket, pane).is_err() {
-        return picker::pick(name, config, Placement::Inline);
+    if let Err(refusal) = open(socket, pane) {
+        return refused(refusal);
     }
     let answer = await_pane_result(&result, START_WITHIN);
     let _ = fs::remove_file(&result);

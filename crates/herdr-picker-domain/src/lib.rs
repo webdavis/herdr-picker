@@ -3,8 +3,10 @@ mod field;
 mod fuzzy;
 mod jump;
 mod keymap;
+mod launcher;
 mod look;
 mod mru;
+mod new_pane;
 mod pick;
 mod picker;
 mod picker_act;
@@ -16,6 +18,7 @@ mod picker_quickfix;
 mod picker_row;
 mod picker_trail;
 mod picker_view;
+mod place;
 mod popup;
 mod target;
 
@@ -24,8 +27,10 @@ pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Match, Matcher};
 pub use jump::{Jump, Workspace, decide};
 pub use keymap::{Keymap, Legend, PickKey, ReadlineKeymap};
+pub use launcher::{LauncherKeymap, launcher_base, launcher_bases, launcher_targets};
 pub use look::{RowLook, Theme, unstyled};
 pub use mru::{Bounce, Mru, decide_bounce, next_mru};
+pub use new_pane::NewPane;
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
 pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, pickers};
 pub use picker_act::{ActRefusal, act};
@@ -41,5 +46,6 @@ pub use picker_trail::{Page, Spot, Step, Trail, Turn};
 pub use picker_view::{
     View, ViewKey, ViewResponse, ViewState, chooser_entries, groups, press, shown,
 };
+pub use place::{Place, RECENT_PLACES, remember};
 pub use popup::{Size, popup_size, preview_popup_size};
 pub use target::{JumpTarget, TargetError, WorkspaceDeclaration, action_id, jump_targets};

@@ -28,7 +28,7 @@ pub(crate) fn run(
     .map_err(|failure| failed(format!("could not open the picker: {failure}")))
 }
 
-fn present(value: Option<String>, variable: &str) -> Result<String, CommandError> {
+pub(crate) fn present(value: Option<String>, variable: &str) -> Result<String, CommandError> {
     value.filter(|value| !value.is_empty()).ok_or_else(|| {
         failed(format!(
             "{variable} is unset, so herdr did not run this as the plugin's pick action"

@@ -1,4 +1,4 @@
-use herdr_picker_domain::{Location, PickerCall};
+use herdr_picker_domain::{Location, NewPane, PickerCall};
 
 use super::*;
 
@@ -152,4 +152,24 @@ fn cd_is_relative_under_the_cwd_and_absolute_elsewhere() {
 #[test]
 fn a_source_action_stays_inside_the_picker() {
     assert_eq!(line(&Action::Source("hidden".to_string())), None);
+}
+
+#[test]
+fn an_action_for_a_new_pane_leads_with_where_it_opens() {
+    let in_pane = |pane, action| Action::InPane {
+        pane,
+        action: Box::new(action),
+    };
+
+    assert_eq!(
+        line(&in_pane(
+            NewPane::Left,
+            edit(&[("/work/repo/a.rs", Some(4))])
+        )),
+        Some("left\trun\tnvim +4 a.rs".to_string())
+    );
+    assert_eq!(
+        line(&in_pane(NewPane::Tab, Action::Cd("/srv".to_string()))),
+        Some("tab\tcd\t/srv".to_string())
+    );
 }

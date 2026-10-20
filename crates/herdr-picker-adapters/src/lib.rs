@@ -10,10 +10,12 @@ mod history;
 mod keyboard;
 mod live_step;
 mod manifest;
+mod pane_handover;
 mod pane_result;
 mod path_preview;
 mod picker_files;
 mod picker_run;
+mod places;
 mod popup_host;
 mod private;
 mod process;
@@ -43,6 +45,7 @@ pub use history::FileWorkspaceHistory;
 pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step, save_step_command};
 pub use manifest::{ManifestError, write_manifest};
+pub use pane_handover::{HandoverError, SocketPanes, hand_over};
 pub use pane_result::{PaneWaitError, await_pane_result, write_pane_state};
 pub use path_preview::path_preview;
 pub use picker_files::{
@@ -50,6 +53,7 @@ pub use picker_files::{
     write_view,
 };
 pub use picker_run::{Picked, PickerRunError, run_picker};
+pub use places::{recent_places, record_place};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
 pub use program::{bare_program, on_path};
@@ -57,8 +61,8 @@ pub use quickfix::{open_quickfix, read_quickfix, save_quickfix, send_quickfix};
 pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
 pub use state::{
-    bookmarks_file, captures_dir, mru_file, picker_result_file, picker_rows_file, quickfix_file,
-    spawned_jump_log_file,
+    bookmarks_file, captures_dir, mru_file, picker_result_file, picker_rows_file, places_file,
+    quickfix_file, spawned_jump_log_file,
 };
 pub use walk::{Entry, Walk, walk};
 

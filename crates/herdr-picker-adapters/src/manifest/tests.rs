@@ -44,7 +44,7 @@ fn write_manifest_writes_the_plugin_manifest_and_replaces_an_existing_one() {
     let sandbox = TempDirectory::new("write");
     fs::write(sandbox.manifest(), "stale").expect("a stale manifest");
 
-    write_manifest(&sandbox.0, "1.2.3", &one_target()).expect("the manifest is written");
+    write_manifest(&sandbox.0, "1.2.3", &one_target(), &[]).expect("the manifest is written");
 
     let written = fs::read_to_string(sandbox.manifest()).expect("a manifest");
     assert!(written.contains("id = \"jump_netpulse\""), "{written}");
@@ -61,7 +61,7 @@ fn write_manifest_reports_a_directory_it_cannot_write() {
     let sandbox = TempDirectory::new("unwritable");
     let absent = sandbox.0.join("no-such-directory");
 
-    let refusal = write_manifest(&absent, "1.2.3", &one_target())
+    let refusal = write_manifest(&absent, "1.2.3", &one_target(), &[])
         .expect_err("a missing directory is refused");
 
     match &refusal {
@@ -81,7 +81,7 @@ fn write_manifest_removes_its_temporary_file_when_a_directory_in_its_place_fails
     let sandbox = TempDirectory::new("failed-rename");
     fs::create_dir_all(sandbox.manifest()).expect("a blocking directory");
 
-    let refusal = write_manifest(&sandbox.0, "1.2.3", &one_target())
+    let refusal = write_manifest(&sandbox.0, "1.2.3", &one_target(), &[])
         .expect_err("a directory in the manifest's place is refused");
 
     assert!(

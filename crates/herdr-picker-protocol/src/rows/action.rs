@@ -111,5 +111,6 @@ pub(super) fn from_action(action: &Action) -> WireAction {
         Action::Reload => return WireAction::Bare(Bare::Reload),
         Action::Nothing => return WireAction::Bare(Bare::None),
         Action::Back => return WireAction::Bare(Bare::Back),
+        Action::InPane { action, .. } => return from_action(action),
     })
 }

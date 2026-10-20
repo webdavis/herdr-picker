@@ -5,6 +5,16 @@ pub enum Stroke {
     Plain(char),
 }
 
+impl Stroke {
+    pub fn name(self) -> String {
+        match self {
+            Self::Ctrl(letter) => format!("ctrl-{letter}"),
+            Self::Alt(letter) => format!("alt-{letter}"),
+            Self::Plain(letter) => letter.to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Chord(Vec<Stroke>);
 

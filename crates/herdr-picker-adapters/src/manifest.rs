@@ -4,7 +4,7 @@ use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 
-use herdr_picker_domain::JumpTarget;
+use herdr_picker_domain::{JumpTarget, Stroke};
 use herdr_picker_protocol::render_manifest;
 
 const MANIFEST_NAME: &str = "herdr-plugin.toml";
@@ -32,8 +32,9 @@ pub fn write_manifest(
     directory: &Path,
     version: &str,
     targets: &[JumpTarget],
+    bases: &[Stroke],
 ) -> Result<(), ManifestError> {
-    let rendered = render_manifest(version, targets)
+    let rendered = render_manifest(version, targets, bases)
         .map_err(|failure| ManifestError::Unrenderable(failure.to_string()))?;
     let target = directory.join(MANIFEST_NAME);
     replace(directory, &target, rendered.as_bytes()).map_err(|failure| ManifestError::Unwritable {

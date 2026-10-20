@@ -18,6 +18,9 @@ pub fn mru_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
 pub fn spawned_jump_log_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
     plugin_state_dir(state_dir, home).join("jump.log")
 }
+pub fn places_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
+    plugin_state_dir(state_dir, home).join("places")
+}
 pub fn bookmarks_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
     plugin_state_dir(state_dir, home).join("bookmarks")
 }

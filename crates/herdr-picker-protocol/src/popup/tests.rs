@@ -119,3 +119,21 @@ fn a_configured_picker_without_a_known_folder_leaves_the_folder_to_herdr() {
 
     assert_eq!(request["params"].get("cwd"), None);
 }
+
+#[test]
+fn the_launcher_popup_carries_its_base_and_the_pane_under_it_and_opens_in_that_panes_folder() {
+    let pane = PopupPane::launcher("ctrl-g", "w1:p3", Some("/work/repo"));
+
+    assert_eq!(
+        parsed(&popup_request("req_1", "herdr-picker", SIZE, &pane))["params"],
+        json!({
+            "plugin_id": "herdr-picker",
+            "entrypoint": "launcher",
+            "placement": "popup",
+            "width": 129,
+            "height": 40,
+            "env": {"HERDR_PICKER_BASE": "ctrl-g", "HERDR_PICKER_TARGET": "w1:p3"},
+            "cwd": "/work/repo"
+        })
+    );
+}

@@ -59,6 +59,7 @@ fn verb(action: &Action) -> Option<&'static str> {
         Action::State(_) => "switch",
         Action::Reload => "reload",
         Action::Back => "back",
+        Action::InPane { .. } => "open in a new pane",
         Action::Nothing => return None,
     })
 }
@@ -84,6 +85,7 @@ fn detail(action: &Action) -> Option<String> {
         ),
         Action::Next(call) => Some(title(&call.name)),
         Action::Confirm { question, .. } => Some(question.clone()),
+        Action::InPane { action, .. } => detail(action),
         Action::State(_) | Action::Reload | Action::Back | Action::Nothing => None,
     }
 }

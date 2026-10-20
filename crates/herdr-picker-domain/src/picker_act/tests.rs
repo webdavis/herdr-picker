@@ -1,4 +1,5 @@
 use super::*;
+use crate::new_pane::NewPane;
 use crate::picker_row::{Location, PickerCall};
 
 fn row(enter: Action, keys: Vec<(&str, Action)>) -> PickerRow {
@@ -196,4 +197,46 @@ fn a_state_switch_on_several_rows_switches_once() {
     let second = row(Action::Nothing, vec![("alt-x", state.clone())]);
 
     assert_eq!(act(&[&first, &second], &key("alt-x")), Ok(state));
+}
+
+#[test]
+fn alt_h_j_k_l_n_open_a_run_edit_or_cd_row_in_a_new_pane_and_do_nothing_on_other_rows() {
+    let run = row(Action::Run("just test".to_string()), vec![]);
+    let folder = row(Action::Cd("/srv".to_string()), vec![]);
+    let file = row(edit("a.rs", Some(3)), vec![]);
+    let text = row(Action::Insert("main".to_string()), vec![]);
+    let in_pane = |pane, action| Action::InPane {
+        pane,
+        action: Box::new(action),
+    };
+
+    assert_eq!(
+        act(&[&run], &key("alt-l")),
+        Ok(in_pane(
+            NewPane::Right,
+            Action::Run("just test".to_string())
+        ))
+    );
+    assert_eq!(
+        act(&[&folder], &key("alt-n")),
+        Ok(in_pane(NewPane::Tab, Action::Cd("/srv".to_string())))
+    );
+    assert_eq!(
+        act(&[&file], &key("alt-h")),
+        Ok(in_pane(NewPane::Left, edit("a.rs", Some(3))))
+    );
+    assert_eq!(act(&[&text], &key("alt-j")), Ok(Action::Nothing));
+}
+
+#[test]
+fn a_row_that_claims_alt_l_itself_keeps_it() {
+    let claimed = row(
+        Action::Run("just test".to_string()),
+        vec![("alt-l", Action::Copy("log".to_string()))],
+    );
+
+    assert_eq!(
+        act(&[&claimed], &key("alt-l")),
+        Ok(Action::Copy("log".to_string()))
+    );
 }

@@ -1,6 +1,7 @@
 use std::fmt;
 use std::mem::discriminant;
 
+use crate::new_pane::NewPane;
 use crate::picker_key::Key;
 use crate::picker_row::{Action, PickerCall, PickerRow};
 
@@ -23,6 +24,17 @@ impl fmt::Display for ActRefusal {
 
 // What a key does to the marked rows, or to the highlighted one when none is marked.
 pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
+    if let Some(pane) = NewPane::of(key)
+        && rows.iter().all(|row| row.action(key).is_none())
+    {
+        return Ok(match act(rows, &Key::enter())? {
+            action @ (Action::Run(_) | Action::Edit(_) | Action::Cd(_)) => Action::InPane {
+                pane,
+                action: Box::new(action),
+            },
+            _ => Action::Nothing,
+        });
+    }
     let actions: Vec<&Action> = rows.iter().filter_map(|row| row.action(key)).collect();
     let Some(first) = actions.first().copied() else {
         return Ok(Action::Nothing);
@@ -66,6 +78,7 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
         Action::Run(_) => select_one("run"),
         Action::Open(_) => select_one("open"),
         Action::Confirm { .. } => select_one("confirm"),
+        Action::InPane { .. } => select_one("open in a new pane"),
     }
 }
 

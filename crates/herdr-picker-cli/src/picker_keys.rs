@@ -1,3 +1,4 @@
+use std::env;
 use std::path::Path;
 
 use herdr_picker_adapters::{
@@ -7,6 +8,8 @@ use herdr_picker_adapters::{
 use herdr_picker_domain::{
     Action, Key, PickerRow, Theme, ViewKey, ViewResponse, ViewState, act, groups, press,
 };
+
+use herdr_picker_protocol::SOCKET_PATH_VARIABLE;
 
 use crate::command::{CommandError, failed};
 use crate::picker_chrome::{QuotedHelper, rows_of};
@@ -83,6 +86,9 @@ fn act_on(rows: &[PickerRow], marked: &[usize], key: &Key, theme: Theme) -> Stri
     match act(&marked, key) {
         Err(refusal) => refused(&refusal.to_string()),
         Ok(Action::Nothing) => String::new(),
+        Ok(Action::InPane { .. }) if env::var_os(SOCKET_PATH_VARIABLE).is_none() => {
+            refused("A new pane opens only inside herdr")
+        }
         Ok(Action::CopyStay(text)) => match copy_to_clipboard(&text) {
             Ok(()) => change_footer("Copied"),
             Err(failure) => refused(&format!("Cannot copy: {failure}")),

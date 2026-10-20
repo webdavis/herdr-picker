@@ -68,7 +68,7 @@ impl SocketServer {
                         let request: serde_json::Value =
                             serde_json::from_str(&request).expect("focus request JSON");
                         assert_eq!(request["method"], "workspace.focus");
-                        crate::command::record_at(
+                        crate::record::record_at(
                             &state,
                             &serde_json::json!({
                                 "data": { "workspace_id": request["params"]["workspace_id"] }

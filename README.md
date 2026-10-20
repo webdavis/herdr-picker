@@ -163,6 +163,48 @@ popup once the popup's command exits, which would undo it, so `pick` spawns a de
 `jump <label> <cwd> --after-pid <pid>` and exits at once. That child waits for the popup to be gone
 before it asks herdr for anything, and gives up waiting after two seconds.
 
+## Pickers over any pane
+
+The pickers' shell keys, such as `ctrl-t f`, have a herdr twin: `prefix+ctrl+t f`. `generate` renders
+one `launch_` action per first key the pickers share, `launch_ctrl_t` and `launch_ctrl_g` with the
+built-in keys. Each opens a popup over the focused pane, drawn like the pick popup, listing the
+pickers on that key by the key that follows it. Typing that key starts the picker; enter searches
+the list. A picker whose second key holds ctrl, like the bookmark, is not offered there.
+
+```toml
+[[keys.command]]
+key = "prefix+ctrl+t"
+type = "plugin_action"
+command = "herdr-picker.launch_ctrl_t"
+
+[[keys.command]]
+key = "prefix+ctrl+g"
+type = "plugin_action"
+command = "herdr-picker.launch_ctrl_g"
+```
+
+The picker opens in its own popup in that pane's folder, and its result goes to that pane the way
+what runs there takes it:
+
+| Result | Shell | Claude or Codex |
+| --- | --- | --- |
+| Text or paths | typed | typed, paths as `@path` for Claude |
+| A command to finish | typed | `! <command>` typed |
+| A folder | `cd <folder>` run | `! cd <folder>` sent |
+| A command to run | run | `! <command>` sent |
+| An editor, `ssh`, `sudo`, `docker exec` | run | run in a new pane to the right |
+
+Before typing into an agent, herdr-picker reads its input line. If it holds typing, or the agent
+waits on a question, nothing is sent and a herdr notification says why; the draft is never
+cleared. Any other agent is refused the same way.
+
+On a row that runs, edits or changes folder, alt+h, alt+j, alt+k and alt+l open the result in a new
+pane left of, below, above or right of the pane underneath, and alt+n in a new tab. They work from
+the shell keys inside herdr too, and say so in the footer outside it.
+
+The `record` hook also runs on every pane focus and keeps the last 200 places, each pane and folder
+once, in `places` in the plugin's state folder, for a picker of recent places.
+
 ## Developing
 
 `just preview` builds the plugin and opens the picker in a throwaway herdr with your theme and

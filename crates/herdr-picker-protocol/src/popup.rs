@@ -10,7 +10,10 @@ pub const PICKER_NAME_VARIABLE: &str = "HERDR_PICKER_NAME";
 // so the config file the caller read travels under its own name.
 pub const PICKER_CONFIG_VARIABLE: &str = "HERDR_PICKER_CONFIG";
 pub const PICKER_RESULT_VARIABLE: &str = "HERDR_PICKER_RESULT";
+pub const PICKER_BASE_VARIABLE: &str = "HERDR_PICKER_BASE";
+pub const PICKER_TARGET_VARIABLE: &str = "HERDR_PICKER_TARGET";
 pub(crate) const WORKSPACE_PICKER_PANE: &str = "pick";
+pub(crate) const LAUNCHER_PANE: &str = "launcher";
 pub(crate) const CONFIGURED_PICKER_PANE: &str = "run_picker";
 
 pub struct PopupPane {
@@ -28,6 +31,20 @@ impl PopupPane {
                 .into_iter()
                 .collect(),
             cwd: None,
+        }
+    }
+
+    pub fn launcher(base: &str, target: &str, cwd: Option<&str>) -> Self {
+        Self {
+            entrypoint: LAUNCHER_PANE,
+            env: [
+                (PICKER_BASE_VARIABLE, base),
+                (PICKER_TARGET_VARIABLE, target),
+            ]
+            .into_iter()
+            .map(|(variable, value)| (variable.to_string(), value.into()))
+            .collect(),
+            cwd: cwd.map(str::to_string),
         }
     }
 

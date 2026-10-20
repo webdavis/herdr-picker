@@ -12,8 +12,8 @@ fn fixture(answer: bool) -> (SocketServer, RecordedCli, FileWorkspaceHistory) {
     let list = r#"{"result":{"workspaces":[{"workspace_id":"wA"},{"workspace_id":"wB"}]}}"#;
     let fake = RecordedCli::answering(list, "");
     let state = PathBuf::from(&fake.binary).with_file_name("mru");
-    crate::command::record_at(&state, r#"{"data":{"workspace_id":"wA"}}"#);
-    crate::command::record_at(&state, r#"{"data":{"workspace_id":"wB"}}"#);
+    crate::record::record_at(&state, r#"{"data":{"workspace_id":"wA"}}"#);
+    crate::record::record_at(&state, r#"{"data":{"workspace_id":"wB"}}"#);
     let history = FileWorkspaceHistory::at(&state);
     let server = SocketServer::start(vec![
         Reply::Line(list.into()),
