@@ -33,13 +33,12 @@ impl Format {
         }
     }
 
-    // The program that prints the file as JSON, for a format serde_json cannot read itself.
+    // The program that prints the file as JSON, for a format read by neither serde_json nor toon-format.
     pub(super) fn reader(self, path: &Path) -> Option<Vec<String>> {
         let path = path.to_string_lossy().into_owned();
         let argv: &[&str] = match self {
             Self::Yaml => &["yq", "-o", "json", "-I0"],
-            Self::Toon => &["toon", "--decode"],
-            Self::Json | Self::Lines | Self::Sqlite => return None,
+            Self::Json | Self::Lines | Self::Toon | Self::Sqlite => return None,
         };
         Some(
             argv.iter()
@@ -66,15 +65,6 @@ impl Output {
             Self::Json => "JSON",
             Self::Yaml => "YAML",
             Self::Toon => "TOON",
-        }
-    }
-
-    // The program that turns JSON on its input into this format.
-    pub(super) fn converter(self) -> Option<&'static [&'static str]> {
-        match self {
-            Self::Json => None,
-            Self::Yaml => Some(&["yq", "-p", "json", "-o", "yaml", "-"]),
-            Self::Toon => Some(&["toon", "--encode"]),
         }
     }
 }

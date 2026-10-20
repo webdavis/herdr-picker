@@ -39,5 +39,14 @@ fn the_format_menu_copies_with_secrets_hidden_and_alt_u_shows_them() {
                 .to_string()
         )
     );
-    assert!(rows[2].label.contains("TOON"), "{}", rows[2].label);
+    assert_eq!(rows[2].label, "TOON");
+    let toon = concat!(
+        "workspace:\n  ignoreGlobs[2]: *.log,dist\n",
+        "password: \"[hidden]\"\npayload: eyJ1c2VyIjoiYW5uIn0="
+    );
+    assert_eq!(rows[2].enter, Action::Copy(toon.to_string()));
+    assert_eq!(
+        on(&rows[2], "alt-u"),
+        Action::Copy(toon.replace("\"[hidden]\"", "hunter2"))
+    );
 }
