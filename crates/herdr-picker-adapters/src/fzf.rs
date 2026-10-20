@@ -1,10 +1,13 @@
-use herdr_picker_domain::{Theme, View, header};
+use herdr_picker_domain::{Theme, bindable_keys};
 
 use crate::screen::palette;
 
 mod chrome;
 
-pub use chrome::{chooser_lines, error_footer, finder_actions, list_lines};
+pub use chrome::{
+    change_footer, chooser_lines, error_footer, finder_actions, help_page, leave, list_lines,
+    step_footer,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Placement {
@@ -28,11 +31,12 @@ impl Helper<'_> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Chrome<'a> {
     pub helper: Helper<'a>,
-    pub name: &'a str,
+    pub header: &'a str,
     pub description: &'a str,
+    pub query: &'a str,
 }
 
-const LAYOUT: [&str; 14] = [
+const LAYOUT: [&str; 16] = [
     "--ansi",
     "--delimiter=\t",
     "--with-nth=2..",
@@ -48,32 +52,39 @@ const LAYOUT: [&str; 14] = [
     "--border=none",
     "--list-border=none",
     "--input-border=none",
+    "--multi",
+    "--print-query",
 ];
 
-const VIEW_KEYS: [(&str, &str); 3] = [
-    ("ctrl-space", "choose"),
-    ("enter", "enter {1}"),
-    ("esc", "back"),
-];
+const VIEW_KEYS: [(&str, &str); 2] = [("ctrl-space", "choose"), ("esc", "back")];
 
 pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec<String> {
     let helper = chrome.helper;
     let mut arguments: Vec<String> = LAYOUT.iter().map(|argument| argument.to_string()).collect();
     arguments.push(format!("--preview={}", helper.call("preview", " {1}")));
     arguments.push("--preview-window=right,50%,border-left".to_string());
-    arguments.push(format!(
-        "--header={}",
-        header(chrome.name, &View::Streamed, &[])
-    ));
+    arguments.push(format!("--header={}", chrome.header));
+    arguments.push(format!("--query={}", chrome.query));
     if !chrome.description.is_empty() {
         arguments.push(format!("--footer={}", chrome.description));
     }
     arguments.push(format!(
         "--bind=load:transform-header({})+transform({})",
-        helper.call("header", &format!(" {}", chrome.name)),
+        helper.call("header", ""),
         helper.call("view", " load")
     ));
-    for (key, event) in VIEW_KEYS {
+    arguments.push(format!(
+        "--bind=focus:transform-footer({})",
+        helper.call("footer", " {1}")
+    ));
+    arguments.push(format!(
+        "--bind=f1:preview({})",
+        helper.call("help", " {1}")
+    ));
+    let row_keys =
+        bindable_keys().map(|key| (key.name().to_string(), format!("key {} {{+1}}", key.name())));
+    let view_keys = VIEW_KEYS.map(|(key, event)| (key.to_string(), event.to_string()));
+    for (key, event) in view_keys.into_iter().chain(row_keys) {
         arguments.push(format!(
             "--bind={key}:transform({})",
             helper.call("view", &format!(" {event}"))

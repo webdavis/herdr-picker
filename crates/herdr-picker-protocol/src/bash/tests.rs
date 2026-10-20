@@ -1,6 +1,4 @@
-use std::path::PathBuf;
-
-use herdr_picker_domain::Chord;
+use herdr_picker_domain::{Chord, PickerCommand};
 
 use super::*;
 
@@ -9,7 +7,8 @@ fn picker(name: &str, key: &str) -> Picker {
         name: name.to_string(),
         chord: Chord::parse(key).expect("a chord"),
         description: String::new(),
-        command: PathBuf::from("/unused"),
+        command: PickerCommand::Builtin("unused".to_string()),
+        args: Vec::new(),
     }
 }
 

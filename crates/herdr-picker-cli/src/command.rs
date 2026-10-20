@@ -14,11 +14,11 @@ use herdr_picker_protocol::{
 };
 
 use crate::{
-    generate, last_workspace, path::expand_tilde, pick, picker, picker_chrome, picker_popup, popup,
-    run,
+    builtin, generate, last_workspace, path::expand_tilde, pick, picker, picker_chrome,
+    picker_popup, popup, run,
 };
 
-pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> <picker> | herdr-picker rows <rows-file> | herdr-picker view <rows-file> load|choose|enter <index>|back | herdr-picker footer <rows-file> | herdr-picker init bash";
+pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> | herdr-picker rows <rows-file> | herdr-picker view <rows-file> load|choose|back|key <key> <index>... | herdr-picker footer <rows-file> [index] | herdr-picker help <rows-file> [index] | herdr-picker builtin <name> [args] | herdr-picker init bash";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -128,11 +128,14 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             picker::preview(Path::new(cache), index).map(|preview| print!("{preview}"))
         }
         [
-            part @ ("header" | "rows" | "view" | "footer"),
+            part @ ("header" | "rows" | "view" | "footer" | "help"),
             cache,
             rest @ ..,
         ] => picker_chrome::answer(part, Path::new(cache), rest, &picker_config_path())
             .map(|answer| print!("{answer}")),
+        ["builtin", name, arguments @ ..] => {
+            builtin::rows(name, arguments).map(|rows| print!("{rows}"))
+        }
         ["init", shell] => picker::init(shell, &config_path()).map(|script| print!("{script}")),
         _ => Err(CommandError::Usage),
     }

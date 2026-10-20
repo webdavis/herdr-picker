@@ -4,8 +4,9 @@ const EVERY_GROUP: &str = "all";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum View {
-    // The rows as the command printed them, before the list draws a group column.
-    Streamed,
+    // The rows as the command printed them, before the list draws a group column; the group is
+    // the one to filter to once they load, when Esc came back to this step.
+    Streamed { group: Option<String> },
     List { group: Option<String> },
     Chooser { group: Option<String> },
 }
@@ -15,6 +16,8 @@ pub enum ViewKey {
     Loaded,
     Choose,
     Enter(Option<usize>),
+    // A row's key other than enter.
+    Other,
     Back,
 }
 
@@ -24,8 +27,16 @@ pub enum ViewResponse {
     OpenChooser,
     CloseChooser,
     Accept,
-    Abort,
+    Back,
     Stay,
+}
+
+// What the callbacks fzf runs during one step need to know about it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ViewState {
+    pub view: View,
+    pub titles: Vec<String>,
+    pub description: String,
 }
 
 pub fn groups(rows: &[PickerRow]) -> Vec<String> {
@@ -52,8 +63,8 @@ pub fn shown<'a>(rows: &'a [PickerRow], view: &View) -> Vec<(usize, &'a PickerRo
         .collect()
 }
 
-pub fn header(name: &str, view: &View, groups: &[String]) -> String {
-    let title = title(name);
+pub fn header(titles: &[String], view: &View, groups: &[String]) -> String {
+    let title = titles.join(" › ");
     match view {
         View::Chooser { .. } => format!("{title} › Choose source"),
         _ if groups.is_empty() => title,
@@ -62,7 +73,7 @@ pub fn header(name: &str, view: &View, groups: &[String]) -> String {
     }
 }
 
-fn title(name: &str) -> String {
+pub fn title(name: &str) -> String {
     name.split(['-', '_'])
         .map(|word| {
             let mut letters = word.chars();
@@ -78,9 +89,12 @@ fn title(name: &str) -> String {
 pub fn press(view: &View, key: ViewKey, groups: &[String]) -> (View, ViewResponse) {
     let stay = (view.clone(), ViewResponse::Stay);
     match (view, key) {
-        (View::Streamed, ViewKey::Loaded) if !groups.is_empty() => {
-            (View::List { group: None }, ViewResponse::Redraw)
-        }
+        (View::Streamed { group }, ViewKey::Loaded) if !groups.is_empty() => (
+            View::List {
+                group: group.clone().filter(|group| groups.contains(group)),
+            },
+            ViewResponse::Redraw,
+        ),
         (View::List { group }, ViewKey::Choose) => (
             View::Chooser {
                 group: group.clone(),
@@ -105,10 +119,12 @@ pub fn press(view: &View, key: ViewKey, groups: &[String]) -> (View, ViewRespons
             },
             ViewResponse::CloseChooser,
         ),
-        (View::Streamed | View::List { .. }, ViewKey::Enter(_)) => {
+        (View::Streamed { .. } | View::List { .. }, ViewKey::Enter(_) | ViewKey::Other) => {
             (view.clone(), ViewResponse::Accept)
         }
-        (View::Streamed | View::List { .. }, ViewKey::Back) => (view.clone(), ViewResponse::Abort),
+        (View::Streamed { .. } | View::List { .. }, ViewKey::Back) => {
+            (view.clone(), ViewResponse::Back)
+        }
         _ => stay,
     }
 }

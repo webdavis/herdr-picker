@@ -1,10 +1,13 @@
 use super::*;
 
+mod actions;
+
 fn row(label: &str, preview: Option<&str>, enter: Action) -> PickerRow {
     PickerRow {
         label: label.to_string(),
         preview: preview.map(str::to_string),
         enter,
+        keys: Vec::new(),
         group: None,
     }
 }
@@ -52,7 +55,7 @@ fn a_bad_line_is_refused_naming_its_line_number() {
     for bad in [
         "not json",
         r#"{"label":"main"}"#,
-        r#"{"label":"main","enter":{"open":"main"}}"#,
+        r#"{"label":"main","enter":{"launch":"main"}}"#,
         r#"{"label":"main","enter":{"insert":"main"},"extra":1}"#,
     ] {
         let refusal = parse_row(bad, 7).expect_err("a bad line is refused");
@@ -75,28 +78,6 @@ fn a_label_that_spans_lines_is_refused_since_the_finder_reads_one_row_per_line()
         refusal.to_string(),
         "line 2 is not a picker row: the label spans more than one line"
     );
-}
-
-#[test]
-fn every_action_but_copy_becomes_one_instruction_line_for_the_shell() {
-    assert_eq!(
-        instruction(&Action::Insert("git switch main".to_string())),
-        Some("insert\tgit switch main".to_string())
-    );
-    assert_eq!(
-        instruction(&Action::Cd("/opt/repo".to_string())),
-        Some("cd\t/opt/repo".to_string())
-    );
-    assert_eq!(
-        instruction(&Action::Run("just test".to_string())),
-        Some("run\tjust test".to_string())
-    );
-    assert_eq!(instruction(&Action::Copy("abc123".to_string())), None);
-}
-
-#[test]
-fn shell_quote_survives_spaces_and_single_quotes() {
-    assert_eq!(shell_quote("/tmp/my dir/it's"), r"'/tmp/my dir/it'\''s'");
 }
 
 #[test]

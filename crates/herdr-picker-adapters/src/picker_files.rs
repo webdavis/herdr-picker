@@ -2,8 +2,8 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use herdr_picker_domain::{PickerRow, View};
-use herdr_picker_protocol::{encode_view, parse_row, parse_view};
+use herdr_picker_domain::{PickerRow, ViewState};
+use herdr_picker_protocol::{encode_view_state, parse_row, parse_view_state};
 
 pub fn picker_view_file(cache: &Path) -> PathBuf {
     cache.with_extension("view")
@@ -21,12 +21,15 @@ pub fn cached_rows(cache: &Path) -> io::Result<Vec<PickerRow>> {
         .collect())
 }
 
-pub fn read_view(cache: &Path) -> View {
-    parse_view(&fs::read_to_string(picker_view_file(cache)).unwrap_or_default())
+pub fn read_view(cache: &Path) -> ViewState {
+    parse_view_state(&fs::read_to_string(picker_view_file(cache)).unwrap_or_default())
 }
 
-pub fn write_view(cache: &Path, view: &View) -> io::Result<()> {
-    fs::write(picker_view_file(cache), encode_view(view))
+pub fn write_view(cache: &Path, state: &ViewState) -> io::Result<()> {
+    if let Some(directory) = cache.parent() {
+        fs::create_dir_all(directory)?;
+    }
+    fs::write(picker_view_file(cache), encode_view_state(state))
 }
 
 pub fn read_run_error(cache: &Path) -> Option<String> {

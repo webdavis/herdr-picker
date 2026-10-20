@@ -1,3 +1,4 @@
+mod builtin;
 mod command;
 mod generate;
 mod last_workspace;
@@ -5,7 +6,9 @@ mod path;
 mod pick;
 mod picker;
 mod picker_chrome;
+mod picker_keys;
 mod picker_popup;
+mod picker_step;
 mod popup;
 mod run;
 

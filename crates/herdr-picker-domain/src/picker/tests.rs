@@ -5,7 +5,8 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         name: name.to_string(),
         key: key.to_string(),
         description: format!("{name} picker"),
-        command: PathBuf::from(format!("/config/pickers/{name}.sh")),
+        command: PickerCommand::Program(vec![format!("/config/pickers/{name}.sh")]),
+        args: Vec::new(),
     }
 }
 
@@ -23,13 +24,15 @@ fn pickers_parse_each_key_into_a_chord_and_keep_the_rest() {
                 name: "branches".to_string(),
                 chord: Chord::parse("ctrl-g b").expect("a chord"),
                 description: "branches picker".to_string(),
-                command: PathBuf::from("/config/pickers/branches.sh"),
+                command: PickerCommand::Program(vec!["/config/pickers/branches.sh".to_string()]),
+                args: Vec::new(),
             },
             Picker {
                 name: "files".to_string(),
                 chord: Chord::parse("ctrl-t f").expect("a chord"),
                 description: "files picker".to_string(),
-                command: PathBuf::from("/config/pickers/files.sh"),
+                command: PickerCommand::Program(vec!["/config/pickers/files.sh".to_string()]),
+                args: Vec::new(),
             },
         ])
     );

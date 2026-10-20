@@ -20,8 +20,8 @@ pub use cli::CliWorkspaceDirectory;
 pub use clipboard::copy_to_clipboard;
 pub use config::{ConfigError, PluginConfig, config_file, read_config};
 pub use fzf::{
-    Chrome, Helper, Placement, chooser_lines, error_footer, finder_actions, fzf_arguments,
-    list_lines,
+    Chrome, Helper, Placement, change_footer, chooser_lines, error_footer, finder_actions,
+    fzf_arguments, help_page, leave, list_lines, step_footer,
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
@@ -31,7 +31,7 @@ pub use pane_result::{PaneWaitError, await_pane_result, write_pane_state};
 pub use picker_files::{
     cached_rows, picker_error_file, read_run_error, read_view, remove_run_files, write_view,
 };
-pub use picker_run::{PickerRunError, run_picker};
+pub use picker_run::{Picked, PickerRunError, run_picker};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
 pub use screen::{Layout, TerminalScreen};

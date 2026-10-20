@@ -35,10 +35,10 @@ impl Sandbox {
         self.0.join("rows.jsonl")
     }
 
-    fn run(&self, picker: &str, finder: &str) -> Result<Option<PickerRow>, PickerRunError> {
+    fn run(&self, picker: &str, finder: &str) -> Result<Option<Picked>, PickerRunError> {
         let finder_arguments = ["-c".to_string(), finder.to_string()];
         run_picker(
-            &self.picker(picker),
+            &mut Command::new(self.picker(picker)),
             Path::new("/bin/sh"),
             &finder_arguments,
             &self.cache(),
@@ -53,20 +53,32 @@ impl Drop for Sandbox {
 }
 
 #[test]
-fn the_finder_reads_index_tab_label_lines_and_its_pick_is_the_row_returned() {
+fn the_finder_reads_index_tab_label_lines_and_answers_its_query_key_and_marked_rows() {
     let sandbox = Sandbox::new("pick");
     let seen = sandbox.0.join("seen");
-    let finder = format!("tee '{}' | grep beta", seen.display());
+    let finder = format!(
+        "tee '{}' | grep -v beta | {{ printf 'ga\\nctrl-o\\n'; cat; }}",
+        seen.display()
+    );
 
     let picked = sandbox.run(&format!("cat <<'ROWS'\n{THREE_ROWS}\nROWS"), &finder);
 
+    let row = |label: &str, enter: Action| PickerRow {
+        label: label.to_string(),
+        preview: None,
+        enter,
+        keys: Vec::new(),
+        group: None,
+    };
     assert_eq!(
         picked,
-        Ok(Some(PickerRow {
-            label: "beta".to_string(),
-            preview: Some("the second".to_string()),
-            enter: Action::Cd("/opt/beta".to_string()),
-            group: None,
+        Ok(Some(Picked {
+            query: "ga".to_string(),
+            key: "ctrl-o".to_string(),
+            rows: vec![
+                row("alpha", Action::Insert("a".to_string())),
+                row("gamma", Action::Run("echo gamma".to_string())),
+            ],
         }))
     );
     assert_eq!(
@@ -152,11 +164,11 @@ fn a_pick_made_while_the_picker_still_prints_stops_the_picker() {
 
     let picked = sandbox.run(
         r#"echo '{"label":"alpha","enter":{"insert":"a"}}'; sleep 30; echo late"#,
-        "head -n 1",
+        "printf '\\nenter\\n'; head -n 1",
     );
 
     assert_eq!(
-        picked.map(|row| row.map(|row| row.label)),
+        picked.map(|picked| picked.map(|picked| picked.rows[0].label.clone())),
         Ok(Some("alpha".to_string()))
     );
     assert!(
@@ -169,8 +181,13 @@ fn a_pick_made_while_the_picker_still_prints_stops_the_picker() {
 fn a_picker_command_that_cannot_start_is_refused_naming_it() {
     let missing = Path::new("/nonexistent/pickers/files.sh");
 
-    let refusal = run_picker(missing, Path::new("/bin/sh"), &[], Path::new("/tmp/unused"))
-        .expect_err("a missing command is refused");
+    let refusal = run_picker(
+        &mut Command::new(missing),
+        Path::new("/bin/sh"),
+        &[],
+        Path::new("/tmp/unused"),
+    )
+    .expect_err("a missing command is refused");
 
     assert!(
         refusal

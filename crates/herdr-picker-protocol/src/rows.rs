@@ -1,7 +1,17 @@
+use std::collections::BTreeMap;
 use std::fmt;
 
-use herdr_picker_domain::{Action, PickerRow};
-use serde::Deserialize;
+use herdr_picker_domain::{Action, Key, PickerRow};
+use serde::{Deserialize, Serialize};
+
+mod action;
+mod wire;
+
+use action::{from_action, into_action};
+use wire::{WireAction, Words};
+
+// The state a next action hands the picker it opens, as the JSON the action carried.
+pub const PICKER_STATE_VARIABLE: &str = "HERDR_PICKER_STATE";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RowError {
@@ -19,22 +29,19 @@ impl fmt::Display for RowError {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct WireRow {
     label: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     preview: Option<String>,
     enter: WireAction,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    keys: BTreeMap<String, WireAction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value: Option<Words>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     group: Option<String>,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum WireAction {
-    Insert(String),
-    Copy(String),
-    Cd(String),
-    Run(String),
 }
 
 pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
@@ -54,15 +61,20 @@ pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
     {
         return Err(refusal("the group holds a control character".to_string()));
     }
+    let value = wire.value.as_ref();
+    let mut keys: Vec<(Key, Action)> = Vec::new();
+    for (name, action) in wire.keys {
+        let key = claimable(&name).map_err(refusal)?;
+        if keys.iter().any(|(claimed, _)| *claimed == key) {
+            return Err(refusal(format!("{name} is a key the row already claims")));
+        }
+        keys.push((key, into_action(action, value).map_err(refusal)?));
+    }
     Ok(PickerRow {
         label: wire.label,
         preview: wire.preview,
-        enter: match wire.enter {
-            WireAction::Insert(text) => Action::Insert(text),
-            WireAction::Copy(text) => Action::Copy(text),
-            WireAction::Cd(path) => Action::Cd(path),
-            WireAction::Run(command) => Action::Run(command),
-        },
+        enter: into_action(wire.enter, value).map_err(refusal)?,
+        keys,
         group: wire
             .group
             .filter(|group| !group.is_empty())
@@ -70,17 +82,37 @@ pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
     })
 }
 
-pub fn instruction(action: &Action) -> Option<String> {
-    match action {
-        Action::Insert(text) => Some(format!("insert\t{text}")),
-        Action::Cd(path) => Some(format!("cd\t{path}")),
-        Action::Run(command) => Some(format!("run\t{command}")),
-        Action::Copy(_) => None,
+fn claimable(name: &str) -> Result<Key, String> {
+    match Key::parse(name) {
+        Some(key) if key != Key::enter() => Ok(key),
+        Some(_) => Err("enter belongs in the row's enter field".to_string()),
+        None => Err(format!("{name} is not a key a row can claim")),
     }
 }
 
-pub fn shell_quote(text: &str) -> String {
-    format!("'{}'", text.replace('\'', r"'\''"))
+pub fn encode_row(row: &PickerRow) -> String {
+    let wire = WireRow {
+        label: row.label.clone(),
+        preview: row.preview.clone(),
+        enter: from_action(&row.enter),
+        keys: row
+            .keys
+            .iter()
+            .map(|(key, action)| (key.name().to_string(), from_action(action)))
+            .collect(),
+        value: None,
+        group: row.group.clone(),
+    };
+    serde_json::to_string(&wire).expect("a row always encodes")
+}
+
+pub fn parse_action(text: &str) -> Result<Action, String> {
+    let wire: WireAction = serde_json::from_str(text).map_err(|failure| failure.to_string())?;
+    into_action(wire, None)
+}
+
+pub fn encode_action(action: &Action) -> String {
+    serde_json::to_string(&from_action(action)).expect("an action always encodes")
 }
 
 #[cfg(test)]

@@ -1,4 +1,14 @@
+use herdr_picker_domain::View;
+
 use super::*;
+
+fn state(view: View) -> ViewState {
+    ViewState {
+        view,
+        titles: vec!["Files".to_string()],
+        description: "Every file".to_string(),
+    }
+}
 
 struct Sandbox(PathBuf);
 
@@ -40,11 +50,11 @@ fn a_runs_view_and_error_sit_beside_its_rows_cache() {
 fn a_run_without_a_view_file_shows_the_streamed_rows_until_one_is_written() {
     let sandbox = Sandbox::new("view");
     let cache = sandbox.cache();
-    assert_eq!(read_view(&cache), View::Streamed);
+    assert_eq!(read_view(&cache).view, View::Streamed { group: None });
 
-    let chooser = View::Chooser {
+    let chooser = state(View::Chooser {
         group: Some("local".to_string()),
-    };
+    });
     write_view(&cache, &chooser).expect("the view is written");
 
     assert_eq!(read_view(&cache), chooser);
@@ -55,7 +65,7 @@ fn removing_a_runs_files_leaves_none_behind() {
     let sandbox = Sandbox::new("remove");
     let cache = sandbox.cache();
     fs::write(&cache, "{}\n").expect("a cache");
-    write_view(&cache, &View::Streamed).expect("a view");
+    write_view(&cache, &state(View::Streamed { group: None })).expect("a view");
     fs::write(picker_error_file(&cache), "line 2 is bad").expect("an error");
     assert_eq!(read_run_error(&cache), Some("line 2 is bad".to_string()));
 
@@ -66,4 +76,14 @@ fn removing_a_runs_files_leaves_none_behind() {
         0,
         "every run file is gone"
     );
+}
+
+#[test]
+fn the_first_view_of_a_run_creates_the_state_directory() {
+    let sandbox = Sandbox::new("fresh");
+    let cache = sandbox.0.join("state/picker-rows-7.jsonl");
+
+    write_view(&cache, &state(View::Streamed { group: None })).expect("the view is written");
+
+    assert_eq!(read_view(&cache), state(View::Streamed { group: None }));
 }

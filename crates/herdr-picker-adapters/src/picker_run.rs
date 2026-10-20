@@ -1,7 +1,7 @@
 use std::fs::{File, create_dir_all};
 use std::io;
 use std::os::unix::process::CommandExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -18,21 +18,28 @@ mod feed;
 
 pub use error::PickerRunError;
 
+// What the finder answered: its query, the key that closed it, and the rows it marked.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Picked {
+    pub query: String,
+    pub key: String,
+    pub rows: Vec<PickerRow>,
+}
+
 const RESIGNAL_EVERY: Duration = Duration::from_millis(20);
 
 pub fn run_picker(
-    command: &Path,
+    command: &mut Command,
     finder: &Path,
     finder_arguments: &[String],
     cache: &Path,
-) -> Result<Option<PickerRow>, PickerRunError> {
+) -> Result<Option<Picked>, PickerRunError> {
     // Its own process group, so stopping it also stops whatever it spawned to print rows.
     let mut source = spawn(
-        Command::new(command)
+        command
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .process_group(0),
-        command,
     )?;
     let (mut finder_process, cache_file) = match start_finder(finder, finder_arguments, cache) {
         Ok(started) => started,
@@ -85,7 +92,6 @@ fn start_finder(
             .args(arguments)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped()),
-        finder,
     )?;
     Ok((finder_process, cache_file))
 }
@@ -97,19 +103,25 @@ fn create_cache(cache: &Path) -> io::Result<File> {
     File::create(cache)
 }
 
-fn spawn(command: &mut Command, program: &Path) -> Result<Child, PickerRunError> {
+fn spawn(command: &mut Command) -> Result<Child, PickerRunError> {
     command
         .spawn()
         .map_err(|failure| PickerRunError::CannotStart {
-            program: program.to_owned(),
+            program: PathBuf::from(command.get_program()),
             reason: failure.to_string(),
         })
 }
 
-fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<PickerRow> {
+// The finder prints the query, then the key, then one index-tab-label line per marked row.
+fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<Picked> {
     let picked = String::from_utf8_lossy(picked);
-    let index: usize = picked.split('\t').next()?.trim().parse().ok()?;
-    rows.into_iter().nth(index)
+    let mut lines = picked.lines();
+    let (query, key) = (lines.next()?.to_string(), lines.next()?.to_string());
+    let rows = lines
+        .filter_map(|line| line.split('\t').next()?.trim().parse::<usize>().ok())
+        .filter_map(|index| rows.get(index).cloned())
+        .collect();
+    Some(Picked { query, key, rows })
 }
 
 fn stop(source: &mut Child) {

@@ -1,5 +1,4 @@
 use std::fmt;
-use std::path::PathBuf;
 
 use crate::chord::Chord;
 
@@ -8,7 +7,16 @@ pub struct PickerDeclaration {
     pub name: String,
     pub key: String,
     pub description: String,
-    pub command: PathBuf,
+    pub command: PickerCommand,
+    pub args: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PickerCommand {
+    // The program, then its own arguments.
+    Program(Vec<String>),
+    // One of herdr-picker's own pickers, by name.
+    Builtin(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,11 +24,19 @@ pub struct Picker {
     pub name: String,
     pub chord: Chord,
     pub description: String,
-    pub command: PathBuf,
+    pub command: PickerCommand,
+    pub args: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PickerError {
+    UnclearCommand {
+        name: String,
+    },
+    UnusableCommand {
+        name: String,
+        command: String,
+    },
     UnusableName {
         name: String,
     },
@@ -38,6 +54,14 @@ pub enum PickerError {
 impl fmt::Display for PickerError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::UnclearCommand { name } => write!(
+                formatter,
+                "the picker {name} needs exactly one of command or builtin"
+            ),
+            Self::UnusableCommand { name, command } => write!(
+                formatter,
+                "the picker {name} runs {command:?}, which is not a program then its arguments"
+            ),
             Self::UnusableName { name } => write!(
                 formatter,
                 "the picker name {name:?} is not only letters, digits, - and _"
@@ -78,6 +102,7 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
         key,
         description,
         command,
+        args,
     } = declaration;
     if !is_bare_word(&name) {
         return Err(PickerError::UnusableName { name });
@@ -90,6 +115,7 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
         chord,
         description,
         command,
+        args,
     })
 }
 

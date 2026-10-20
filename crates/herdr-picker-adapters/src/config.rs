@@ -2,16 +2,14 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use herdr_picker_domain::{
-    JumpTarget, Picker, RowLook, Theme, WorkspaceDeclaration, jump_targets, pickers,
-};
+use herdr_picker_domain::{JumpTarget, Picker, RowLook, Theme, WorkspaceDeclaration, jump_targets};
 use serde::Deserialize;
 
 mod error;
 mod pickers;
 
 pub use error::ConfigError;
-use pickers::PickerEntry;
+use pickers::{PickerEntry, declared_pickers};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginConfig {
@@ -130,16 +128,13 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
             cause,
         })?,
     };
-    let pickers_directory = path.with_file_name("pickers");
-    let pickers = pickers(
-        file.pickers
-            .into_iter()
-            .map(|(name, entry)| entry.declared(name, &pickers_directory)),
-    )
-    .map_err(|cause| ConfigError::InvalidPicker {
-        path: path.to_owned(),
-        cause,
-    })?;
+    let pickers =
+        declared_pickers(file.pickers, &path.with_file_name("pickers")).map_err(|cause| {
+            ConfigError::InvalidPicker {
+                path: path.to_owned(),
+                cause,
+            }
+        })?;
     let PickerTable {
         leaders,
         stripes,
