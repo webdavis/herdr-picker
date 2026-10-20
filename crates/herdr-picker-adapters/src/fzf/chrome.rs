@@ -1,4 +1,4 @@
-use herdr_picker_domain::{PickerRow, Theme, View, ViewResponse, chooser_entries, shown};
+use herdr_picker_domain::{PickerRow, Theme, View, ViewResponse, shown};
 
 use super::Helper;
 use crate::screen::palette;
@@ -27,9 +27,12 @@ pub fn list_lines(rows: &[PickerRow], view: &View) -> Vec<String> {
         .collect()
 }
 
-pub fn chooser_lines(groups: &[String]) -> Vec<String> {
-    chooser_entries(groups)
-        .into_iter()
+// What fzf prints in place of a key when the user picks another source in the chooser.
+pub const SWITCH_SOURCE: &str = "source";
+
+pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
+    entries
+        .iter()
         .enumerate()
         .map(|(index, entry)| format!("{index}\t{entry}"))
         .collect()
@@ -44,6 +47,7 @@ pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool) -> S
         ViewResponse::Accept => vec!["accept".into()],
         // Esc closes fzf the way a row key does, so the run can go back a step instead of closing.
         ViewResponse::Back => vec![leave("esc")],
+        ViewResponse::Switch(_) => vec![leave(SWITCH_SOURCE)],
         ViewResponse::Stay => Vec::new(),
     };
     if failed {

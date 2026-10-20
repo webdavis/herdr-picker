@@ -64,3 +64,23 @@ fn help_lists_the_rows_keys_in_detail_then_the_keys_every_picker_has() {
     );
     assert_eq!(help_entries(None, false).len(), 3);
 }
+
+#[test]
+fn a_source_key_reads_as_show_and_names_the_source() {
+    let toggle = PickerRow {
+        label: "notes.txt".to_string(),
+        preview: None,
+        enter: Action::Nothing,
+        keys: vec![(
+            Key::parse("alt-.").expect("a key"),
+            Action::Source("hidden".to_string()),
+        )],
+        group: None,
+    };
+
+    assert_eq!(footer_hint(&toggle), vec!["alt-. show", "F1 help"]);
+    assert_eq!(
+        help_entries(Some(&toggle), false)[0],
+        ("alt-.".to_string(), "show hidden".to_string())
+    );
+}

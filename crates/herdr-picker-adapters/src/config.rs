@@ -2,14 +2,16 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use herdr_picker_domain::{JumpTarget, Picker, RowLook, Theme, WorkspaceDeclaration, jump_targets};
+use herdr_picker_domain::{JumpTarget, Picker, RowLook, Theme, jump_targets};
 use serde::Deserialize;
 
 mod error;
 mod pickers;
+mod workspaces;
 
 pub use error::ConfigError;
 use pickers::{PickerEntry, declared_pickers};
+use workspaces::Declaration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginConfig {
@@ -54,39 +56,6 @@ impl From<ThemeName> for Theme {
         }
     }
 }
-#[derive(Deserialize)]
-#[serde(
-    untagged,
-    expecting = "a directory, or a table of a dir and an optional key"
-)]
-enum Declaration {
-    Directory(String),
-    Detailed(DetailedDeclaration),
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DetailedDeclaration {
-    dir: String,
-    key: Option<String>,
-}
-
-impl Declaration {
-    fn labelled(self, label: String) -> WorkspaceDeclaration {
-        match self {
-            Self::Directory(directory) => WorkspaceDeclaration {
-                label,
-                directory,
-                key: None,
-            },
-            Self::Detailed(detailed) => WorkspaceDeclaration {
-                label,
-                directory: detailed.dir,
-                key: detailed.key,
-            },
-        }
-    }
-}
 pub fn config_file(
     plugin_config_dir: Option<&str>,
     xdg_config_home: Option<&str>,
@@ -110,12 +79,23 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
         path: path.to_owned(),
         reason: failure.to_string(),
     })?;
-    let file: ConfigFile =
-        toml::from_str(&content).map_err(|failure| ConfigError::Unparseable {
-            path: path.to_owned(),
-            reason: failure.message().to_string(),
-            line: one_based_line_of(&content, &failure),
-        })?;
+    parsed(path, &content)
+}
+
+// The pickers need no config file: without one, the built-in pickers run on their own keys.
+pub fn read_picker_config(path: &Path) -> Result<PluginConfig, ConfigError> {
+    match fs::exists(path) {
+        Ok(false) => parsed(path, ""),
+        _ => read_config(path),
+    }
+}
+
+fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
+    let file: ConfigFile = toml::from_str(content).map_err(|failure| ConfigError::Unparseable {
+        path: path.to_owned(),
+        reason: failure.message().to_string(),
+        line: one_based_line_of(content, &failure),
+    })?;
     let targets = match file.workspaces {
         None => Vec::new(),
         Some(workspaces) => jump_targets(

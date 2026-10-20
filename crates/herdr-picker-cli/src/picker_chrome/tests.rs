@@ -24,6 +24,8 @@ impl Sandbox {
             view,
             titles: vec!["Git Branches".to_string(), "Files".to_string()],
             description: "Every file".to_string(),
+            source: None,
+            sources: Vec::new(),
         };
         write_view(&sandbox.cache(), &state).expect("a view file");
         sandbox
@@ -141,4 +143,34 @@ fn an_unknown_part_is_a_usage_error() {
     let refusal = answer("sideways", &sandbox.cache(), &[], Path::new("/unused"));
 
     assert!(matches!(refusal, Err(CommandError::Usage)), "{refusal:?}");
+}
+
+#[test]
+fn a_picker_with_sources_names_its_source_and_lists_the_sources_in_the_chooser() {
+    let sandbox = Sandbox::new("sources", GROUPED_ROWS, View::Chooser { group: None });
+    let state = ViewState {
+        view: View::Chooser { group: None },
+        titles: vec!["Files".to_string()],
+        description: String::new(),
+        source: Some("hidden".to_string()),
+        sources: vec!["this folder".to_string(), "hidden".to_string()],
+    };
+    write_view(&sandbox.cache(), &state).expect("a view file");
+
+    assert_eq!(
+        view_rows(&sandbox.cache()).expect("the chooser"),
+        "0\tthis folder\n1\thidden\n2\tall\n3\tlocal\n4\tremote\n"
+    );
+    write_view(
+        &sandbox.cache(),
+        &ViewState {
+            view: list(),
+            ..state
+        },
+    )
+    .expect("a view file");
+    assert_eq!(
+        picker_header(&sandbox.cache()).expect("a header"),
+        "Files | Source: hidden | Group: all"
+    );
 }

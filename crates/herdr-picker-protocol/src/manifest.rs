@@ -77,6 +77,15 @@ pub fn render_manifest(
         title: "Pick a workspace".to_string(),
         command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "popup".to_string()],
     });
+    actions.push(Action {
+        id: "bookmark".to_string(),
+        title: "Bookmark the focused pane's folder".to_string(),
+        command: vec![
+            EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
+            "run".to_string(),
+            "bookmark".to_string(),
+        ],
+    });
     let manifest = Manifest {
         id: PLUGIN_ID,
         name: "Picker",

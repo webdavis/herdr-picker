@@ -1,17 +1,19 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use herdr_picker_domain::{Action, Key, PickerRow};
+use herdr_picker_domain::{Action, Key, PickerRow, Preview};
 use serde::{Deserialize, Serialize};
 
 mod action;
 mod wire;
 
 use action::{from_action, into_action};
-use wire::{WireAction, Words};
+use wire::{WireAction, WirePreview, Words};
 
 // The state a next action hands the picker it opens, as the JSON the action carried.
 pub const PICKER_STATE_VARIABLE: &str = "HERDR_PICKER_STATE";
+// The source a picker with sources reads its rows from.
+pub const PICKER_SOURCE_VARIABLE: &str = "HERDR_PICKER_SOURCE";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RowError {
@@ -34,7 +36,7 @@ impl fmt::Display for RowError {
 struct WireRow {
     label: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    preview: Option<String>,
+    preview: Option<WirePreview>,
     enter: WireAction,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     keys: BTreeMap<String, WireAction>,
@@ -72,7 +74,10 @@ pub fn parse_row(line: &str, number: usize) -> Result<PickerRow, RowError> {
     }
     Ok(PickerRow {
         label: wire.label,
-        preview: wire.preview,
+        preview: wire.preview.map(|preview| match preview {
+            WirePreview::Text(text) => Preview::Text(text),
+            WirePreview::Path { path } => Preview::Path(path),
+        }),
         enter: into_action(wire.enter, value).map_err(refusal)?,
         keys,
         group: wire
@@ -93,7 +98,10 @@ fn claimable(name: &str) -> Result<Key, String> {
 pub fn encode_row(row: &PickerRow) -> String {
     let wire = WireRow {
         label: row.label.clone(),
-        preview: row.preview.clone(),
+        preview: row.preview.clone().map(|preview| match preview {
+            Preview::Text(text) => WirePreview::Text(text),
+            Preview::Path(path) => WirePreview::Path { path },
+        }),
         enter: from_action(&row.enter),
         keys: row
             .keys

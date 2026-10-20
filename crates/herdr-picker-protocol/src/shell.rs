@@ -25,7 +25,7 @@ pub struct Shell<'a> {
 pub fn instruction(action: &Action, shell: &Shell) -> Result<Option<String>, UnclosedQuote> {
     Ok(match action {
         Action::Insert(text) => Some(format!("insert\t{text}")),
-        Action::Cd(path) => Some(format!("cd\t{path}")),
+        Action::Cd(path) => Some(format!("cd\t{}", relative(path, Path::new(shell.cwd)))),
         Action::Run(command) => Some(format!("run\t{command}")),
         Action::Edit(locations) => Some(format!("run\t{}", edit_command(locations, shell)?)),
         Action::Open(target) => Some(format!("run\t{} {}", shell.opener, shell_word(target))),

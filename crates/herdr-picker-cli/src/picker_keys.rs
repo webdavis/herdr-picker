@@ -30,9 +30,21 @@ pub(crate) fn view_key(cache: &Path, event: &[&str], theme: Theme) -> Result<Str
     };
     let rows = rows_of(cache)?;
     let state = read_view(cache);
-    let (view, response) = press(&state.view, view_key, &groups(&rows));
-    write_view(cache, &ViewState { view, ..state }).map_err(failed)?;
-    if let (ViewResponse::Accept, Some((key, marked))) = (response, &pressed) {
+    let (view, response) = press(&state.view, view_key, &state.sources, &groups(&rows));
+    let source = match &response {
+        ViewResponse::Switch(source) => Some(source.clone()),
+        _ => state.source.clone(),
+    };
+    write_view(
+        cache,
+        &ViewState {
+            view,
+            source,
+            ..state
+        },
+    )
+    .map_err(failed)?;
+    if let (ViewResponse::Accept, Some((key, marked))) = (&response, &pressed) {
         return Ok(act_on(&rows, marked, key, theme));
     }
     let failed_run = view_key == ViewKey::Loaded && read_run_error(cache).is_some();

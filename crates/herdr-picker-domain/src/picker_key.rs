@@ -38,11 +38,14 @@ pub fn bindable_keys() -> impl Iterator<Item = Key> {
     let alt = ('a'..='z')
         .filter(|letter| !EDITING_ALT_LETTERS.contains(*letter))
         .map(|letter| format!("alt-{letter}"));
+    // Alt-. shows hidden files, as dotfiles start with a dot.
+    let dot = std::iter::once("alt-.".to_string());
     let function = (2..=12).map(|number| format!("f{number}"));
     ["enter".to_string(), "alt-enter".to_string()]
         .into_iter()
         .chain(ctrl)
         .chain(alt)
+        .chain(dot)
         .chain(function)
         .map(Key)
 }

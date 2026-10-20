@@ -45,6 +45,11 @@ id = "pick"
 title = "Pick a workspace"
 command = ["./target/release/herdr-picker", "popup"]
 
+[[actions]]
+id = "bookmark"
+title = "Bookmark the focused pane's folder"
+command = ["./target/release/herdr-picker", "run", "bookmark"]
+
 [[events]]
 on = "workspace.focused"
 command = ["./target/release/herdr-picker", "record"]
@@ -137,9 +142,13 @@ fn the_rendered_manifest_round_trips_with_argv_arrays_for_every_action() {
     );
     assert_eq!(
         argv.last(),
-        Some(&vec!["./target/release/herdr-picker", "popup"])
+        Some(&vec!["./target/release/herdr-picker", "run", "bookmark"])
     );
-    assert_eq!(argv.len(), 7, "five jumps, the toggle and the picker");
+    assert_eq!(
+        argv.len(),
+        8,
+        "five jumps, the toggle, the picker and the bookmark"
+    );
     assert_eq!(parsed["panes"][0]["placement"].as_str(), Some("popup"));
     assert_eq!(
         parsed["events"][0]["on"].as_str(),

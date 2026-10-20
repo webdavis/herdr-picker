@@ -5,7 +5,9 @@ use herdr_picker_adapters::{
     Helper, cached_rows, chooser_lines, help_page, list_lines, read_config, read_run_error,
     read_view, step_footer,
 };
-use herdr_picker_domain::{PickerRow, Theme, View, footer_hint, groups, header, help_entries};
+use herdr_picker_domain::{
+    PickerRow, Theme, View, chooser_entries, footer_hint, groups, header, help_entries,
+};
 use herdr_picker_protocol::shell_quote;
 
 use crate::command::{CommandError, failed};
@@ -56,14 +58,16 @@ fn picker_header(cache: &Path) -> Result<String, CommandError> {
     Ok(header(
         &state.titles,
         &state.view,
+        state.source.as_deref(),
         &groups(&rows_of(cache)?),
     ))
 }
 
 fn view_rows(cache: &Path) -> Result<String, CommandError> {
     let rows = rows_of(cache)?;
-    let lines = match read_view(cache).view {
-        View::Chooser { .. } => chooser_lines(&groups(&rows)),
+    let state = read_view(cache);
+    let lines = match state.view {
+        View::Chooser { .. } => chooser_lines(&chooser_entries(&state.sources, &groups(&rows))),
         view => list_lines(&rows, &view),
     };
     Ok(lines.into_iter().map(|line| line + "\n").collect())
@@ -88,7 +92,7 @@ fn picker_footer(
 }
 
 fn picker_help(cache: &Path, index: Option<&str>, theme: Theme) -> Result<String, CommandError> {
-    let grouped = !groups(&rows_of(cache)?).is_empty();
+    let grouped = !groups(&rows_of(cache)?).is_empty() || !read_view(cache).sources.is_empty();
     let entries = help_entries(row_at(cache, index)?.as_ref(), grouped);
     Ok(help_page(&picker_header(cache)?, &entries, theme))
 }

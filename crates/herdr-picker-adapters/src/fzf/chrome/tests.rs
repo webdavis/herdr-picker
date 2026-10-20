@@ -56,16 +56,21 @@ fn grouped_rows_show_the_group_as_a_dim_column_as_wide_as_the_longest() {
 }
 
 #[test]
-fn the_chooser_lists_all_then_each_group_by_index() {
+fn the_chooser_lists_its_entries_by_index() {
     assert_eq!(
-        chooser_lines(&["local".to_string(), "remote".to_string()]),
-        vec!["0\tall", "1\tlocal", "2\tremote"]
+        chooser_lines(&["hidden", "all", "remote"]),
+        vec!["0\thidden", "1\tall", "2\tremote"]
     );
 }
 
 #[test]
 fn each_view_response_becomes_the_fzf_actions_that_draw_it() {
     let actions = |response| finder_actions(response, HELPER, false);
+
+    assert_eq!(
+        actions(ViewResponse::Switch("hidden".to_string())),
+        "print(source)+accept"
+    );
 
     assert_eq!(
         actions(ViewResponse::Redraw),

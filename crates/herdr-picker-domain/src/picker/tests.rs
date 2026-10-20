@@ -80,3 +80,52 @@ fn a_name_that_a_shell_key_binding_cannot_carry_bare_is_refused() {
     );
     assert!(pickers([declared("", "ctrl-t f")]).is_err());
 }
+
+#[test]
+fn the_builtin_pickers_are_files_folders_and_bookmark_on_ctrl_t_keys() {
+    let shipped: Vec<(&str, &str)> = BUILTIN_PICKERS
+        .iter()
+        .map(|builtin| (builtin.name, builtin.key))
+        .collect();
+
+    assert_eq!(
+        shipped,
+        vec![
+            ("files", "ctrl-t f"),
+            ("folders", "ctrl-t d"),
+            ("bookmark", "ctrl-t ctrl-b")
+        ]
+    );
+    assert!(
+        BUILTIN_PICKERS
+            .iter()
+            .all(|builtin| Chord::parse(builtin.key).is_some())
+    );
+}
+
+#[test]
+fn a_picker_running_a_builtin_offers_its_sources_and_a_command_offers_none() {
+    let running = |command: PickerCommand| Picker {
+        name: "any".to_string(),
+        chord: Chord::parse("ctrl-t x").expect("a chord"),
+        description: String::new(),
+        command,
+        args: Vec::new(),
+    };
+    let builtin = |name: &str| running(PickerCommand::Builtin(name.to_string()));
+
+    assert_eq!(
+        builtin("files").sources(),
+        ["this folder", "hidden", "home", "whole disk", "recent"]
+    );
+    assert_eq!(
+        builtin("folders").sources(),
+        ["subfolders", "parents", "git", "bookmarks"]
+    );
+    assert!(builtin("bookmark").sources().is_empty());
+    assert!(
+        running(PickerCommand::Program(vec!["files.sh".to_string()]))
+            .sources()
+            .is_empty()
+    );
+}

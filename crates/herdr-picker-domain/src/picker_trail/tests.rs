@@ -12,6 +12,7 @@ fn spot(query: &str, group: Option<&str>) -> Spot {
     Spot {
         query: query.to_string(),
         group: group.map(str::to_string),
+        source: None,
     }
 }
 
@@ -76,8 +77,8 @@ fn a_confirm_asks_its_question_as_a_step_and_no_returns() {
 
     assert_eq!(trail.titles(), vec!["Files", "Delete notes.txt?"]);
     assert_eq!(
-        trail.current().source,
-        Source::Confirm {
+        trail.current().page,
+        Page::Confirm {
             question: "Delete notes.txt?".to_string(),
             action: remove,
         }
@@ -103,4 +104,37 @@ fn an_answered_confirm_leaves_the_trail_before_its_action_runs() {
 
     trail.advance(Action::Back, Spot::default());
     assert_eq!(trail.current().spot, spot("q", None));
+}
+
+#[test]
+fn a_source_action_shows_the_step_again_from_that_source_keeping_the_query() {
+    let mut trail = Trail::new(call("files"));
+
+    assert_eq!(
+        trail.advance(
+            Action::Source("hidden".to_string()),
+            spot("notes", Some("src"))
+        ),
+        Turn::Show
+    );
+    assert_eq!(trail.titles(), vec!["Files"]);
+    assert_eq!(
+        trail.current().spot,
+        Spot {
+            query: "notes".to_string(),
+            group: None,
+            source: Some("hidden".to_string()),
+        }
+    );
+}
+
+#[test]
+fn back_restores_the_source_a_step_was_left_on() {
+    let mut trail = Trail::new(call("files"));
+    trail.advance(Action::Source("home".to_string()), Spot::default());
+
+    trail.advance(Action::Next(call("log")), trail.current().spot.clone());
+    trail.advance(Action::Back, Spot::default());
+
+    assert_eq!(trail.current().spot.source, Some("home".to_string()));
 }

@@ -5,8 +5,8 @@ use crate::screen::palette;
 mod chrome;
 
 pub use chrome::{
-    change_footer, chooser_lines, error_footer, finder_actions, help_page, leave, list_lines,
-    step_footer,
+    SWITCH_SOURCE, change_footer, chooser_lines, error_footer, finder_actions, help_page, leave,
+    list_lines, step_footer,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

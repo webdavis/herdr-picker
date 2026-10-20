@@ -1,4 +1,4 @@
-use herdr_picker_domain::{Location, PickerCall};
+use herdr_picker_domain::{Key, Location, PickerCall};
 
 use super::*;
 
@@ -151,4 +151,17 @@ fn an_action_alone_survives_its_round_trip() {
     );
     assert_eq!(parse_action(&encode_action(&action)), Ok(action));
     assert!(parse_action("\"sideways\"").is_err());
+}
+
+#[test]
+fn a_source_action_names_the_source_to_show_and_survives_encoding() {
+    let line = r#"{"label":"a","enter":"none","keys":{"alt-.":{"source":"hidden"}}}"#;
+
+    let parsed = parse_row(line, 1).expect("a row");
+
+    assert_eq!(
+        parsed.action(&Key::parse("alt-.").expect("a key")),
+        Some(&Action::Source("hidden".to_string()))
+    );
+    assert_eq!(encode_row(&parsed), line);
 }

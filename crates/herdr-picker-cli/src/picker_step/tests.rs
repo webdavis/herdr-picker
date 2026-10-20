@@ -1,7 +1,11 @@
+use std::env;
 use std::ffi::OsStr;
+use std::process::Command;
 
 use herdr_picker_adapters::read_config;
 use herdr_picker_domain::{Location, PickerCall, PickerRow};
+
+use herdr_picker_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE};
 
 use super::*;
 
@@ -22,8 +26,8 @@ fn words(command: &Command) -> Vec<String> {
         .collect()
 }
 
-fn call(name: &str, args: &[&str], state: Option<&str>) -> Source {
-    Source::Picker(PickerCall {
+fn call(name: &str, args: &[&str], state: Option<&str>) -> Page {
+    Page::Picker(PickerCall {
         name: name.to_string(),
         args: args.iter().map(|arg| arg.to_string()).collect(),
         state: state.map(str::to_string),
@@ -44,8 +48,11 @@ fn a_builtin_runs_herdr_picker_builtin_with_the_declared_then_the_given_args() {
         "[pickers.echo]\nkey = \"ctrl-t e\"\ndescription = \"Echo\"\nbuiltin = \"echo-args\"\nargs = [\"a\"]\n",
     );
 
-    let (command, description) =
-        step_command(&call("echo", &["b"], Some("{\"n\":1}")), &config).expect("a command");
+    let StepCommand {
+        command,
+        description,
+        ..
+    } = step_command(&call("echo", &["b"], Some("{\"n\":1}")), None, &config).expect("a command");
 
     assert_eq!(
         words(&command),
@@ -60,10 +67,13 @@ fn a_builtin_runs_herdr_picker_builtin_with_the_declared_then_the_given_args() {
     assert_eq!(description, "Echo");
     assert_eq!(
         command.get_envs().collect::<Vec<_>>(),
-        vec![(
-            OsStr::new(PICKER_STATE_VARIABLE),
-            Some(OsStr::new("{\"n\":1}"))
-        )]
+        vec![
+            (OsStr::new(PICKER_SOURCE_VARIABLE), None),
+            (
+                OsStr::new(PICKER_STATE_VARIABLE),
+                Some(OsStr::new("{\"n\":1}"))
+            )
+        ]
     );
 }
 
@@ -74,23 +84,32 @@ fn a_program_runs_with_its_own_words_and_no_state_unless_given_one() {
         "[pickers.files]\nkey = \"ctrl-t f\"\ncommand = [\"/bin/ls\", \"-a\"]\n",
     );
 
-    let (command, _) = step_command(&call("files", &[], None), &config).expect("a command");
+    let command = step_command(&call("files", &[], None), None, &config)
+        .expect("a command")
+        .command;
 
     assert_eq!(words(&command), vec!["/bin/ls", "-a"]);
     assert_eq!(
         command.get_envs().collect::<Vec<_>>(),
-        vec![(OsStr::new(PICKER_STATE_VARIABLE), None)]
+        vec![
+            (OsStr::new(PICKER_SOURCE_VARIABLE), None),
+            (OsStr::new(PICKER_STATE_VARIABLE), None)
+        ]
     );
 }
 
 #[test]
 fn a_confirm_step_runs_the_confirm_builtin_with_its_question_and_action() {
-    let source = Source::Confirm {
+    let page = Page::Confirm {
         question: "Delete x?".to_string(),
         action: Action::Run("rm x".to_string()),
     };
 
-    let (command, description) = step_command(&source, &config("confirm", "")).expect("a command");
+    let StepCommand {
+        command,
+        description,
+        ..
+    } = step_command(&page, None, &config("confirm", "")).expect("a command");
 
     assert_eq!(
         words(&command),
@@ -107,7 +126,7 @@ fn a_confirm_step_runs_the_confirm_builtin_with_its_question_and_action() {
 
 #[test]
 fn a_next_to_a_picker_the_config_lacks_is_refused() {
-    let refusal = step_command(&call("ghost", &[], None), &config("ghost", "")).map(|_| ());
+    let refusal = step_command(&call("ghost", &[], None), None, &config("ghost", "")).map(|_| ());
 
     assert_eq!(
         refusal.map_err(|failure| format!("{failure:?}")),
@@ -133,10 +152,10 @@ fn esc_goes_back_and_any_other_key_does_what_the_marked_rows_say() {
         rows: vec![row("a"), row("b")],
     };
 
-    assert_eq!(chosen_action(&picked("esc")), Action::Back);
-    assert_eq!(chosen_action(&picked("ctrl-o")), Action::Nothing);
+    assert_eq!(chosen_action(&picked("esc"), None), Action::Back);
+    assert_eq!(chosen_action(&picked("ctrl-o"), None), Action::Nothing);
     assert_eq!(
-        chosen_action(&picked("enter")),
+        chosen_action(&picked("enter"), None),
         Action::Edit(vec![
             Location {
                 path: "a".to_string(),
@@ -147,5 +166,43 @@ fn esc_goes_back_and_any_other_key_does_what_the_marked_rows_say() {
                 line: None
             },
         ])
+    );
+}
+
+#[test]
+fn a_builtin_with_sources_reads_its_first_source_unless_another_was_chosen() {
+    let config = config("sources", "");
+    let source_of = |step: &StepCommand| {
+        step.command
+            .get_envs()
+            .find(|(variable, _)| *variable == OsStr::new(PICKER_SOURCE_VARIABLE))
+            .and_then(|(_, value)| value)
+            .map(|value| value.to_string_lossy().into_owned())
+    };
+
+    let first = step_command(&call("files", &[], None), None, &config).expect("a command");
+    let chosen = step_command(&call("files", &[], None), Some("home"), &config).expect("a command");
+
+    assert_eq!(source_of(&first), Some("this folder".to_string()));
+    assert_eq!(first.source, Some("this folder".to_string()));
+    assert_eq!(
+        first.sources,
+        ["this folder", "hidden", "home", "whole disk", "recent"]
+    );
+    assert_eq!(source_of(&chosen), Some("home".to_string()));
+    assert_eq!(chosen.source, Some("home".to_string()));
+}
+
+#[test]
+fn a_source_picked_in_the_chooser_shows_the_step_again_from_that_source() {
+    let picked = Picked {
+        query: "hid".to_string(),
+        key: SWITCH_SOURCE.to_string(),
+        rows: Vec::new(),
+    };
+
+    assert_eq!(
+        chosen_action(&picked, Some("hidden")),
+        Action::Source("hidden".to_string())
     );
 }

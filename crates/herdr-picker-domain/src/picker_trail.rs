@@ -1,8 +1,9 @@
+use crate::picker_header::title;
 use crate::picker_row::{Action, PickerCall};
-use crate::picker_view::title;
 
+// What a step shows: a picker's rows, or a question.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Source {
+pub enum Page {
     Picker(PickerCall),
     Confirm { question: String, action: Action },
 }
@@ -12,11 +13,13 @@ pub enum Source {
 pub struct Spot {
     pub query: String,
     pub group: Option<String>,
+    // None reads the picker's first source.
+    pub source: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Step {
-    pub source: Source,
+    pub page: Page,
     pub spot: Spot,
 }
 
@@ -36,7 +39,7 @@ pub struct Trail {
 impl Trail {
     pub fn new(first: PickerCall) -> Self {
         Self {
-            steps: vec![step(Source::Picker(first))],
+            steps: vec![step(Page::Picker(first))],
         }
     }
 
@@ -47,24 +50,24 @@ impl Trail {
     pub fn titles(&self) -> Vec<String> {
         self.steps
             .iter()
-            .map(|step| match &step.source {
-                Source::Picker(call) => title(&call.name),
-                Source::Confirm { question, .. } => question.clone(),
+            .map(|step| match &step.page {
+                Page::Picker(call) => title(&call.name),
+                Page::Confirm { question, .. } => question.clone(),
             })
             .collect()
     }
 
     pub fn advance(&mut self, action: Action, spot: Spot) -> Turn {
         let answered =
-            matches!(self.current().source, Source::Confirm { .. }) && action != Action::Back;
+            matches!(self.current().page, Page::Confirm { .. }) && action != Action::Back;
         if answered {
             self.steps.pop();
         } else if let Some(current) = self.steps.last_mut() {
             current.spot = spot;
         }
         match action {
-            Action::Next(call) => self.push(Source::Picker(call)),
-            Action::Confirm { question, action } => self.push(Source::Confirm {
+            Action::Next(call) => self.push(Page::Picker(call)),
+            Action::Confirm { question, action } => self.push(Page::Confirm {
                 question,
                 action: *action,
             }),
@@ -73,20 +76,27 @@ impl Trail {
                 Turn::Show
             }
             Action::Back => Turn::Close,
+            Action::Source(source) => {
+                if let Some(current) = self.steps.last_mut() {
+                    current.spot.source = Some(source);
+                    current.spot.group = None;
+                }
+                Turn::Show
+            }
             Action::Reload | Action::Nothing | Action::CopyStay(_) => Turn::Show,
             leaving => Turn::Leave(leaving),
         }
     }
 
-    fn push(&mut self, source: Source) -> Turn {
-        self.steps.push(step(source));
+    fn push(&mut self, page: Page) -> Turn {
+        self.steps.push(step(page));
         Turn::Show
     }
 }
 
-fn step(source: Source) -> Step {
+fn step(page: Page) -> Step {
     Step {
-        source,
+        page,
         spot: Spot::default(),
     }
 }

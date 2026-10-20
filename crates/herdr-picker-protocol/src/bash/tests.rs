@@ -28,7 +28,7 @@ fn bash_init_defines_one_function_and_binds_each_picker_to_its_readline_keys() {
     READLINE_LINE=${READLINE_LINE:0:READLINE_POINT}$instruction${READLINE_LINE:READLINE_POINT}
     READLINE_POINT=$((READLINE_POINT + ${#instruction}))
     ;;
-  cd) builtin cd -- "$instruction" ;;
+  cd) CDPATH='' builtin cd -- "$instruction" ;;
   run)
     history -s -- "$instruction"
     eval -- "$instruction"

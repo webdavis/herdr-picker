@@ -7,6 +7,8 @@ fn state(view: View) -> ViewState {
         view,
         titles: vec!["Files".to_string()],
         description: "Every file".to_string(),
+        source: Some("hidden".to_string()),
+        sources: vec!["this folder".to_string(), "hidden".to_string()],
     }
 }
 

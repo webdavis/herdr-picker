@@ -8,6 +8,8 @@ mod mru;
 mod pick;
 mod picker;
 mod picker_act;
+mod picker_builtin;
+mod picker_header;
 mod picker_help;
 mod picker_key;
 mod picker_row;
@@ -26,12 +28,14 @@ pub use mru::{Bounce, Mru, decide_bounce, next_mru};
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
 pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, pickers};
 pub use picker_act::{ActRefusal, act};
+pub use picker_builtin::{BUILTIN_PICKERS, BuiltinPicker};
+pub use picker_header::{header, title};
 pub use picker_help::{footer_hint, help_entries};
 pub use picker_key::{Key, bindable_keys};
-pub use picker_row::{Action, Location, PickerCall, PickerRow};
-pub use picker_trail::{Source, Spot, Step, Trail, Turn};
+pub use picker_row::{Action, Location, PickerCall, PickerRow, Preview};
+pub use picker_trail::{Page, Spot, Step, Trail, Turn};
 pub use picker_view::{
-    View, ViewKey, ViewResponse, ViewState, chooser_entries, groups, header, press, shown, title,
+    View, ViewKey, ViewResponse, ViewState, chooser_entries, groups, press, shown,
 };
 pub use popup::{Size, popup_size, preview_popup_size};
 pub use target::{JumpTarget, TargetError, WorkspaceDeclaration, action_id, jump_targets};

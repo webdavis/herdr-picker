@@ -67,8 +67,44 @@ fn init_bash_binds_each_configured_picker() {
 
     assert!(script.starts_with("__herdr_picker() {\n"), "{script}");
     assert!(
-        script.ends_with("}\nbind -x '\"\\C-tf\": __herdr_picker files'\n"),
+        script.ends_with(concat!(
+            "}\n",
+            "bind -x '\"\\C-tf\": __herdr_picker files'\n",
+            "bind -x '\"\\C-td\": __herdr_picker folders'\n",
+            "bind -x '\"\\C-t\\C-b\": __herdr_picker bookmark'\n",
+        )),
         "{script}"
+    );
+}
+
+#[test]
+fn init_bash_without_a_config_file_binds_the_builtin_pickers() {
+    let sandbox = Sandbox::new("init-defaults");
+
+    let script = init("bash", &sandbox.0.join("config.toml")).expect("a bash script");
+
+    assert!(
+        script.contains("bind -x '\"\\C-tf\": __herdr_picker files'\n"),
+        "{script}"
+    );
+}
+
+#[test]
+fn a_preview_naming_a_path_draws_that_path() {
+    let sandbox = Sandbox::new("preview-path");
+    let binary = sandbox.0.join("image.png");
+    fs::write(&binary, [0, 1, 2]).expect("a file");
+    let cache = sandbox.file(
+        "rows.jsonl",
+        &format!(
+            "{{\"label\":\"image.png\",\"preview\":{{\"path\":\"{}\"}},\"enter\":\"none\"}}\n",
+            binary.display()
+        ),
+    );
+
+    assert_eq!(
+        preview(&cache, "0").expect("a preview"),
+        "Binary file, 3 bytes"
     );
 }
 

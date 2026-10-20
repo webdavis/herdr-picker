@@ -57,6 +57,7 @@ pub(super) fn into_action(wire: WireAction, value: Option<&Words>) -> Result<Act
                 question: confirm.question,
                 action: Box::new(into_action(*confirm.action, None)?),
             },
+            Tagged::Source(source) => Action::Source(source),
         },
     })
 }
@@ -100,6 +101,7 @@ pub(super) fn from_action(action: &Action) -> WireAction {
             question: question.clone(),
             action: Box::new(from_action(action)),
         }),
+        Action::Source(source) => Tagged::Source(source.clone()),
         Action::Reload => return WireAction::Bare(Bare::Reload),
         Action::Nothing => return WireAction::Bare(Bare::None),
         Action::Back => return WireAction::Bare(Bare::Back),

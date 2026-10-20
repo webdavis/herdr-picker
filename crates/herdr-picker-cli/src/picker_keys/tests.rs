@@ -148,6 +148,8 @@ fn a_step_returned_to_filters_to_its_group_when_its_rows_load() {
         },
         titles: Vec::new(),
         description: String::new(),
+        source: None,
+        sources: Vec::new(),
     };
     write_view(&sandbox.cache(), &state).expect("a view file");
 
@@ -187,4 +189,33 @@ fn an_unknown_view_event_or_key_is_a_usage_error() {
         let refusal = view_key(&sandbox.cache(), event, Theme::CatppuccinMocha);
         assert!(matches!(refusal, Err(CommandError::Usage)), "{refusal:?}");
     }
+}
+
+#[test]
+fn picking_a_source_in_the_chooser_records_it_and_leaves_to_read_it() {
+    let sandbox = Sandbox::new("switch", "{\"label\":\"a\",\"enter\":{\"insert\":\"a\"}}\n");
+    let state = ViewState {
+        view: View::Streamed { group: None },
+        titles: vec!["Files".to_string()],
+        description: String::new(),
+        source: Some("this folder".to_string()),
+        sources: vec!["this folder".to_string(), "hidden".to_string()],
+    };
+    write_view(&sandbox.cache(), &state).expect("a view file");
+
+    assert_eq!(
+        sandbox.press(&["choose"]),
+        format!(
+            "reload({})+clear-query+hide-preview",
+            helper_call(&sandbox.cache(), "rows")
+        )
+    );
+    assert_eq!(
+        sandbox.press(&["key", "enter", "1"]),
+        "print(source)+accept"
+    );
+    assert_eq!(
+        read_view(&sandbox.cache()).source,
+        Some("hidden".to_string())
+    );
 }

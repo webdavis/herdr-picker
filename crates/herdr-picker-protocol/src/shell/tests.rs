@@ -138,3 +138,17 @@ fn actions_kept_inside_the_picker_give_the_shell_nothing() {
         assert_eq!(line(&action), None, "{action:?}");
     }
 }
+
+#[test]
+fn cd_is_relative_under_the_cwd_and_absolute_elsewhere() {
+    let cd = |path: &str| line(&Action::Cd(path.to_string()));
+
+    assert_eq!(cd("/work/repo/src/bin"), Some("cd\tsrc/bin".to_string()));
+    assert_eq!(cd("/work/repo"), Some("cd\t.".to_string()));
+    assert_eq!(cd("/work/other"), Some("cd\t/work/other".to_string()));
+}
+
+#[test]
+fn a_source_action_stays_inside_the_picker() {
+    assert_eq!(line(&Action::Source("hidden".to_string())), None);
+}

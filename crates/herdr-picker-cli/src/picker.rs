@@ -1,10 +1,13 @@
 use std::path::Path;
 use std::{env, fs, process};
 
-use herdr_picker_adapters::{Placement, copy_to_clipboard, picker_rows_file, read_config};
-use herdr_picker_domain::{Action, PickerCall, Trail, Turn};
+use herdr_picker_adapters::{
+    Placement, bare_program, copy_to_clipboard, path_preview, picker_rows_file, read_picker_config,
+};
+use herdr_picker_domain::{Action, PickerCall, PickerCommand, Preview, Trail, Turn};
 use herdr_picker_protocol::{Shell, bash_init, instruction, parse_row};
 
+use crate::builtin::{self, Places};
 use crate::command::{CommandError, config_path, failed};
 use crate::picker_chrome::QuotedHelper;
 use crate::{picker_popup, picker_step};
@@ -17,6 +20,18 @@ const OPENER: &str = if cfg!(target_os = "macos") {
 
 pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), CommandError> {
     let config = config_path();
+    let bookmarks = PickerCommand::Builtin("bookmark".to_string());
+    let pickers = read_picker_config(&config).map_err(failed)?.pickers;
+    if pickers
+        .iter()
+        .any(|picker| picker.name == name && picker.command == bookmarks)
+    {
+        let places = Places::here()?;
+        let folder = builtin::bookmark_folder(env::var("HERDR_ACTIVE_PANE_CWD").ok(), &places.cwd);
+        // bash clears the prompt line for a key binding and draws it again below this note.
+        eprintln!("{}", builtin::bookmark(&folder, &places)?);
+        return Ok(());
+    }
     let instruction = match picker_popup::popup_socket(socket_path) {
         Some(socket) => picker_popup::pick(&socket, name, &config)?,
         None => pick(name, &config, Placement::Inline)?,
@@ -33,7 +48,7 @@ pub(crate) fn pick(
     config: &Path,
     placement: Placement,
 ) -> Result<Option<String>, CommandError> {
-    let config = read_config(config).map_err(failed)?;
+    let config = read_picker_config(config).map_err(failed)?;
     let cache = picker_rows_file(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
@@ -75,6 +90,7 @@ fn finish(action: &Action) -> Result<Option<String>, CommandError> {
                 .filter(|editor| !editor.trim().is_empty())
         })
         .unwrap_or_else(|| "nvim".to_string());
+    let editor = bare_program(&editor, env::var_os("PATH").as_deref());
     let cwd = env::current_dir().map_err(failed)?;
     let shell = Shell {
         editor: &editor,
@@ -96,14 +112,20 @@ pub(crate) fn preview(cache: &Path, field: &str) -> Result<String, CommandError>
         .nth(index)
         .and_then(|line| parse_row(line, index + 1).ok())
         .and_then(|row| row.preview);
-    Ok(preview.unwrap_or_default())
+    Ok(match preview {
+        None => String::new(),
+        Some(Preview::Text(text)) => text,
+        Some(Preview::Path(path)) => path_preview(Path::new(&path), env::var_os("PATH").as_deref()),
+    })
 }
 
 pub(crate) fn init(shell: &str, config: &Path) -> Result<String, CommandError> {
     if shell != "bash" {
         return Err(CommandError::Usage);
     }
-    Ok(bash_init(&read_config(config).map_err(failed)?.pickers))
+    Ok(bash_init(
+        &read_picker_config(config).map_err(failed)?.pickers,
+    ))
 }
 
 #[cfg(test)]

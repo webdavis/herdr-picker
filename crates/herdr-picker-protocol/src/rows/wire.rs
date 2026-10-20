@@ -33,6 +33,17 @@ pub(super) enum Tagged {
     Open(String),
     Next(WireNext),
     Confirm(WireConfirm),
+    Source(String),
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(
+    untagged,
+    expecting = "a preview: its text, or {\"path\": \"<file or folder>\"}"
+)]
+pub(super) enum WirePreview {
+    Text(String),
+    Path { path: String },
 }
 
 #[derive(Deserialize, Serialize, Clone)]

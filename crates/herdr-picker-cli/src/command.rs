@@ -1,6 +1,6 @@
-use std::env;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+use std::{env, io};
 
 use herdr_picker_adapters::{
     FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, mru_file, read_config,
@@ -10,7 +10,7 @@ use herdr_picker_application::record;
 use herdr_picker_protocol::parse_focused_id;
 use herdr_picker_protocol::{
     ACTIVE_WORKSPACE_VARIABLE, PICKER_CONFIG_VARIABLE, PICKER_NAME_VARIABLE,
-    PICKER_RESULT_VARIABLE, SOCKET_PATH_VARIABLE,
+    PICKER_RESULT_VARIABLE, PICKER_SOURCE_VARIABLE, SOCKET_PATH_VARIABLE,
 };
 
 use crate::{
@@ -133,9 +133,13 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             rest @ ..,
         ] => picker_chrome::answer(part, Path::new(cache), rest, &picker_config_path())
             .map(|answer| print!("{answer}")),
-        ["builtin", name, arguments @ ..] => {
-            builtin::rows(name, arguments).map(|rows| print!("{rows}"))
-        }
+        ["builtin", name, arguments @ ..] => builtin::print_rows(
+            name,
+            arguments,
+            env::var(PICKER_SOURCE_VARIABLE).ok().as_deref(),
+            &builtin::Places::here()?,
+            &mut io::stdout().lock(),
+        ),
         ["init", shell] => picker::init(shell, &config_path()).map(|script| print!("{script}")),
         _ => Err(CommandError::Usage),
     }

@@ -1,6 +1,6 @@
 use crate::picker_row::PickerRow;
 
-const EVERY_GROUP: &str = "all";
+pub(crate) const EVERY_GROUP: &str = "all";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum View {
@@ -21,11 +21,13 @@ pub enum ViewKey {
     Back,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ViewResponse {
     Redraw,
     OpenChooser,
     CloseChooser,
+    // Leave this run so the step shows again, its rows read from the named source.
+    Switch(String),
     Accept,
     Back,
     Stay,
@@ -37,6 +39,8 @@ pub struct ViewState {
     pub view: View,
     pub titles: Vec<String>,
     pub description: String,
+    pub source: Option<String>,
+    pub sources: Vec<String>,
 }
 
 pub fn groups(rows: &[PickerRow]) -> Vec<String> {
@@ -46,8 +50,13 @@ pub fn groups(rows: &[PickerRow]) -> Vec<String> {
     groups
 }
 
-pub fn chooser_entries(groups: &[String]) -> Vec<&str> {
-    std::iter::once(EVERY_GROUP)
+// The sources first, then every group when the rows carry them.
+pub fn chooser_entries<'a>(sources: &'a [String], groups: &'a [String]) -> Vec<&'a str> {
+    let grouped = (!groups.is_empty()).then_some(EVERY_GROUP);
+    sources
+        .iter()
+        .map(String::as_str)
+        .chain(grouped)
         .chain(groups.iter().map(String::as_str))
         .collect()
 }
@@ -63,31 +72,17 @@ pub fn shown<'a>(rows: &'a [PickerRow], view: &View) -> Vec<(usize, &'a PickerRo
         .collect()
 }
 
-pub fn header(titles: &[String], view: &View, groups: &[String]) -> String {
-    let title = titles.join(" › ");
-    match view {
-        View::Chooser { .. } => format!("{title} › Choose source"),
-        _ if groups.is_empty() => title,
-        View::List { group: Some(group) } => format!("{title} | Source: {group}"),
-        _ => format!("{title} | Source: {EVERY_GROUP}"),
-    }
-}
-
-pub fn title(name: &str) -> String {
-    name.split(['-', '_'])
-        .map(|word| {
-            let mut letters = word.chars();
-            letters
-                .next()
-                .map(|first| first.to_uppercase().chain(letters).collect())
-                .unwrap_or_default()
-        })
-        .collect::<Vec<String>>()
-        .join(" ")
-}
-
-pub fn press(view: &View, key: ViewKey, groups: &[String]) -> (View, ViewResponse) {
+pub fn press(
+    view: &View,
+    key: ViewKey,
+    sources: &[String],
+    groups: &[String],
+) -> (View, ViewResponse) {
     let stay = (view.clone(), ViewResponse::Stay);
+    let open = |group: &Option<String>| {
+        let group = group.clone();
+        (View::Chooser { group }, ViewResponse::OpenChooser)
+    };
     match (view, key) {
         (View::Streamed { group }, ViewKey::Loaded) if !groups.is_empty() => (
             View::List {
@@ -95,24 +90,12 @@ pub fn press(view: &View, key: ViewKey, groups: &[String]) -> (View, ViewRespons
             },
             ViewResponse::Redraw,
         ),
-        (View::List { group }, ViewKey::Choose) => (
-            View::Chooser {
-                group: group.clone(),
-            },
-            ViewResponse::OpenChooser,
-        ),
-        (View::Chooser { .. }, ViewKey::Enter(Some(0))) => {
-            (View::List { group: None }, ViewResponse::CloseChooser)
+        (View::List { group }, ViewKey::Choose) => open(group),
+        // Sources are known before the rows load, so they can be switched while rows still stream.
+        (View::Streamed { group }, ViewKey::Choose) if !sources.is_empty() => open(group),
+        (View::Chooser { .. }, ViewKey::Enter(Some(entry))) => {
+            chosen(entry, sources, groups).unwrap_or(stay)
         }
-        (View::Chooser { .. }, ViewKey::Enter(Some(entry))) => match groups.get(entry - 1) {
-            Some(group) => (
-                View::List {
-                    group: Some(group.clone()),
-                },
-                ViewResponse::CloseChooser,
-            ),
-            None => stay,
-        },
         (View::Chooser { group }, ViewKey::Back) => (
             View::List {
                 group: group.clone(),
@@ -127,6 +110,19 @@ pub fn press(view: &View, key: ViewKey, groups: &[String]) -> (View, ViewRespons
         }
         _ => stay,
     }
+}
+
+fn chosen(entry: usize, sources: &[String], groups: &[String]) -> Option<(View, ViewResponse)> {
+    if let Some(source) = sources.get(entry) {
+        let streamed = View::Streamed { group: None };
+        return Some((streamed, ViewResponse::Switch(source.clone())));
+    }
+    let group = match entry - sources.len() {
+        _ if groups.is_empty() => return None,
+        0 => None,
+        index => Some(groups.get(index - 1)?.clone()),
+    };
+    Some((View::List { group }, ViewResponse::CloseChooser))
 }
 
 #[cfg(test)]

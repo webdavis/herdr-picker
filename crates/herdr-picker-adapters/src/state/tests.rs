@@ -47,3 +47,11 @@ fn a_popup_pickers_result_sits_in_the_state_directory_named_for_the_run() {
         PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/picker-result-42")
     );
 }
+
+#[test]
+fn the_bookmarks_file_sits_in_the_state_directory() {
+    assert_eq!(
+        bookmarks_file(None, Some("/home/me")),
+        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/bookmarks")
+    );
+}

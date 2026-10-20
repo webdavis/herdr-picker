@@ -1,5 +1,5 @@
+use crate::picker_header::title;
 use crate::picker_row::{Action, PickerRow};
-use crate::picker_view::title;
 
 const HELP_KEY: &str = "F1 help";
 const CHOOSE: (&str, &str) = ("ctrl-space", "choose a source");
@@ -51,6 +51,7 @@ fn verb(action: &Action) -> Option<&'static str> {
         Action::Open(_) => "open",
         Action::Next(_) => "go to",
         Action::Confirm { .. } => "confirm",
+        Action::Source(_) => "show",
         Action::Reload => "reload",
         Action::Back => "back",
         Action::Nothing => return None,
@@ -64,7 +65,8 @@ fn detail(action: &Action) -> Option<String> {
         | Action::CopyStay(text)
         | Action::Cd(text)
         | Action::Run(text)
-        | Action::Open(text) => Some(text.clone()),
+        | Action::Open(text)
+        | Action::Source(text) => Some(text.clone()),
         Action::Edit(locations) => Some(
             locations
                 .iter()

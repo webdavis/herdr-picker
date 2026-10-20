@@ -1,3 +1,5 @@
+use herdr_picker_domain::Preview;
+
 use super::*;
 
 mod actions;
@@ -5,7 +7,7 @@ mod actions;
 fn row(label: &str, preview: Option<&str>, enter: Action) -> PickerRow {
     PickerRow {
         label: label.to_string(),
-        preview: preview.map(str::to_string),
+        preview: preview.map(|text| Preview::Text(text.to_string())),
         enter,
         keys: Vec::new(),
         group: None,
@@ -103,4 +105,17 @@ fn a_group_with_control_characters_is_refused() {
         refusal.to_string(),
         "line 3 is not a picker row: the group holds a control character"
     );
+}
+
+#[test]
+fn a_preview_may_name_a_path_to_draw_once_the_row_is_highlighted() {
+    let line = r#"{"label":"notes.txt","preview":{"path":"/work/notes.txt"},"enter":{"insert":"notes.txt"}}"#;
+
+    let parsed = parse_row(line, 1).expect("a row");
+
+    assert_eq!(
+        parsed.preview,
+        Some(Preview::Path("/work/notes.txt".to_string()))
+    );
+    assert_eq!(encode_row(&parsed), line);
 }

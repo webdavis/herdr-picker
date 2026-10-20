@@ -23,8 +23,8 @@ fn a_config_of_only_pickers_is_valid_and_declares_no_workspace() {
 
     assert_eq!(config.targets, Vec::new());
     assert_eq!(
-        config.pickers,
-        vec![
+        config.pickers[..2],
+        [
             Picker {
                 name: "branches".to_string(),
                 chord: Chord::parse("ctrl-g b").expect("a chord"),
@@ -53,17 +53,32 @@ fn pickers_sit_beside_workspaces() {
     let config = read_config(&path).expect("a readable config");
 
     assert_eq!(config.targets.len(), 5);
-    assert_eq!(config.pickers.len(), 2);
+    assert_eq!(
+        names(&config.pickers),
+        ["branches", "files", "folders", "bookmark"]
+    );
 }
 
 #[test]
-fn a_config_without_pickers_declares_none() {
+fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
     let sandbox = TempDirectory::new("no-pickers");
     let path = sandbox.write(FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER);
 
     assert_eq!(
         read_config(&path).expect("a readable config").pickers,
-        Vec::new()
+        vec![
+            builtin(
+                "files",
+                "ctrl-t f",
+                "Files here, hidden ones, at home, on the whole disk, or used lately"
+            ),
+            builtin("folders", "ctrl-t d", "Folders to change into"),
+            builtin(
+                "bookmark",
+                "ctrl-t ctrl-b",
+                "Bookmark this folder for the folders picker"
+            ),
+        ]
     );
 }
 
@@ -117,7 +132,7 @@ fn script(sandbox: &TempDirectory, name: &str, arguments: &[&str]) -> PickerComm
 fn only_picker(sandbox: &TempDirectory, body: &str) -> Picker {
     let path = sandbox.write(&format!("[pickers.files]\nkey = \"ctrl-t f\"\n{body}"));
     let mut pickers = read_config(&path).expect("a readable config").pickers;
-    assert_eq!(pickers.len(), 1);
+    assert_eq!(pickers[0].name, "files");
     pickers.remove(0)
 }
 
@@ -172,7 +187,7 @@ fn a_picker_needs_exactly_one_of_command_or_builtin() {
     ] {
         let (refusal, rendered) = refusal_for(
             name,
-            &format!("[pickers.files]\nkey = \"ctrl-t f\"\n{body}"),
+            &format!("[pickers.notes]\nkey = \"ctrl-t n\"\n{body}"),
         );
 
         assert_eq!(
@@ -180,12 +195,12 @@ fn a_picker_needs_exactly_one_of_command_or_builtin() {
             ConfigError::InvalidPicker {
                 path: refusal_path(&refusal),
                 cause: PickerError::UnclearCommand {
-                    name: "files".to_string()
+                    name: "notes".to_string()
                 },
             }
         );
         assert!(
-            rendered.ends_with(": the picker files needs exactly one of command or builtin"),
+            rendered.ends_with(": the picker notes needs exactly one of command or builtin"),
             "{rendered}"
         );
     }
@@ -210,6 +225,106 @@ fn a_command_line_with_an_unclosed_quote_or_no_program_is_refused() {
             "{rendered}"
         );
     }
+}
+
+fn names(pickers: &[Picker]) -> Vec<&str> {
+    pickers.iter().map(|picker| picker.name.as_str()).collect()
+}
+
+fn builtin(name: &str, key: &str, description: &str) -> Picker {
+    Picker {
+        name: name.to_string(),
+        chord: Chord::parse(key).expect("a chord"),
+        description: description.to_string(),
+        command: PickerCommand::Builtin(name.to_string()),
+        args: Vec::new(),
+    }
+}
+
+fn pickers_of(name: &str, content: &str) -> Vec<Picker> {
+    let sandbox = TempDirectory::new(name);
+    read_config(&sandbox.write(content))
+        .expect("a readable config")
+        .pickers
+}
+
+#[test]
+fn a_table_named_for_a_builtin_picker_moves_its_key_or_turns_it_off() {
+    let pickers = pickers_of(
+        "builtin-override",
+        "[pickers.files]\nkey = \"alt-f\"\n\n[pickers.bookmark]\nenabled = false\n",
+    );
+
+    assert_eq!(
+        pickers,
+        vec![
+            builtin(
+                "files",
+                "alt-f",
+                "Files here, hidden ones, at home, on the whole disk, or used lately"
+            ),
+            builtin("folders", "ctrl-t d", "Folders to change into"),
+        ]
+    );
+}
+
+#[test]
+fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
+    let pickers = pickers_of(
+        "builtin-yields",
+        "[pickers.dirs]\nkey = \"ctrl-t d\"\ncommand = \"dirs.sh\"\n",
+    );
+
+    assert_eq!(names(&pickers), ["dirs", "files", "bookmark"]);
+}
+
+#[test]
+fn a_configured_picker_turned_off_is_not_declared() {
+    let pickers = pickers_of(
+        "user-off",
+        "[pickers.notes]\nkey = \"ctrl-t n\"\ncommand = \"notes.sh\"\nenabled = false\n",
+    );
+
+    assert_eq!(names(&pickers), ["files", "folders", "bookmark"]);
+}
+
+#[test]
+fn a_builtin_moved_onto_a_configured_pickers_key_is_refused() {
+    let (refusal, rendered) = refusal_for(
+        "builtin-collides",
+        "[pickers.files]\nkey = \"ctrl-t n\"\n\n[pickers.notes]\nkey = \"ctrl-t n\"\ncommand = \"notes.sh\"\n",
+    );
+
+    assert!(
+        matches!(
+            refusal,
+            ConfigError::InvalidPicker {
+                cause: PickerError::CollidingKey { .. },
+                ..
+            }
+        ),
+        "{rendered}"
+    );
+}
+
+#[test]
+fn a_configured_picker_without_a_key_is_refused() {
+    let (_, rendered) = refusal_for("no-key", "[pickers.notes]\ncommand = \"notes.sh\"\n");
+
+    assert!(
+        rendered.ends_with(": the picker notes declares the key \"\", which is not a chord: ctrl-<letter> or alt-<letter>, then any plain letters, like \"ctrl-t b\""),
+        "{rendered}"
+    );
+}
+
+#[test]
+fn without_a_config_file_the_pickers_are_the_builtin_ones() {
+    let sandbox = TempDirectory::new("picker-config-missing");
+
+    let config = read_picker_config(&sandbox.0.join("config.toml")).expect("the defaults");
+
+    assert_eq!(names(&config.pickers), ["files", "folders", "bookmark"]);
+    assert_eq!(config.targets, Vec::new());
 }
 
 fn refusal_path(refusal: &ConfigError) -> PathBuf {

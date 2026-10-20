@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crate::chord::Chord;
+use crate::picker_builtin::BUILTIN_PICKERS;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PickerDeclaration {
@@ -26,6 +27,18 @@ pub struct Picker {
     pub description: String,
     pub command: PickerCommand,
     pub args: Vec<String>,
+}
+
+impl Picker {
+    pub fn sources(&self) -> &'static [&'static str] {
+        let PickerCommand::Builtin(name) = &self.command else {
+            return &[];
+        };
+        BUILTIN_PICKERS
+            .iter()
+            .find(|builtin| builtin.name == name)
+            .map_or(&[], |builtin| builtin.sources)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

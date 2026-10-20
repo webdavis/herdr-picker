@@ -3,7 +3,7 @@ use crate::picker_key::Key;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PickerRow {
     pub label: String,
-    pub preview: Option<String>,
+    pub preview: Option<Preview>,
     pub enter: Action,
     // The keys besides enter, each claimed at most once.
     pub keys: Vec<(Key, Action)>,
@@ -21,6 +21,13 @@ impl PickerRow {
         std::iter::once((Key::enter(), &self.enter))
             .chain(self.keys.iter().map(|(key, action)| (key.clone(), action)))
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Preview {
+    Text(String),
+    // Drawn only when the row is highlighted, so a long list never waits on its previews.
+    Path(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -51,6 +58,8 @@ pub enum Action {
         question: String,
         action: Box<Action>,
     },
+    // Shows the same step again, its rows read from the named source.
+    Source(String),
     Reload,
     Back,
     Nothing,

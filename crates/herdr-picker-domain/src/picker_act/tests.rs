@@ -143,3 +143,12 @@ fn reload_back_and_nothing_need_no_single_row() {
         assert_eq!(act(&[&one, &one], &Key::enter()), Ok(action));
     }
 }
+
+#[test]
+fn a_source_key_on_marked_rows_switches_once() {
+    let hidden = Action::Source("hidden".to_string());
+    let first = row(Action::Nothing, vec![("alt-.", hidden.clone())]);
+    let second = row(Action::Nothing, vec![("alt-.", hidden.clone())]);
+
+    assert_eq!(act(&[&first, &second], &key("alt-.")), Ok(hidden));
+}

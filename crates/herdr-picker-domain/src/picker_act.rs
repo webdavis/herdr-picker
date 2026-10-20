@@ -56,7 +56,7 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
                 })
                 .collect(),
         )),
-        Action::Reload | Action::Back | Action::Nothing => Ok(first.clone()),
+        Action::Source(_) | Action::Reload | Action::Back | Action::Nothing => Ok(first.clone()),
         Action::Cd(_) => select_one("change into"),
         Action::Run(_) => select_one("run"),
         Action::Open(_) => select_one("open"),
