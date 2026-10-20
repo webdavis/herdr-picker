@@ -11,6 +11,7 @@ use herdr_picker_protocol::{
 use crate::command::{CommandError, failed};
 
 mod clock;
+mod data;
 mod files;
 mod folders;
 mod git;
@@ -24,6 +25,7 @@ mod project;
 mod recipes;
 mod rows;
 
+pub(crate) use data::data_command;
 pub(crate) use git::git_preview;
 pub(crate) use network::network_tool;
 pub(crate) use places::Places;
@@ -74,10 +76,10 @@ pub(crate) fn print_rows(
         source: asked.source.or(first),
         ..*asked
     };
-    let step = git::git_rows(name, arguments, &asked, places, &mut rows);
-    if let Some(listed) =
-        step.or_else(|| network::network_step(name, arguments, &asked, places, &mut rows))
-    {
+    let step = git::git_rows(name, arguments, &asked, places, &mut rows)
+        .or_else(|| network::network_step(name, arguments, &asked, places, &mut rows))
+        .or_else(|| data::data_rows(name, arguments, &asked, places, &mut rows));
+    if let Some(listed) = step {
         listed?;
         return written(rows.finish());
     }

@@ -68,7 +68,7 @@ fn ctrl_enter_is_the_alt_enter_fzf_receives_and_is_shown_as_ctrl_enter() {
 fn every_claimable_key_is_bound_enter_first() {
     let bound = names(bindable_keys());
 
-    assert_eq!(bound.len(), 2 + 19 + 26 + 1 + 11);
+    assert_eq!(bound.len(), 2 + 19 + 26 + 2 + 11);
     assert_eq!(&bound[..4], ["enter", "alt-enter", "ctrl-a", "ctrl-b"]);
     assert_eq!(bound.last().map(String::as_str), Some("f12"));
 }
@@ -78,5 +78,13 @@ fn alt_dot_is_a_key_a_row_may_claim() {
     assert_eq!(
         Key::parse("alt-.").map(|key| key.label().to_string()),
         Some("alt-.".to_string())
+    );
+}
+
+#[test]
+fn alt_semicolon_is_a_key_a_row_may_claim() {
+    assert_eq!(
+        Key::parse("alt-;").map(|key| key.label().to_string()),
+        Some("alt-;".to_string())
     );
 }

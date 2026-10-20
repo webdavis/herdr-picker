@@ -68,9 +68,17 @@ impl Trail {
         match action {
             Action::Next(call) => {
                 let query = call.query.clone().unwrap_or_default();
+                // Going deeper into the same picker, such as a level down, keeps the source in view.
+                let source = match &self.current().page {
+                    Page::Picker(current) if current.name == call.name => {
+                        self.current().spot.source.clone()
+                    }
+                    _ => None,
+                };
                 let turn = self.push(Page::Picker(call));
                 if let Some(opened) = self.steps.last_mut() {
                     opened.spot.query = query;
+                    opened.spot.source = source;
                 }
                 turn
             }

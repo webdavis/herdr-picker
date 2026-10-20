@@ -1,5 +1,5 @@
 use super::*;
-use crate::picker_builtin::{follows_query, is_step_builtin};
+use crate::picker_builtin::{follows_query, is_step_builtin, step_sources};
 
 fn declared(name: &str, key: &str) -> PickerDeclaration {
     PickerDeclaration {
@@ -103,7 +103,8 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
             ("recipes", "ctrl-t j"),
             ("tests", "ctrl-t t"),
             ("processes", "ctrl-t p"),
-            ("network", "ctrl-t n")
+            ("network", "ctrl-t n"),
+            ("data", "ctrl-t i")
         ]
     );
     assert!(
@@ -197,4 +198,14 @@ fn the_steps_only_a_next_reaches_are_builtins_too() {
         assert!(is_step_builtin(name), "{name}");
     }
     assert!(!is_step_builtin("files"));
+}
+
+#[test]
+fn a_step_builtin_may_offer_sources_and_most_offer_none() {
+    assert_eq!(
+        step_sources("data-file"),
+        ["paths", "zoom", "keys", "levels", "shape", "tables"]
+    );
+    assert!(step_sources("checkout").is_empty());
+    assert!(step_sources("files").is_empty());
 }

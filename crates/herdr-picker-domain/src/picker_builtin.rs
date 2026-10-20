@@ -1,7 +1,7 @@
 mod steps;
 
 use steps::STEP_BUILTINS;
-pub use steps::is_step_builtin;
+pub use steps::{is_step_builtin, step_sources};
 
 // The pickers herdr-picker ships, on their keys unless the config turns them off or moves them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -22,7 +22,7 @@ pub enum Live {
     On(&'static [&'static str]),
 }
 
-pub const BUILTIN_PICKERS: [BuiltinPicker; 12] = [
+pub const BUILTIN_PICKERS: [BuiltinPicker; 13] = [
     BuiltinPicker {
         name: "files",
         key: "ctrl-t f",
@@ -115,6 +115,13 @@ pub const BUILTIN_PICKERS: [BuiltinPicker; 12] = [
         description: "Devices on the network, saved captures, checks of a URL, or network commands",
         sources: &["devices", "captures", "web checks", "commands"],
         live: Live::On(&["web checks"]),
+    },
+    BuiltinPicker {
+        name: "data",
+        key: "ctrl-t i",
+        description: "JSON, YAML, TOON and SQLite files here, or the clipboard, by path and value",
+        sources: &["files", "clipboard", "temporal"],
+        live: Live::Never,
     },
 ];
 

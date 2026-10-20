@@ -29,7 +29,9 @@ pub use mru::{Bounce, Mru, decide_bounce, next_mru};
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
 pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, pickers};
 pub use picker_act::{ActRefusal, act};
-pub use picker_builtin::{BUILTIN_PICKERS, BuiltinPicker, Live, follows_query, is_step_builtin};
+pub use picker_builtin::{
+    BUILTIN_PICKERS, BuiltinPicker, Live, follows_query, is_step_builtin, step_sources,
+};
 pub use picker_header::{header, title};
 pub use picker_help::{footer_hint, help_entries};
 pub use picker_key::{Key, bindable_keys};

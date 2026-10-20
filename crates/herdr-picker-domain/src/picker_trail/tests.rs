@@ -174,3 +174,23 @@ fn a_next_with_a_query_opens_its_step_with_that_query_typed() {
 
     assert_eq!(trail.current().spot, spot("main", None));
 }
+
+#[test]
+fn a_next_into_the_same_picker_keeps_the_source_and_back_returns_to_it() {
+    let mut trail = Trail::new(call("data-file"));
+    trail.advance(Action::Source("levels".to_string()), Spot::default());
+    let levels = Spot {
+        source: Some("levels".to_string()),
+        ..Spot::default()
+    };
+
+    trail.advance(Action::Next(call("data-file")), levels.clone());
+    assert_eq!(trail.current().spot, levels);
+
+    trail.advance(Action::Next(call("files")), levels.clone());
+    assert_eq!(trail.current().spot, Spot::default());
+
+    trail.advance(Action::Back, Spot::default());
+    trail.advance(Action::Back, Spot::default());
+    assert_eq!(trail.current().spot, levels);
+}

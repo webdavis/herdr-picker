@@ -1,4 +1,5 @@
 use herdr_picker_domain::{Theme, bindable_keys};
+use herdr_picker_protocol::shell_word;
 
 use colors::colors;
 
@@ -97,8 +98,11 @@ pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec
         "--bind=f1:preview({})",
         helper.call("help", " {1}")
     ));
-    let row_keys =
-        bindable_keys().map(|key| (key.name().to_string(), format!("key {} {{+1}}", key.name())));
+    // Quoted for the shell fzf runs the helper in: Alt-; would end the command.
+    let row_keys = bindable_keys().map(|key| {
+        let event = format!("key {} {{+1}}", shell_word(key.name()));
+        (key.name().to_string(), event)
+    });
     let view_keys = VIEW_KEYS.map(|(key, event)| (key.to_string(), event.to_string()));
     for (key, event) in view_keys.into_iter().chain(row_keys) {
         arguments.push(format!(

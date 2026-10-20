@@ -2,7 +2,7 @@ use std::env;
 use std::process::Command;
 
 use herdr_picker_adapters::PluginConfig;
-use herdr_picker_domain::{Page, PickerCommand, follows_query, is_step_builtin};
+use herdr_picker_domain::{Page, PickerCommand, follows_query, is_step_builtin, step_sources};
 use herdr_picker_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, encode_action};
 
 use crate::command::{CommandError, failed};
@@ -36,13 +36,15 @@ pub(super) fn step_command(
     if is_step_builtin(&call.name) && config.pickers.iter().all(|picker| picker.name != call.name) {
         let mut command = own(&["builtin", &call.name])?;
         command.args(&call.args);
-        with_variables(&mut command, &call.state, &None);
+        let sources = step_sources(&call.name);
+        let source = chosen.or(sources.first().copied()).map(str::to_string);
+        with_variables(&mut command, &call.state, &source);
         return Ok(StepCommand {
             command,
             description: String::new(),
-            source: None,
-            sources: Vec::new(),
-            live: follows_query(&call.name, None),
+            live: follows_query(&call.name, source.as_deref()),
+            source,
+            sources: sources.iter().map(|source| source.to_string()).collect(),
         });
     }
     let picker = config

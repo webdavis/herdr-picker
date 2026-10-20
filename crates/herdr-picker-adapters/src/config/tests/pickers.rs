@@ -67,7 +67,8 @@ fn pickers_sit_beside_workspaces() {
             "recipes",
             "tests",
             "processes",
-            "network"
+            "network",
+            "data"
         ]
     );
 }
@@ -127,6 +128,11 @@ fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
                 "network",
                 "ctrl-t n",
                 "Devices on the network, saved captures, checks of a URL, or network commands"
+            ),
+            builtin(
+                "data",
+                "ctrl-t i",
+                "JSON, YAML, TOON and SQLite files here, or the clipboard, by path and value"
             ),
         ]
     );
@@ -340,7 +346,8 @@ fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
             "recipes",
             "tests",
             "processes",
-            "network"
+            "network",
+            "data"
         ]
     );
 }
@@ -366,7 +373,8 @@ fn a_configured_picker_turned_off_is_not_declared() {
             "recipes",
             "tests",
             "processes",
-            "network"
+            "network",
+            "data"
         ]
     );
 }
@@ -420,7 +428,8 @@ fn without_a_config_file_the_pickers_are_the_builtin_ones() {
             "recipes",
             "tests",
             "processes",
-            "network"
+            "network",
+            "data"
         ]
     );
     assert_eq!(config.targets, Vec::new());

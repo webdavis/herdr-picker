@@ -16,10 +16,23 @@ const CHROME: Chrome = Chrome {
 fn row_key_binds() -> impl Iterator<Item = String> {
     bindable_keys().map(|key| {
         format!(
-            "--bind={0}:transform('/bin/herdr-picker' view '/state/rows' key {0} {{+1}})",
-            key.name()
+            "--bind={0}:transform('/bin/herdr-picker' view '/state/rows' key {1} {{+1}})",
+            key.name(),
+            herdr_picker_protocol::shell_word(key.name())
         )
     })
+}
+
+#[test]
+fn a_key_the_shell_would_split_reaches_the_helper_quoted() {
+    let arguments = fzf_arguments(Theme::CatppuccinMocha, &CHROME, Placement::Inline);
+
+    assert!(
+        arguments.contains(
+            &"--bind=alt-;:transform('/bin/herdr-picker' view '/state/rows' key 'alt-;' {+1})"
+                .to_string()
+        )
+    );
 }
 
 #[test]
