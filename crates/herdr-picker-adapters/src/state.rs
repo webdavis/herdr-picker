@@ -18,6 +18,12 @@ pub fn mru_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
 pub fn spawned_jump_log_file(state_dir: Option<&str>, home: Option<&str>) -> PathBuf {
     plugin_state_dir(state_dir, home).join("jump.log")
 }
+pub fn picker_rows_file(state_dir: Option<&str>, home: Option<&str>, run: u32) -> PathBuf {
+    plugin_state_dir(state_dir, home).join(format!("picker-rows-{run}.jsonl"))
+}
+pub fn picker_result_file(state_dir: Option<&str>, home: Option<&str>, run: u32) -> PathBuf {
+    plugin_state_dir(state_dir, home).join(format!("picker-result-{run}"))
+}
 
 #[cfg(test)]
 mod tests;

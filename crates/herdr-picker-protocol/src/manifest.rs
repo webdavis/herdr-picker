@@ -1,8 +1,9 @@
 use herdr_picker_domain::JumpTarget;
 use serde::Serialize;
 
-use crate::popup::PICKER_PANE;
+use crate::popup::{CONFIGURED_PICKER_PANE, WORKSPACE_PICKER_PANE};
 
+pub const PLUGIN_ID: &str = "herdr-picker";
 const EXECUTABLE_FROM_PLUGIN_ROOT: &str = "./target/release/herdr-picker";
 const PICKER_ACTION: &str = "pick";
 
@@ -17,7 +18,7 @@ struct Manifest<'a> {
     build: [BuildStep; 1],
     actions: Vec<Action>,
     events: [Event; 1],
-    panes: [Pane; 1],
+    panes: [Pane; 2],
 }
 
 #[derive(Serialize)]
@@ -77,7 +78,7 @@ pub fn render_manifest(
         command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "popup".to_string()],
     });
     let manifest = Manifest {
-        id: "herdr-picker",
+        id: PLUGIN_ID,
         name: "Picker",
         version: binary_version,
         min_herdr_version: "0.7.4",
@@ -99,12 +100,23 @@ pub fn render_manifest(
                 "record".to_string(),
             ],
         }],
-        panes: [Pane {
-            id: PICKER_PANE,
-            title: "Workspace picker",
-            placement: "popup",
-            command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "pick".to_string()],
-        }],
+        panes: [
+            Pane {
+                id: WORKSPACE_PICKER_PANE,
+                title: "Workspace picker",
+                placement: "popup",
+                command: vec![EXECUTABLE_FROM_PLUGIN_ROOT.to_string(), "pick".to_string()],
+            },
+            Pane {
+                id: CONFIGURED_PICKER_PANE,
+                title: "Picker",
+                placement: "popup",
+                command: vec![
+                    EXECUTABLE_FROM_PLUGIN_ROOT.to_string(),
+                    "run-in-popup".to_string(),
+                ],
+            },
+        ],
     };
     toml::to_string(&manifest)
 }

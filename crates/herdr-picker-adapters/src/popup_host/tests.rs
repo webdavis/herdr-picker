@@ -15,7 +15,7 @@ fn host(server: &SocketServer, current_workspace: Option<&str>) -> SocketPopupHo
         &server.path,
         Duration::from_millis(150),
         "herdr-picker",
-        current_workspace,
+        protocol::PopupPane::workspace_picker(current_workspace),
     )
 }
 

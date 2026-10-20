@@ -5,7 +5,47 @@ use crate::wire::{ProtocolError, request_line};
 
 pub const SOCKET_PATH_VARIABLE: &str = "HERDR_SOCKET_PATH";
 pub const ACTIVE_WORKSPACE_VARIABLE: &str = "HERDR_ACTIVE_WORKSPACE_ID";
-pub(crate) const PICKER_PANE: &str = "pick";
+pub const PICKER_NAME_VARIABLE: &str = "HERDR_PICKER_NAME";
+// herdr overwrites HERDR_PLUGIN_CONFIG_DIR in a plugin pane,
+// so the config file the caller read travels under its own name.
+pub const PICKER_CONFIG_VARIABLE: &str = "HERDR_PICKER_CONFIG";
+pub const PICKER_RESULT_VARIABLE: &str = "HERDR_PICKER_RESULT";
+pub(crate) const WORKSPACE_PICKER_PANE: &str = "pick";
+pub(crate) const CONFIGURED_PICKER_PANE: &str = "run_picker";
+
+pub struct PopupPane {
+    entrypoint: &'static str,
+    env: Map<String, Value>,
+    cwd: Option<String>,
+}
+
+impl PopupPane {
+    pub fn workspace_picker(current_workspace: Option<&str>) -> Self {
+        Self {
+            entrypoint: WORKSPACE_PICKER_PANE,
+            env: current_workspace
+                .map(|workspace_id| (ACTIVE_WORKSPACE_VARIABLE.to_string(), workspace_id.into()))
+                .into_iter()
+                .collect(),
+            cwd: None,
+        }
+    }
+
+    pub fn configured_picker(name: &str, config: &str, result: &str, cwd: Option<&str>) -> Self {
+        Self {
+            entrypoint: CONFIGURED_PICKER_PANE,
+            env: [
+                (PICKER_NAME_VARIABLE, name),
+                (PICKER_CONFIG_VARIABLE, config),
+                (PICKER_RESULT_VARIABLE, result),
+            ]
+            .into_iter()
+            .map(|(variable, value)| (variable.to_string(), value.into()))
+            .collect(),
+            cwd: cwd.map(str::to_string),
+        }
+    }
+}
 
 pub fn layout_request(request_id: &str) -> String {
     request_line(request_id, "pane.layout", json!({}))
@@ -26,28 +66,19 @@ fn area_side(result: &Value, side: &str) -> Result<usize, ProtocolError> {
         .ok_or_else(|| ProtocolError::Malformed(format!("the layout has no area {side}")))
 }
 
-pub fn picker_request(
-    request_id: &str,
-    plugin_id: &str,
-    size: Size,
-    current_workspace: Option<&str>,
-) -> String {
-    let env: Map<String, Value> = current_workspace
-        .map(|workspace_id| (ACTIVE_WORKSPACE_VARIABLE.to_string(), workspace_id.into()))
-        .into_iter()
-        .collect();
-    request_line(
-        request_id,
-        "plugin.pane.open",
-        json!({
-            "plugin_id": plugin_id,
-            "entrypoint": PICKER_PANE,
-            "placement": "popup",
-            "width": size.columns,
-            "height": size.rows,
-            "env": env,
-        }),
-    )
+pub fn popup_request(request_id: &str, plugin_id: &str, size: Size, pane: &PopupPane) -> String {
+    let mut params = json!({
+        "plugin_id": plugin_id,
+        "entrypoint": pane.entrypoint,
+        "placement": "popup",
+        "width": size.columns,
+        "height": size.rows,
+        "env": pane.env,
+    });
+    if let Some(cwd) = &pane.cwd {
+        params["cwd"] = cwd.as_str().into();
+    }
+    request_line(request_id, "plugin.pane.open", params)
 }
 
 #[cfg(test)]

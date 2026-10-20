@@ -55,7 +55,12 @@ fn a_layout_without_an_area_size_is_malformed() {
 #[test]
 fn the_picker_request_opens_the_pick_pane_as_a_popup_for_the_current_workspace() {
     assert_eq!(
-        parsed(&picker_request("req_2", "herdr-picker", SIZE, Some("w6"))),
+        parsed(&popup_request(
+            "req_2",
+            "herdr-picker",
+            SIZE,
+            &PopupPane::workspace_picker(Some("w6"))
+        )),
         json!({"id": "req_2", "method": "plugin.pane.open", "params": {
             "plugin_id": "herdr-picker",
             "entrypoint": "pick",
@@ -69,7 +74,48 @@ fn the_picker_request_opens_the_pick_pane_as_a_popup_for_the_current_workspace()
 
 #[test]
 fn without_a_current_workspace_the_popup_is_handed_none() {
-    let request = parsed(&picker_request("req_2", "herdr-picker", SIZE, None));
+    let request = parsed(&popup_request(
+        "req_2",
+        "herdr-picker",
+        SIZE,
+        &PopupPane::workspace_picker(None),
+    ));
 
     assert_eq!(request["params"]["env"], json!({}));
+}
+
+#[test]
+fn a_configured_picker_opens_in_the_callers_folder_and_is_told_what_to_run_and_where_to_answer() {
+    let pane = PopupPane::configured_picker(
+        "files",
+        "/home/me/.config/herdr-picker/config.toml",
+        "/home/me/.local/state/herdr/plugins/herdr-picker/picker-result-42",
+        Some("/home/me/repos/netpulse"),
+    );
+
+    assert_eq!(
+        parsed(&popup_request("req_2", "herdr-picker", SIZE, &pane)),
+        json!({"id": "req_2", "method": "plugin.pane.open", "params": {
+            "plugin_id": "herdr-picker",
+            "entrypoint": "run_picker",
+            "placement": "popup",
+            "width": 129,
+            "height": 40,
+            "cwd": "/home/me/repos/netpulse",
+            "env": {
+                "HERDR_PICKER_NAME": "files",
+                "HERDR_PICKER_CONFIG": "/home/me/.config/herdr-picker/config.toml",
+                "HERDR_PICKER_RESULT": "/home/me/.local/state/herdr/plugins/herdr-picker/picker-result-42"
+            }
+        }})
+    );
+}
+
+#[test]
+fn a_configured_picker_without_a_known_folder_leaves_the_folder_to_herdr() {
+    let pane = PopupPane::configured_picker("files", "/c.toml", "/r", None);
+
+    let request = parsed(&popup_request("req_2", "herdr-picker", SIZE, &pane));
+
+    assert_eq!(request["params"].get("cwd"), None);
 }

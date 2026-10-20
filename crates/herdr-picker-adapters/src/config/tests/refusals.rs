@@ -31,7 +31,7 @@ fn read_config_refuses_unparseable_toml_and_names_the_line() {
 }
 
 #[test]
-fn read_config_refuses_a_file_with_no_workspaces_table() {
+fn read_config_refuses_an_unknown_table() {
     let (refusal, rendered) = refusal_for("no-table", "[other]\nkey = \"value\"\n");
 
     assert!(

@@ -1,5 +1,7 @@
 use super::*;
+use herdr_picker_domain::TargetError;
 
+mod pickers;
 mod refusals;
 
 const FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER: &str = r#"

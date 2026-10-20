@@ -54,6 +54,12 @@ id = "pick"
 title = "Workspace picker"
 placement = "popup"
 command = ["./target/release/herdr-picker", "pick"]
+
+[[panes]]
+id = "run_picker"
+title = "Picker"
+placement = "popup"
+command = ["./target/release/herdr-picker", "run-in-popup"]
 "#;
 
 fn target(label: &str, directory: &str) -> JumpTarget {

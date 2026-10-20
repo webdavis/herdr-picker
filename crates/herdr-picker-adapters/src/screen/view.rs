@@ -6,7 +6,7 @@ mod row;
 mod text;
 
 pub use layout::Layout;
-use palette::Palette;
+pub(crate) use palette::{Palette, palette};
 use row::workspace_rows;
 use text::{cut, line, room, span, width_of};
 

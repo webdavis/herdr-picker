@@ -3,6 +3,9 @@ mod generate;
 mod last_workspace;
 mod path;
 mod pick;
+mod picker;
+mod picker_chrome;
+mod picker_popup;
 mod popup;
 mod run;
 

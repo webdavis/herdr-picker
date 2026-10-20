@@ -11,20 +11,15 @@ use crate::response;
 pub struct SocketPopupHost {
     socket: HerdrSocket,
     plugin_id: String,
-    current_workspace: Option<String>,
+    pane: protocol::PopupPane,
 }
 
 impl SocketPopupHost {
-    pub fn at(
-        path: &Path,
-        deadline: Duration,
-        plugin_id: &str,
-        current_workspace: Option<&str>,
-    ) -> Self {
+    pub fn at(path: &Path, deadline: Duration, plugin_id: &str, pane: protocol::PopupPane) -> Self {
         Self {
             socket: HerdrSocket::at(path, deadline),
             plugin_id: plugin_id.to_string(),
-            current_workspace: current_workspace.map(str::to_string),
+            pane,
         }
     }
 }
@@ -37,12 +32,7 @@ impl PopupHost for SocketPopupHost {
 
     fn open(&mut self, size: Size) -> Result<(), JumpError> {
         self.socket.send(|request_id| {
-            protocol::picker_request(
-                request_id,
-                &self.plugin_id,
-                size,
-                self.current_workspace.as_deref(),
-            )
+            protocol::popup_request(request_id, &self.plugin_id, size, &self.pane)
         })?;
         Ok(())
     }

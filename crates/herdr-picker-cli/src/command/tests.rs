@@ -114,6 +114,10 @@ fn the_usage_line_names_every_verb() {
         "last-workspace",
         "record",
         "generate",
+        "run <picker>",
+        "run-in-popup",
+        "preview <rows-file> <index>",
+        "init bash",
     ] {
         assert!(USAGE.contains(verb), "the usage line omits {verb}: {USAGE}");
     }

@@ -1,26 +1,34 @@
 use std::collections::BTreeMap;
-use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use herdr_picker_domain::{
-    JumpTarget, RowLook, TargetError, Theme, WorkspaceDeclaration, jump_targets,
+    JumpTarget, Picker, RowLook, Theme, WorkspaceDeclaration, jump_targets, pickers,
 };
 use serde::Deserialize;
+
+mod error;
+mod pickers;
+
+pub use error::ConfigError;
+use pickers::PickerEntry;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PluginConfig {
     pub targets: Vec<JumpTarget>,
     pub look: RowLook,
     pub theme: Theme,
+    pub pickers: Vec<Picker>,
 }
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ConfigFile {
-    workspaces: BTreeMap<String, Declaration>,
+    workspaces: Option<BTreeMap<String, Declaration>>,
     #[serde(default)]
     picker: PickerTable,
+    #[serde(default)]
+    pickers: BTreeMap<String, PickerEntry>,
 }
 
 #[derive(Deserialize, Default)]
@@ -81,43 +89,6 @@ impl Declaration {
         }
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ConfigError {
-    Unreadable {
-        path: PathBuf,
-        reason: String,
-    },
-    Unparseable {
-        path: PathBuf,
-        reason: String,
-        line: Option<usize>,
-    },
-    Invalid {
-        path: PathBuf,
-        cause: TargetError,
-    },
-}
-
-impl fmt::Display for ConfigError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (path, reason) = match self {
-            Self::Unreadable { path, reason } => (path, reason.clone()),
-            Self::Unparseable { path, reason, line } => (
-                path,
-                match line {
-                    Some(line) => format!("{reason} at line {line}"),
-                    None => reason.clone(),
-                },
-            ),
-            Self::Invalid { path, cause } => (path, cause.to_string()),
-        };
-        write!(
-            formatter,
-            "cannot read the workspace list from {}: {reason}",
-            path.display()
-        )
-    }
-}
 pub fn config_file(
     plugin_config_dir: Option<&str>,
     xdg_config_home: Option<&str>,
@@ -147,11 +118,25 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
             reason: failure.message().to_string(),
             line: one_based_line_of(&content, &failure),
         })?;
-    let workspaces = file
-        .workspaces
-        .into_iter()
-        .map(|(label, declaration)| declaration.labelled(label));
-    let targets = jump_targets(workspaces).map_err(|cause| ConfigError::Invalid {
+    let targets = match file.workspaces {
+        None => Vec::new(),
+        Some(workspaces) => jump_targets(
+            workspaces
+                .into_iter()
+                .map(|(label, declaration)| declaration.labelled(label)),
+        )
+        .map_err(|cause| ConfigError::Invalid {
+            path: path.to_owned(),
+            cause,
+        })?,
+    };
+    let pickers_directory = path.with_file_name("pickers");
+    let pickers = pickers(
+        file.pickers
+            .into_iter()
+            .map(|(name, entry)| entry.declared(name, &pickers_directory)),
+    )
+    .map_err(|cause| ConfigError::InvalidPicker {
         path: path.to_owned(),
         cause,
     })?;
@@ -164,6 +149,7 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
         targets,
         look: RowLook { leaders, stripes },
         theme: theme.into(),
+        pickers,
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {

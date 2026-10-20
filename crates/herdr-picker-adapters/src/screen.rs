@@ -7,6 +7,7 @@ use herdr_picker_domain::Frame;
 mod view;
 
 pub use view::Layout;
+pub(crate) use view::palette;
 
 const HIDE_CURSOR_AND_CLEAR: &str = "\x1b[?25l\x1b[H\x1b[2J";
 const SHOW_CURSOR: &str = "\x1b[?25h";

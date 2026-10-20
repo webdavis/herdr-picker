@@ -1,16 +1,16 @@
 use herdr_picker_domain::Theme;
 
-pub(super) struct Palette {
-    pub(super) base: &'static str,
-    pub(super) text: &'static str,
-    pub(super) key: &'static str,
-    pub(super) matched: &'static str,
-    pub(super) open: &'static str,
-    pub(super) faint: &'static str,
-    pub(super) leader: &'static str,
-    pub(super) stripe: &'static str,
-    pub(super) bar: &'static str,
-    pub(super) refusal: &'static str,
+pub(crate) struct Palette {
+    pub(crate) base: &'static str,
+    pub(crate) text: &'static str,
+    pub(crate) key: &'static str,
+    pub(crate) matched: &'static str,
+    pub(crate) open: &'static str,
+    pub(crate) faint: &'static str,
+    pub(crate) leader: &'static str,
+    pub(crate) stripe: &'static str,
+    pub(crate) bar: &'static str,
+    pub(crate) refusal: &'static str,
 }
 
 const MOCHA_BOLD_BLUE: &str = "\x1b[1;38;2;137;180;250m";
@@ -28,7 +28,7 @@ const CATPPUCCIN_MOCHA: Palette = Palette {
     refusal: "\x1b[38;2;243;139;168m",
 };
 
-pub(super) fn palette(theme: Theme) -> &'static Palette {
+pub(crate) fn palette(theme: Theme) -> &'static Palette {
     match theme {
         Theme::CatppuccinMocha => &CATPPUCCIN_MOCHA,
     }

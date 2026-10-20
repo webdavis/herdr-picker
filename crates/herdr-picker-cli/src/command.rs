@@ -8,11 +8,17 @@ use herdr_picker_adapters::{
 };
 use herdr_picker_application::record;
 use herdr_picker_protocol::parse_focused_id;
-use herdr_picker_protocol::{ACTIVE_WORKSPACE_VARIABLE, SOCKET_PATH_VARIABLE};
+use herdr_picker_protocol::{
+    ACTIVE_WORKSPACE_VARIABLE, PICKER_CONFIG_VARIABLE, PICKER_NAME_VARIABLE,
+    PICKER_RESULT_VARIABLE, SOCKET_PATH_VARIABLE,
+};
 
-use crate::{generate, last_workspace, path::expand_tilde, pick, popup, run};
+use crate::{
+    generate, last_workspace, path::expand_tilde, pick, picker, picker_chrome, picker_popup, popup,
+    run,
+};
 
-pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>]";
+pub(crate) const USAGE: &str = "usage: herdr-picker jump <label> <cwd> [--after-pid <pid>] | herdr-picker pick | herdr-picker popup | herdr-picker last-workspace | herdr-picker record | herdr-picker generate --output <directory> [--config <file>] | herdr-picker run <picker> | herdr-picker run-in-popup | herdr-picker preview <rows-file> <index> | herdr-picker header <rows-file> <picker> | herdr-picker rows <rows-file> | herdr-picker view <rows-file> load|choose|enter <index>|back | herdr-picker footer <rows-file> | herdr-picker init bash";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -30,6 +36,10 @@ pub(crate) fn config_path() -> PathBuf {
         env::var("XDG_CONFIG_HOME").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
     )
+}
+
+pub(crate) fn picker_config_path() -> PathBuf {
+    env::var_os(PICKER_CONFIG_VARIABLE).map_or_else(config_path, PathBuf::from)
 }
 
 fn mru_path() -> PathBuf {
@@ -108,6 +118,22 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
             );
             Ok(())
         }
+        ["run", name] => picker::run(env::var(SOCKET_PATH_VARIABLE).ok(), name),
+        ["run-in-popup"] => picker_popup::answer_in_popup(
+            env::var_os(PICKER_RESULT_VARIABLE).map(PathBuf::from),
+            &env::var(PICKER_NAME_VARIABLE).unwrap_or_default(),
+            &picker_config_path(),
+        ),
+        ["preview", cache, index] => {
+            picker::preview(Path::new(cache), index).map(|preview| print!("{preview}"))
+        }
+        [
+            part @ ("header" | "rows" | "view" | "footer"),
+            cache,
+            rest @ ..,
+        ] => picker_chrome::answer(part, Path::new(cache), rest, &picker_config_path())
+            .map(|answer| print!("{answer}")),
+        ["init", shell] => picker::init(shell, &config_path()).map(|script| print!("{script}")),
         _ => Err(CommandError::Usage),
     }
 }
