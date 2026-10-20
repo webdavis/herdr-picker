@@ -13,7 +13,7 @@ use crate::command::{CommandError, failed};
 
 mod command;
 
-use command::{StepCommand, step_command};
+use command::{StepCommand, picker_title, step_command};
 
 pub(crate) struct Run<'a> {
     pub(crate) config: &'a PluginConfig,
@@ -33,8 +33,13 @@ impl Run<'_> {
             source,
             sources,
             live,
-        } = step_command(&step.page, step.spot.source.as_deref(), self.config)?;
-        let titles = trail.titles();
+        } = step_command(
+            &step.page,
+            step.spot.source.as_deref(),
+            self.config,
+            &trail.names(),
+        )?;
+        let titles = trail.titles(|name| picker_title(name, self.config));
         let from = titles.first().cloned().unwrap_or_default();
         let first_view = View::Streamed {
             group: step.spot.group.clone(),

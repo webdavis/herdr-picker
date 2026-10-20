@@ -5,12 +5,13 @@ use std::process;
 use std::time::Duration;
 
 use herdr_picker_adapters::{
-    Layout, PluginConfig, TerminalInput, TerminalScreen, spawn_detached, wait_for_process_exit,
+    Layout, PluginConfig, TerminalInput, TerminalScreen, spawn_detached, spawned_jump_log_file,
+    wait_for_process_exit,
 };
 use herdr_picker_application::{WorkspaceDirectory, pick};
 use herdr_picker_domain::{Fuzzy, JumpTarget, Menu, ReadlineField, ReadlineKeymap, Workspace};
 
-use crate::command::{CommandError, failed, spawned_jump_log_path};
+use crate::command::{CommandError, failed, state_dir};
 
 const SPAWNER_EXIT_CAP: Duration = Duration::from_secs(2);
 
@@ -37,7 +38,11 @@ pub(crate) fn run(
     let mut screen = TerminalScreen::stdout(layout.hiding(menu.current_label()));
     match pick(menu, &ReadlineKeymap, &mut TerminalInput, &mut screen).map_err(failed)? {
         Some(target) => spawn_jump(target, |binary, arguments| {
-            spawn_detached(binary, arguments, Some(&spawned_jump_log_path()))
+            spawn_detached(
+                binary,
+                arguments,
+                Some(&spawned_jump_log_file(&state_dir())),
+            )
         }),
         None => Ok(()),
     }

@@ -1,8 +1,6 @@
 use std::env;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
 
-use herdr_picker_adapters::add_bookmark;
 use herdr_picker_domain::{Action, BUILTIN_PICKERS, PickerRow, Preview};
 use herdr_picker_protocol::{
     PICKER_QUERY_VARIABLE, PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, parse_action, shell_word,
@@ -11,6 +9,8 @@ use herdr_picker_protocol::{
 use crate::command::{CommandError, failed};
 
 pub(crate) mod agents;
+mod bookmark;
+mod catalog;
 mod clock;
 mod data;
 mod files;
@@ -26,13 +26,14 @@ mod project;
 mod recipes;
 mod rows;
 
+pub(crate) use bookmark::{bookmark, bookmark_folder};
 pub(crate) use data::data_command;
 pub(crate) use git::git_preview;
 pub(crate) use network::network_tool;
 pub(crate) use places::{HerdrPlaces, Places};
 pub(crate) use project::save_check;
 
-use rows::{RowWriter, in_home};
+use rows::RowWriter;
 
 // What the step asked of its picker: the source to read, its state, and what is typed.
 #[derive(Debug, Clone, Copy, Default)]
@@ -91,6 +92,7 @@ pub(crate) fn print_rows(
         ("files", [], Some(source)) => files::files(source, places, &mut rows)?,
         ("folders", [], Some(source)) => folders::folders(source, places, &mut rows)?,
         ("recipes", [], _) => recipes::recipes_rows(places, &mut rows)?,
+        ("pickers", [], Some(source)) => catalog::catalog(source, places, &mut rows)?,
         ("tests", [], Some(source)) => project::tests(source, places, &mut rows)?,
         ("processes", [], Some(source)) => processes::processes(source, &mut rows)?,
         ("network", [], Some(source)) => network::network(source, &asked, places, &mut rows)?,
@@ -127,23 +129,6 @@ fn row(label: &str, preview: Option<&str>, enter: Action) -> PickerRow {
         keys: Vec::new(),
         group: None,
     }
-}
-
-pub(crate) fn bookmark(folder: &Path, places: &Places) -> Result<String, CommandError> {
-    let shown = in_home(folder, places.home.as_deref());
-    Ok(
-        match add_bookmark(&places.bookmarks, folder).map_err(failed)? {
-            true => format!("Bookmarked {shown}"),
-            false => format!("Already bookmarked {shown}"),
-        },
-    )
-}
-
-// herdr names the focused pane's folder to a plugin action; a shell key binding runs in the shell's.
-pub(crate) fn bookmark_folder(active_pane_cwd: Option<String>, cwd: &Path) -> PathBuf {
-    active_pane_cwd
-        .filter(|folder| !folder.is_empty())
-        .map_or_else(|| cwd.to_path_buf(), PathBuf::from)
 }
 
 #[cfg(test)]

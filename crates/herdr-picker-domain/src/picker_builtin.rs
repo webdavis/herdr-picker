@@ -1,7 +1,9 @@
 mod agents;
+mod pickers;
 mod steps;
 
 use agents::AGENTS;
+use pickers::PICKERS;
 use steps::STEP_BUILTINS;
 pub use steps::{is_step_builtin, step_sources};
 
@@ -24,7 +26,7 @@ pub enum Live {
     On(&'static [&'static str]),
 }
 
-pub const BUILTIN_PICKERS: [BuiltinPicker; 14] = [
+pub const BUILTIN_PICKERS: [BuiltinPicker; 15] = [
     BuiltinPicker {
         name: "files",
         key: "ctrl-t f",
@@ -126,6 +128,7 @@ pub const BUILTIN_PICKERS: [BuiltinPicker; 14] = [
         live: Live::Never,
     },
     AGENTS,
+    PICKERS,
 ];
 
 pub fn follows_query(builtin: &str, source: Option<&str>) -> bool {

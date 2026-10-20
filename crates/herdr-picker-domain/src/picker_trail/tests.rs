@@ -1,4 +1,5 @@
 use super::*;
+use crate::picker_header::title;
 
 fn call(name: &str) -> PickerCall {
     PickerCall {
@@ -32,11 +33,11 @@ fn next_pushes_a_step_and_back_restores_the_query_and_group_left_behind() {
         trail.advance(Action::Next(call("files")), spot("ma", Some("local"))),
         Turn::Show
     );
-    assert_eq!(trail.titles(), vec!["Git Branches", "Files"]);
+    assert_eq!(trail.titles(title), vec!["Git Branches", "Files"]);
     assert_eq!(trail.current().spot, Spot::default());
 
     assert_eq!(trail.advance(Action::Back, spot("x", None)), Turn::Show);
-    assert_eq!(trail.titles(), vec!["Git Branches"]);
+    assert_eq!(trail.titles(title), vec!["Git Branches"]);
     assert_eq!(trail.current().spot, spot("ma", Some("local")));
 }
 
@@ -52,7 +53,7 @@ fn reload_shows_the_same_step_again_where_the_user_was() {
     let mut trail = Trail::new(call("files"));
 
     assert_eq!(trail.advance(Action::Reload, spot("src", None)), Turn::Show);
-    assert_eq!(trail.titles(), vec!["Files"]);
+    assert_eq!(trail.titles(title), vec!["Files"]);
     assert_eq!(trail.current().spot, spot("src", None));
 }
 
@@ -76,7 +77,7 @@ fn a_confirm_asks_its_question_as_a_step_and_no_returns() {
         spot("no", None),
     );
 
-    assert_eq!(trail.titles(), vec!["Files", "Delete notes.txt?"]);
+    assert_eq!(trail.titles(title), vec!["Files", "Delete notes.txt?"]);
     assert_eq!(
         trail.current().page,
         Page::Confirm {
@@ -85,7 +86,7 @@ fn a_confirm_asks_its_question_as_a_step_and_no_returns() {
         }
     );
     assert_eq!(trail.advance(Action::Back, Spot::default()), Turn::Show);
-    assert_eq!(trail.titles(), vec!["Files"]);
+    assert_eq!(trail.titles(title), vec!["Files"]);
     assert_eq!(trail.current().spot, spot("no", None));
 }
 
@@ -101,7 +102,7 @@ fn an_answered_confirm_leaves_the_trail_before_its_action_runs() {
         trail.advance(Action::Next(call("log")), Spot::default()),
         Turn::Show
     );
-    assert_eq!(trail.titles(), vec!["Files", "Log"]);
+    assert_eq!(trail.titles(title), vec!["Files", "Log"]);
 
     trail.advance(Action::Back, Spot::default());
     assert_eq!(trail.current().spot, spot("q", None));
@@ -118,7 +119,7 @@ fn a_source_action_shows_the_step_again_from_that_source_keeping_the_query() {
         ),
         Turn::Show
     );
-    assert_eq!(trail.titles(), vec!["Files"]);
+    assert_eq!(trail.titles(title), vec!["Files"]);
     assert_eq!(
         trail.current().spot,
         Spot {
@@ -151,7 +152,7 @@ fn state_shows_the_same_step_again_with_the_new_state_and_the_query_kept() {
         ),
         Turn::Show
     );
-    assert_eq!(trail.titles(), vec!["Contents"]);
+    assert_eq!(trail.titles(title), vec!["Contents"]);
     assert_eq!(
         trail.current().page,
         Page::Picker(PickerCall {
@@ -193,4 +194,27 @@ fn a_next_into_the_same_picker_keeps_the_source_and_back_returns_to_it() {
     trail.advance(Action::Back, Spot::default());
     trail.advance(Action::Back, Spot::default());
     assert_eq!(trail.current().spot, levels);
+}
+
+#[test]
+fn titles_name_each_picker_as_asked_and_each_question_as_put() {
+    let mut trail = Trail::new(call("notes"));
+    trail.advance(Action::Next(call("note-actions")), Spot::default());
+    trail.advance(confirm("Delete it?", Action::Reload), Spot::default());
+
+    let titled = trail.titles(|name| match name {
+        "notes" => "Vault".to_string(),
+        other => title(other),
+    });
+
+    assert_eq!(titled, vec!["Vault", "Note Actions", "Delete it?"]);
+}
+
+#[test]
+fn names_are_the_pickers_on_the_trail_oldest_first() {
+    let mut trail = Trail::new(call("pickers"));
+    trail.advance(Action::Next(call("notes")), Spot::default());
+    trail.advance(confirm("Sure?", Action::Reload), Spot::default());
+
+    assert_eq!(trail.names(), vec!["pickers", "notes"]);
 }

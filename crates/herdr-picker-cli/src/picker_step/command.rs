@@ -2,7 +2,9 @@ use std::env;
 use std::process::Command;
 
 use herdr_picker_adapters::PluginConfig;
-use herdr_picker_domain::{Page, PickerCommand, follows_query, is_step_builtin, step_sources};
+use herdr_picker_domain::{
+    Page, PickerCommand, follows_query, is_step_builtin, step_sources, title,
+};
 use herdr_picker_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, encode_action};
 
 use crate::command::{CommandError, failed};
@@ -16,10 +18,12 @@ pub(super) struct StepCommand {
     pub(super) live: bool,
 }
 
+// `trail` names the pickers the user came through, whose steps a next may name.
 pub(super) fn step_command(
     page: &Page,
     chosen: Option<&str>,
     config: &PluginConfig,
+    trail: &[&str],
 ) -> Result<StepCommand, CommandError> {
     let call = match page {
         Page::Picker(call) => call,
@@ -33,6 +37,18 @@ pub(super) fn step_command(
             });
         }
     };
+    if let Some(words) = own_step(&call.name, config, trail) {
+        let mut command = program(words, &call.name)?;
+        command.args(&call.args);
+        with_variables(&mut command, &call.state, &None);
+        return Ok(StepCommand {
+            command,
+            description: String::new(),
+            source: None,
+            sources: Vec::new(),
+            live: false,
+        });
+    }
     if is_step_builtin(&call.name) && config.pickers.iter().all(|picker| picker.name != call.name) {
         let mut command = own(&["builtin", &call.name])?;
         command.args(&call.args);
@@ -53,22 +69,11 @@ pub(super) fn step_command(
         .find(|picker| picker.name == call.name)
         .ok_or_else(|| failed(format!("no picker is named {}", call.name)))?;
     let mut command = match &picker.command {
-        PickerCommand::Program(words) => {
-            let (program, arguments) = words
-                .split_first()
-                .ok_or_else(|| failed(format!("the picker {} names no program", picker.name)))?;
-            let mut command = Command::new(program);
-            command.args(arguments);
-            command
-        }
+        PickerCommand::Program(words) => program(words, &picker.name)?,
         PickerCommand::Builtin(name) => own(&["builtin", name])?,
     };
     command.args(&picker.args).args(&call.args);
-    let sources: Vec<String> = picker
-        .sources()
-        .iter()
-        .map(|source| source.to_string())
-        .collect();
+    let sources = picker.sources.clone();
     let source = chosen
         .map(str::to_string)
         .or_else(|| sources.first().cloned());
@@ -84,6 +89,30 @@ pub(super) fn step_command(
         sources,
         live,
     })
+}
+
+fn own_step<'a>(name: &str, config: &'a PluginConfig, trail: &[&str]) -> Option<&'a [String]> {
+    trail.iter().rev().find_map(|owner| {
+        let picker = config.pickers.iter().find(|picker| picker.name == *owner)?;
+        picker.steps.get(name).map(Vec::as_slice)
+    })
+}
+
+pub(super) fn picker_title(name: &str, config: &PluginConfig) -> String {
+    config
+        .pickers
+        .iter()
+        .find(|picker| picker.name == name)
+        .map_or_else(|| title(name), |picker| picker.title.clone())
+}
+
+fn program(words: &[String], name: &str) -> Result<Command, CommandError> {
+    let (program, arguments) = words
+        .split_first()
+        .ok_or_else(|| failed(format!("the picker {name} names no program")))?;
+    let mut command = Command::new(program);
+    command.args(arguments);
+    Ok(command)
 }
 
 fn with_variables(command: &mut Command, state: &Option<String>, source: &Option<String>) {

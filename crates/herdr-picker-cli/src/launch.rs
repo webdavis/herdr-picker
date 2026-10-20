@@ -3,7 +3,7 @@ use std::{env, process};
 
 use herdr_picker_adapters::{
     DEADLINE, Layout, SocketPopupHost, TerminalInput, TerminalScreen, read_picker_config,
-    spawn_detached,
+    spawn_detached, spawned_jump_log_file,
 };
 use herdr_picker_application::{open_picker, pick};
 use herdr_picker_domain::{
@@ -13,7 +13,7 @@ use herdr_picker_protocol::{
     PICKER_BASE_VARIABLE, PICKER_TARGET_VARIABLE, PopupPane, parse_context_pane,
 };
 
-use crate::command::{CommandError, config_path, failed, spawned_jump_log_path};
+use crate::command::{CommandError, config_path, failed, state_dir};
 use crate::pick::AFTER_PID;
 use crate::popup::present;
 
@@ -78,8 +78,12 @@ pub(crate) fn choose() -> Result<(), CommandError> {
         .map_err(|failure| failed(format!("cannot find this binary: {failure}")))?;
     let popup = process::id().to_string();
     let arguments = ["deliver", &chosen.label, &target, AFTER_PID, &popup];
-    spawn_detached(&binary, &arguments, Some(&spawned_jump_log_path()))
-        .map_err(|failure| failed(format!("cannot start {}: {failure}", chosen.label)))
+    spawn_detached(
+        &binary,
+        &arguments,
+        Some(&spawned_jump_log_file(&state_dir())),
+    )
+    .map_err(|failure| failed(format!("cannot start {}: {failure}", chosen.label)))
 }
 
 #[cfg(test)]

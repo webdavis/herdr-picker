@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stroke {
     Ctrl(char),
@@ -32,6 +34,13 @@ impl Chord {
 
     pub fn strokes(&self) -> &[Stroke] {
         &self.0
+    }
+}
+
+impl fmt::Display for Chord {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let names: Vec<String> = self.0.iter().map(|stroke| stroke.name()).collect();
+        formatter.write_str(&names.join(" "))
     }
 }
 

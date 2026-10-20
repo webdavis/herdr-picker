@@ -64,7 +64,7 @@ pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
 pub use state::{
     bookmarks_file, captures_dir, mru_file, picker_result_file, picker_rows_file, places_file,
-    quickfix_file, send_queue_file, snapshot_file, spawned_jump_log_file,
+    plugin_state_dir, quickfix_file, send_queue_file, snapshot_file, spawned_jump_log_file,
 };
 pub use walk::{Entry, Walk, walk};
 

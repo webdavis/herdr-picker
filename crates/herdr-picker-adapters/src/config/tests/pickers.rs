@@ -1,4 +1,6 @@
-use herdr_picker_domain::{Chord, Picker, PickerCommand, PickerError};
+use std::collections::BTreeMap;
+
+use herdr_picker_domain::{BUILTIN_PICKERS, Chord, Picker, PickerCommand, PickerError};
 
 use super::*;
 
@@ -27,17 +29,23 @@ fn a_config_of_only_pickers_is_valid_and_declares_no_workspace() {
         [
             Picker {
                 name: "branches".to_string(),
+                title: "Branches".to_string(),
                 chord: Chord::parse("ctrl-g b").expect("a chord"),
                 description: "Git branches".to_string(),
                 command: script(&sandbox, "branches.sh", &[]),
                 args: Vec::new(),
+                sources: Vec::new(),
+                steps: BTreeMap::new(),
             },
             Picker {
                 name: "files".to_string(),
+                title: "Files".to_string(),
                 chord: Chord::parse("ctrl-t f").expect("a chord"),
                 description: "Files in this repository".to_string(),
                 command: script(&sandbox, "files.sh", &[]),
                 args: Vec::new(),
+                sources: Vec::new(),
+                steps: BTreeMap::new(),
             },
         ]
     );
@@ -69,7 +77,8 @@ fn pickers_sit_beside_workspaces() {
             "processes",
             "network",
             "data",
-            "agents"
+            "agents",
+            "pickers"
         ]
     );
 }
@@ -139,6 +148,11 @@ fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
                 "agents",
                 "ctrl-t a",
                 "Agents and tabs in herdr, the files that instruct agents here, saved failures, and past sessions"
+            ),
+            builtin(
+                "pickers",
+                "ctrl-t ;",
+                "Every picker by its key, or every key binding in the shell"
             ),
         ]
     );
@@ -296,10 +310,22 @@ fn names(pickers: &[Picker]) -> Vec<&str> {
 fn builtin(name: &str, key: &str, description: &str) -> Picker {
     Picker {
         name: name.to_string(),
+        title: herdr_picker_domain::title(name),
         chord: Chord::parse(key).expect("a chord"),
         description: description.to_string(),
         command: PickerCommand::Builtin(name.to_string()),
         args: Vec::new(),
+        sources: BUILTIN_PICKERS
+            .iter()
+            .find(|builtin| builtin.name == name)
+            .map_or(Vec::new(), |builtin| {
+                builtin
+                    .sources
+                    .iter()
+                    .map(|source| source.to_string())
+                    .collect()
+            }),
+        steps: BTreeMap::new(),
     }
 }
 
@@ -354,7 +380,8 @@ fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
             "processes",
             "network",
             "data",
-            "agents"
+            "agents",
+            "pickers"
         ]
     );
 }
@@ -382,7 +409,8 @@ fn a_configured_picker_turned_off_is_not_declared() {
             "processes",
             "network",
             "data",
-            "agents"
+            "agents",
+            "pickers"
         ]
     );
 }
@@ -438,7 +466,8 @@ fn without_a_config_file_the_pickers_are_the_builtin_ones() {
             "processes",
             "network",
             "data",
-            "agents"
+            "agents",
+            "pickers"
         ]
     );
     assert_eq!(config.targets, Vec::new());
@@ -501,3 +530,5 @@ fn a_unifi_table_under_another_picker_is_refused() {
         "{rendered}"
     );
 }
+
+mod sources;

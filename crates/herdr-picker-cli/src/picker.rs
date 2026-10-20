@@ -9,7 +9,7 @@ use herdr_picker_domain::{Action, PickerCall, PickerCommand, Preview, Trail, Tur
 use herdr_picker_protocol::{Shell, bash_init, instruction, parse_row};
 
 use crate::builtin::{self, Places};
-use crate::command::{CommandError, config_path, failed};
+use crate::command::{CommandError, config_path, failed, state_dir};
 use crate::picker_chrome::QuotedHelper;
 use crate::quickfix::quickfix_path;
 use crate::{handing, picker_popup, picker_step};
@@ -49,11 +49,7 @@ pub(crate) fn pick(
     placement: Placement,
 ) -> Result<Option<String>, CommandError> {
     let config = read_picker_config(config).map_err(failed)?;
-    let cache = picker_rows_file(
-        env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-        process::id(),
-    );
+    let cache = picker_rows_file(&state_dir(), process::id());
     let quoted = QuotedHelper::for_run(&cache)?;
     let mut trail = Trail::new(PickerCall {
         name: name.to_string(),

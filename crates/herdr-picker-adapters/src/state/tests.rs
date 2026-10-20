@@ -1,69 +1,50 @@
 use super::*;
 
 #[test]
-fn the_mru_file_prefers_the_injected_directory_over_the_home_default() {
+fn the_state_folder_is_the_one_herdr_names_then_xdg_state_home_then_the_home_default() {
     assert_eq!(
-        mru_file(Some("/tmp/state-override"), Some("/home/ignored")),
-        PathBuf::from("/tmp/state-override/mru")
+        plugin_state_dir(Some("/tmp/herdr-named"), Some("/xdg"), Some("/home/me")),
+        PathBuf::from("/tmp/herdr-named")
     );
     assert_eq!(
-        mru_file(None, Some("/home/me")),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/mru")
+        plugin_state_dir(None, Some("/xdg"), Some("/home/me")),
+        PathBuf::from("/xdg/herdr/plugins/herdr-picker")
     );
     assert_eq!(
-        mru_file(Some(""), Some("/home/me")),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/mru")
-    );
-}
-
-#[test]
-fn the_spawned_jumps_log_sits_beside_the_mru_file() {
-    assert_eq!(
-        spawned_jump_log_file(Some("/tmp/state-override"), None),
-        PathBuf::from("/tmp/state-override/jump.log")
-    );
-    assert_eq!(
-        spawned_jump_log_file(None, Some("/home/me")),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/jump.log")
+        plugin_state_dir(Some(""), Some(""), Some("/home/me")),
+        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker")
     );
 }
 
 #[test]
-fn a_picker_run_caches_its_rows_in_a_file_of_its_own_beside_the_mru_file() {
-    assert_eq!(
-        picker_rows_file(Some("/tmp/state-override"), None, 4242),
-        PathBuf::from("/tmp/state-override/picker-rows-4242.jsonl")
-    );
-    assert_eq!(
-        picker_rows_file(None, Some("/home/me"), 7),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/picker-rows-7.jsonl")
-    );
-}
+fn each_state_file_sits_in_the_state_folder() {
+    let state = Path::new("/state");
 
-#[test]
-fn a_popup_pickers_result_sits_in_the_state_directory_named_for_the_run() {
     assert_eq!(
-        picker_result_file(None, Some("/home/me"), 42),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/picker-result-42")
-    );
-}
-
-#[test]
-fn the_bookmarks_file_sits_in_the_state_directory() {
-    assert_eq!(
-        bookmarks_file(None, Some("/home/me")),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/bookmarks")
-    );
-}
-
-#[test]
-fn the_quickfix_list_and_saved_checks_sit_in_the_state_folder() {
-    assert_eq!(
-        quickfix_file(Some("/tmp/state"), None),
-        PathBuf::from("/tmp/state/quickfix.json")
-    );
-    assert_eq!(
-        captures_dir(None, Some("/home/me")),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker/captures")
+        [
+            mru_file(state),
+            spawned_jump_log_file(state),
+            places_file(state),
+            snapshot_file(state),
+            send_queue_file(state),
+            bookmarks_file(state),
+            quickfix_file(state),
+            captures_dir(state),
+            picker_rows_file(state, 7),
+            picker_result_file(state, 42),
+        ],
+        [
+            "/state/mru",
+            "/state/jump.log",
+            "/state/places",
+            "/state/agents.json",
+            "/state/send-queue.json",
+            "/state/bookmarks",
+            "/state/quickfix.json",
+            "/state/captures",
+            "/state/picker-rows-7.jsonl",
+            "/state/picker-result-42",
+        ]
+        .map(PathBuf::from)
     );
 }

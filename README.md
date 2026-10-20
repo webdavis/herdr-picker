@@ -205,6 +205,40 @@ the shell keys inside herdr too, and say so in the footer outside it.
 The `record` hook also runs on every pane focus and keeps the last 200 places, each pane and folder
 once, in `places` in the plugin's state folder, for a picker of recent places.
 
+The plugin's state folder is the one herdr names in `HERDR_PLUGIN_STATE_DIR`. A shell key, which
+runs outside herdr, works it out the way herdr does: `$XDG_STATE_HOME/herdr/plugins/herdr-picker`,
+or `~/.local/state/herdr/plugins/herdr-picker` without `XDG_STATE_HOME`.
+
+## Your own pickers
+
+A `[pickers.<name>]` table with a `command` runs a script from the `pickers` folder beside
+`config.toml`. `title` replaces the name in the header. `sources` lists the sources the
+script reads, in lowercase. The first is the one it opens on, ctrl-space chooses another, the
+header says `Source: <source>`, and the script reads the chosen one in `HERDR_PICKER_SOURCE`. A
+table under `steps` names a script that only a row's `next` opens. It runs on no key, from the
+same folder, with the row's arguments after its own:
+
+```toml
+[pickers.notes]
+key = "ctrl-t m"
+title = "Vault"
+description = "Notes by folder, tag, or lately opened"
+command = "notes.py"
+sources = ["folders", "tags", "recent"]
+
+[pickers.notes.steps.note-actions]
+command = "notes.py actions"
+```
+
+A row of `notes.py` that names `note-actions` as its next picker opens that step. A step belongs to
+its picker: a next finds it from that picker or from any step opened after it, so two pickers may
+each have a step of the same name, and a picker's own step wins over a built-in step.
+
+`ctrl-t ;` lists every picker by its key; Enter starts one. Its bindings source lists every shell
+key herdr-picker binds, then the rows of `~/.config/chord/bindings-menu.tsv` if there is one: Enter
+runs a `run` row, types an `insert` or `function` row, and leaves a readline command or macro to its
+key.
+
 ## The agents picker
 
 `ctrl-t a` lists herdr's agents, one row each: herdr's status glyph (`◉` needs you, `◐` working,

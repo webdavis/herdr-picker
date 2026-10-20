@@ -53,3 +53,11 @@ fn a_later_stroke_may_be_punctuation_that_keeps_a_readline_binding_whole() {
         Some(vec![Stroke::Ctrl('g'), Stroke::Plain('/')])
     );
 }
+
+#[test]
+fn a_chord_shows_as_its_strokes_the_way_a_key_is_declared() {
+    let shown = ["ctrl-T  b", "alt-f", "ctrl-t ;", "ctrl-t ctrl-b"]
+        .map(|key| Chord::parse(key).expect("a chord").to_string());
+
+    assert_eq!(shown, ["ctrl-t b", "alt-f", "ctrl-t ;", "ctrl-t ctrl-b"]);
+}

@@ -10,15 +10,13 @@ use herdr_picker_application::JumpError;
 use herdr_picker_domain::carry_since;
 use herdr_picker_protocol::{SOCKET_PATH_VARIABLE, parse_status_change};
 
+use crate::command::state_dir;
 use crate::picker_popup::popup_socket;
 
 const HOOK_CAP: Duration = Duration::from_secs(2);
 
-fn state_file(file: fn(Option<&str>, Option<&str>) -> PathBuf) -> PathBuf {
-    file(
-        env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-    )
+fn state_file(file: fn(&Path) -> PathBuf) -> PathBuf {
+    file(&state_dir())
 }
 
 pub(crate) fn snapshot_path() -> PathBuf {

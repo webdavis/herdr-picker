@@ -5,7 +5,7 @@ use herdr_picker_adapters::{bookmarks_file, captures_dir, on_path, places_file, 
 use herdr_picker_protocol::SOCKET_PATH_VARIABLE;
 
 use crate::agent_hook::snapshot_path;
-use crate::command::{CommandError, failed};
+use crate::command::{CommandError, failed, state_dir};
 
 pub(crate) struct Places {
     pub(crate) cwd: PathBuf,
@@ -45,7 +45,7 @@ impl HerdrPlaces {
 impl Places {
     pub(crate) fn here() -> Result<Self, CommandError> {
         let home = env::var("HOME").ok().filter(|home| !home.is_empty());
-        let state = env::var("HERDR_PLUGIN_STATE_DIR").ok();
+        let state = state_dir();
         let set = |name| {
             env::var(name)
                 .ok()
@@ -55,14 +55,14 @@ impl Places {
             cwd: env::current_dir().map_err(failed)?,
             fd: on_path("fd", env::var_os("PATH").as_deref()),
             bat: on_path("bat", env::var_os("PATH").as_deref()),
-            bookmarks: bookmarks_file(state.as_deref(), home.as_deref()),
-            quickfix: quickfix_file(state.as_deref(), home.as_deref()),
-            captures: captures_dir(state.as_deref(), home.as_deref()),
+            bookmarks: bookmarks_file(&state),
+            quickfix: quickfix_file(&state),
+            captures: captures_dir(&state),
             herdr: HerdrPlaces {
                 socket: set(SOCKET_PATH_VARIABLE).map(PathBuf::from),
                 tab: set("HERDR_TAB_ID"),
                 snapshot: snapshot_path(),
-                places: places_file(state.as_deref(), home.as_deref()),
+                places: places_file(&state),
                 bin: set("HERDR_BIN_PATH").unwrap_or_else(|| "herdr".to_string()),
             },
             home: home.map(PathBuf::from),

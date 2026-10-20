@@ -6,7 +6,7 @@ use herdr_picker_adapters::{
 };
 use herdr_picker_domain::{PickerRow, Theme, quickfix_entries};
 
-use crate::command::CommandError;
+use crate::command::{CommandError, state_dir};
 use crate::picker_chrome::rows_of;
 use crate::picker_keys::indices;
 
@@ -26,10 +26,7 @@ impl Quickfix {
 }
 
 pub(crate) fn quickfix_path() -> PathBuf {
-    quickfix_file(
-        env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-    )
+    quickfix_file(&state_dir())
 }
 
 // Ctrl-Q in any picker: inside Neovim the list loads there and the picker stays; otherwise the

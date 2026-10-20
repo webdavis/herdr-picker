@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use herdr_picker_adapters::{
-    FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, read_config, spawned_jump_log_file,
+    FileWorkspaceHistory, SocketWorkspaceDirectory, config_file, plugin_state_dir, read_config,
 };
 use herdr_picker_protocol::{
     ACTIVE_WORKSPACE_VARIABLE, PICKER_CONFIG_VARIABLE, PICKER_NAME_VARIABLE,
@@ -39,9 +39,11 @@ pub(crate) fn picker_config_path() -> PathBuf {
     env::var_os(PICKER_CONFIG_VARIABLE).map_or_else(config_path, PathBuf::from)
 }
 
-pub(crate) fn spawned_jump_log_path() -> PathBuf {
-    spawned_jump_log_file(
+// herdr names the state folder to its hooks and popups; a shell key works it out the same way.
+pub(crate) fn state_dir() -> PathBuf {
+    plugin_state_dir(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
+        env::var("XDG_STATE_HOME").ok().as_deref(),
         env::var("HOME").ok().as_deref(),
     )
 }

@@ -9,6 +9,9 @@ fn picker(name: &str, key: &str) -> Picker {
         description: String::new(),
         command: PickerCommand::Builtin("unused".to_string()),
         args: Vec::new(),
+        title: String::new(),
+        sources: Vec::new(),
+        steps: Default::default(),
     }
 }
 

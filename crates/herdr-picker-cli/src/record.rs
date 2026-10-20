@@ -9,15 +9,13 @@ use herdr_picker_application::record;
 use herdr_picker_domain::{Place, RECENT_PLACES};
 use herdr_picker_protocol::{SOCKET_PATH_VARIABLE, parse_focused_id, parse_focused_pane};
 
+use crate::command::state_dir;
 use crate::picker_popup::popup_socket;
 
 const PLACE_LOOKUP_CAP: Duration = Duration::from_millis(500);
 
-fn state_file(file: fn(Option<&str>, Option<&str>) -> PathBuf) -> PathBuf {
-    file(
-        env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-    )
+fn state_file(file: fn(&Path) -> PathBuf) -> PathBuf {
+    file(&state_dir())
 }
 
 pub(crate) fn mru_path() -> PathBuf {

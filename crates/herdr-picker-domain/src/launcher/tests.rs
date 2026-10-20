@@ -8,6 +8,9 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         description: format!("{name} picker"),
         command: PickerCommand::Builtin(name.to_string()),
         args: Vec::new(),
+        title: None,
+        sources: Vec::new(),
+        steps: Default::default(),
     }
 }
 

@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use super::*;
 use crate::picker_builtin::{follows_query, is_step_builtin, step_sources};
 
@@ -8,6 +10,9 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         description: format!("{name} picker"),
         command: PickerCommand::Program(vec![format!("/config/pickers/{name}.sh")]),
         args: Vec::new(),
+        title: None,
+        sources: Vec::new(),
+        steps: BTreeMap::new(),
     }
 }
 
@@ -23,17 +28,23 @@ fn pickers_parse_each_key_into_a_chord_and_keep_the_rest() {
         Ok(vec![
             Picker {
                 name: "branches".to_string(),
+                title: "Branches".to_string(),
                 chord: Chord::parse("ctrl-g b").expect("a chord"),
                 description: "branches picker".to_string(),
                 command: PickerCommand::Program(vec!["/config/pickers/branches.sh".to_string()]),
                 args: Vec::new(),
+                sources: Vec::new(),
+                steps: BTreeMap::new(),
             },
             Picker {
                 name: "files".to_string(),
+                title: "Files".to_string(),
                 chord: Chord::parse("ctrl-t f").expect("a chord"),
                 description: "files picker".to_string(),
                 command: PickerCommand::Program(vec!["/config/pickers/files.sh".to_string()]),
                 args: Vec::new(),
+                sources: Vec::new(),
+                steps: BTreeMap::new(),
             },
         ])
     );
@@ -105,7 +116,8 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
             ("processes", "ctrl-t p"),
             ("network", "ctrl-t n"),
             ("data", "ctrl-t i"),
-            ("agents", "ctrl-t a")
+            ("agents", "ctrl-t a"),
+            ("pickers", "ctrl-t ;")
         ]
     );
     assert!(
@@ -117,46 +129,22 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
 
 #[test]
 fn a_picker_running_a_builtin_offers_its_sources_and_a_command_offers_none() {
-    let running = |command: PickerCommand| Picker {
-        name: "any".to_string(),
-        chord: Chord::parse("ctrl-t x").expect("a chord"),
-        description: String::new(),
-        command,
-        args: Vec::new(),
-    };
-    let builtin = |name: &str| running(PickerCommand::Builtin(name.to_string()));
-
     assert_eq!(
-        builtin("files").sources(),
+        builtin_sources("files"),
         ["this folder", "hidden", "home", "whole disk", "recent"]
     );
     assert_eq!(
-        builtin("folders").sources(),
+        builtin_sources("folders"),
         ["subfolders", "parents", "git", "bookmarks"]
     );
-    assert!(builtin("bookmark").sources().is_empty());
-    assert!(
-        running(PickerCommand::Program(vec!["files.sh".to_string()]))
-            .sources()
-            .is_empty()
-    );
+    assert!(builtin_sources("bookmark").is_empty());
+    assert!(only(declared("files", "ctrl-t f")).sources.is_empty());
 }
 
 #[test]
 fn the_git_pickers_offer_lowercase_sources() {
-    let sources = |name: &str| {
-        Picker {
-            name: name.to_string(),
-            chord: Chord::parse("ctrl-g x").expect("a chord"),
-            description: String::new(),
-            command: PickerCommand::Builtin(name.to_string()),
-            args: Vec::new(),
-        }
-        .sources()
-    };
-
     assert_eq!(
-        sources("status"),
+        builtin_sources("status"),
         [
             "all",
             "conflicts",
@@ -168,10 +156,23 @@ fn the_git_pickers_offer_lowercase_sources() {
             "ignored"
         ]
     );
-    assert_eq!(sources("history"), ["commits", "reflog", "changes"]);
-    assert_eq!(sources("branches"), ["branches", "repos"]);
-    assert!(sources("contents").is_empty());
-    assert!(sources("git-config").is_empty());
+    assert_eq!(builtin_sources("history"), ["commits", "reflog", "changes"]);
+    assert_eq!(builtin_sources("branches"), ["branches", "repos"]);
+    assert!(builtin_sources("contents").is_empty());
+    assert!(builtin_sources("git-config").is_empty());
+}
+
+fn builtin_sources(name: &str) -> Vec<String> {
+    only(PickerDeclaration {
+        command: PickerCommand::Builtin(name.to_string()),
+        ..declared("any", "ctrl-t x")
+    })
+    .sources
+}
+
+fn only(declaration: PickerDeclaration) -> Picker {
+    let mut accepted = pickers([declaration]).expect("an accepted picker");
+    accepted.remove(0)
 }
 
 #[test]
@@ -210,3 +211,5 @@ fn a_step_builtin_may_offer_sources_and_most_offer_none() {
     assert!(step_sources("checkout").is_empty());
     assert!(step_sources("files").is_empty());
 }
+
+mod sources;

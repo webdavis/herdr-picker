@@ -9,7 +9,7 @@ use herdr_picker_application::{JumpError, PopupHost};
 use herdr_picker_domain::preview_popup_size;
 use herdr_picker_protocol::{PICKER_RESULT_VARIABLE, PLUGIN_ID, PaneState, PopupPane};
 
-use crate::command::{CommandError, failed};
+use crate::command::{CommandError, failed, state_dir};
 use crate::picker;
 
 const START_WITHIN: Duration = Duration::from_secs(5);
@@ -37,11 +37,7 @@ pub(crate) fn in_popup(
     config: &Path,
     refused: impl FnOnce(JumpError) -> Result<Option<String>, CommandError>,
 ) -> Result<Option<String>, CommandError> {
-    let result = picker_result_file(
-        env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-        process::id(),
-    );
+    let result = picker_result_file(&state_dir(), process::id());
     if let Some(directory) = result.parent() {
         fs::create_dir_all(directory).map_err(failed)?;
     }

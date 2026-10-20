@@ -9,6 +9,7 @@ use herdr_picker_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE};
 
 use super::*;
 
+mod scripted;
 mod send;
 
 fn config(name: &str, body: &str) -> PluginConfig {
@@ -55,7 +56,8 @@ fn a_builtin_runs_herdr_picker_builtin_with_the_declared_then_the_given_args() {
         command,
         description,
         ..
-    } = step_command(&call("echo", &["b"], Some("{\"n\":1}")), None, &config).expect("a command");
+    } = step_command(&call("echo", &["b"], Some("{\"n\":1}")), None, &config, &[])
+        .expect("a command");
 
     assert_eq!(
         words(&command),
@@ -87,7 +89,7 @@ fn a_program_runs_with_its_own_words_and_no_state_unless_given_one() {
         "[pickers.files]\nkey = \"ctrl-t f\"\ncommand = [\"/bin/ls\", \"-a\"]\n",
     );
 
-    let command = step_command(&call("files", &[], None), None, &config)
+    let command = step_command(&call("files", &[], None), None, &config, &[])
         .expect("a command")
         .command;
 
@@ -112,7 +114,7 @@ fn a_confirm_step_runs_the_confirm_builtin_with_its_question_and_action() {
         command,
         description,
         ..
-    } = step_command(&page, None, &config("confirm", "")).expect("a command");
+    } = step_command(&page, None, &config("confirm", ""), &[]).expect("a command");
 
     assert_eq!(
         words(&command),
@@ -129,7 +131,8 @@ fn a_confirm_step_runs_the_confirm_builtin_with_its_question_and_action() {
 
 #[test]
 fn a_next_to_a_picker_the_config_lacks_is_refused() {
-    let refusal = step_command(&call("ghost", &[], None), None, &config("ghost", "")).map(|_| ());
+    let refusal =
+        step_command(&call("ghost", &[], None), None, &config("ghost", ""), &[]).map(|_| ());
 
     assert_eq!(
         refusal.map_err(|failure| format!("{failure:?}")),
@@ -207,8 +210,9 @@ fn source_of(step: &StepCommand) -> Option<String> {
 fn a_builtin_with_sources_reads_its_first_source_unless_another_was_chosen() {
     let config = config("sources", "");
 
-    let first = step_command(&call("files", &[], None), None, &config).expect("a command");
-    let chosen = step_command(&call("files", &[], None), Some("home"), &config).expect("a command");
+    let first = step_command(&call("files", &[], None), None, &config, &[]).expect("a command");
+    let chosen =
+        step_command(&call("files", &[], None), Some("home"), &config, &[]).expect("a command");
 
     assert_eq!(source_of(&first), Some("this folder".to_string()));
     assert_eq!(first.source, Some("this folder".to_string()));
@@ -240,6 +244,7 @@ fn a_step_builtin_the_config_never_names_runs_from_a_next_with_its_args() {
         &call("rename-branch", &["/repo", "main"], None),
         None,
         &config("step-builtin", ""),
+        &[],
     )
     .expect("a command");
 
@@ -262,8 +267,8 @@ fn a_step_builtin_with_sources_reads_its_first_unless_another_was_chosen() {
     let config = config("step-sources", "");
     let file = call("data-file", &["/a.json"], None);
 
-    let first = step_command(&file, None, &config).expect("a command");
-    let chosen = step_command(&file, Some("levels"), &config).expect("a command");
+    let first = step_command(&file, None, &config, &[]).expect("a command");
+    let chosen = step_command(&file, Some("levels"), &config, &[]).expect("a command");
 
     assert_eq!(source_of(&first), Some("paths".to_string()));
     assert_eq!(
@@ -278,7 +283,7 @@ fn a_step_builtin_with_sources_reads_its_first_unless_another_was_chosen() {
 fn a_step_is_live_when_its_builtin_matches_the_query_for_its_source() {
     let config = config("live", "");
     let live = |name: &str, source: Option<&str>| {
-        step_command(&call(name, &[], None), source, &config)
+        step_command(&call(name, &[], None), source, &config, &[])
             .expect("a command")
             .live
     };

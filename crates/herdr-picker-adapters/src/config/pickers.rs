@@ -4,10 +4,13 @@ use std::path::Path;
 use herdr_picker_domain::{
     BUILTIN_PICKERS, BuiltinPicker, Picker, PickerCommand, PickerDeclaration, PickerError, pickers,
 };
-use herdr_picker_protocol::split_words;
 use serde::Deserialize;
 
 use super::unifi::UnifiSettings;
+
+mod command_line;
+
+use command_line::{CommandLine, program_words};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -20,21 +23,23 @@ pub(super) struct PickerEntry {
     args: Vec<String>,
     #[serde(default = "on")]
     enabled: bool,
+    title: Option<String>,
+    #[serde(default)]
+    sources: Vec<String>,
+    #[serde(default)]
+    steps: BTreeMap<String, StepEntry>,
     pub(super) unifi: Option<UnifiSettings>,
+}
+
+// A script only a row's next opens: it runs on no key, so it needs nothing but its command.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StepEntry {
+    command: CommandLine,
 }
 
 fn on() -> bool {
     true
-}
-
-#[derive(Deserialize)]
-#[serde(
-    untagged,
-    expecting = "a command line, or an array of a program and its arguments"
-)]
-enum CommandLine {
-    Line(String),
-    Words(Vec<String>),
 }
 
 // The configured pickers, then each built-in one the config leaves alone, unless a configured
@@ -52,6 +57,9 @@ pub(super) fn declared_pickers(
             description: builtin.description.to_string(),
             command: PickerCommand::Builtin(builtin.name.to_string()),
             args: Vec::new(),
+            title: None,
+            sources: Vec::new(),
+            steps: BTreeMap::new(),
         })
         .collect::<Vec<_>>();
     let declarations = entries
@@ -78,15 +86,10 @@ impl PickerEntry {
         let shipped: Option<&BuiltinPicker> =
             BUILTIN_PICKERS.iter().find(|builtin| builtin.name == name);
         let (command, description) = match (self.command, self.builtin, shipped) {
-            (Some(line), None, _) => {
-                let text = line_text(&line);
-                let command =
-                    program(line, pickers_directory).ok_or(PickerError::UnusableCommand {
-                        name: name.clone(),
-                        command: text,
-                    })?;
-                (command, self.description)
-            }
+            (Some(line), None, _) => (
+                PickerCommand::Program(program_words(line, pickers_directory, &name)?),
+                self.description,
+            ),
             (None, Some(builtin), _) => (PickerCommand::Builtin(builtin), self.description),
             (None, None, Some(shipped)) => (
                 PickerCommand::Builtin(shipped.name.to_string()),
@@ -98,33 +101,27 @@ impl PickerEntry {
         let key = self
             .key
             .or_else(|| shipped.map(|shipped| shipped.key.to_string()));
+        let steps = self
+            .steps
+            .into_iter()
+            .map(|(step, entry)| {
+                let words = program_words(
+                    entry.command,
+                    pickers_directory,
+                    &format!("{name}.steps.{step}"),
+                )?;
+                Ok((step, words))
+            })
+            .collect::<Result<_, PickerError>>()?;
         Ok(PickerDeclaration {
             name,
             key: key.unwrap_or_default(),
             description: description.unwrap_or_default(),
             command,
             args: self.args,
+            title: self.title,
+            sources: self.sources,
+            steps,
         })
-    }
-}
-
-// A relative program is one of the scripts in the pickers directory.
-fn program(line: CommandLine, pickers_directory: &Path) -> Option<PickerCommand> {
-    let mut words = match line {
-        CommandLine::Line(text) => split_words(&text).ok()?,
-        CommandLine::Words(words) => words,
-    };
-    let first = words.first_mut().filter(|first| !first.is_empty())?;
-    *first = pickers_directory
-        .join(&*first)
-        .to_string_lossy()
-        .into_owned();
-    Some(PickerCommand::Program(words))
-}
-
-fn line_text(line: &CommandLine) -> String {
-    match line {
-        CommandLine::Line(text) => text.clone(),
-        CommandLine::Words(words) => words.join(" "),
     }
 }

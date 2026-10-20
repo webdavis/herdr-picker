@@ -1,4 +1,3 @@
-use crate::picker_header::title;
 use crate::picker_row::{Action, PickerCall};
 
 // What a step shows: a picker's rows, or a question.
@@ -47,12 +46,22 @@ impl Trail {
         self.steps.last().expect("a trail keeps its first step")
     }
 
-    pub fn titles(&self) -> Vec<String> {
+    pub fn titles(&self, title_of: impl Fn(&str) -> String) -> Vec<String> {
         self.steps
             .iter()
             .map(|step| match &step.page {
-                Page::Picker(call) => title(&call.name),
+                Page::Picker(call) => title_of(&call.name),
                 Page::Confirm { question, .. } => question.clone(),
+            })
+            .collect()
+    }
+
+    pub fn names(&self) -> Vec<&str> {
+        self.steps
+            .iter()
+            .filter_map(|step| match &step.page {
+                Page::Picker(call) => Some(call.name.as_str()),
+                Page::Confirm { .. } => None,
             })
             .collect()
     }
