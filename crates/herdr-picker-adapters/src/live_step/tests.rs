@@ -23,10 +23,10 @@ impl Sandbox {
 
     fn command(&self, body: &str) -> Command {
         let path = self.0.join("picker.sh");
-        fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("a picker script");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).expect("executable");
-        let mut command = Command::new(path);
-        command.arg("--from-test");
+        fs::write(&path, format!("{body}\n")).expect("a picker script");
+        // Run through sh: executing a file this process just wrote races other tests' forks on Linux (ETXTBSY).
+        let mut command = Command::new("/bin/sh");
+        command.arg(path).arg("--from-test");
         command.env(PICKER_STATE_VARIABLE, "7");
         command
     }
