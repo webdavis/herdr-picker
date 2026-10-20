@@ -6,7 +6,7 @@ const GOLDEN_MANIFEST: &str = r#"id = "herdr-picker"
 name = "Picker"
 version = "1.2.3"
 min_herdr_version = "0.7.4"
-description = "Workspace navigation herdr has no built-in for: create-or-focus by label, a most-recently-used toggle, and a workspace picker."
+description = "Pickers for files, git, agents, workspaces and more, opened from shell keys or a herdr popup."
 platforms = ["macos", "linux"]
 
 [[build]]
