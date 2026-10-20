@@ -1,7 +1,7 @@
-use super::Live;
+use super::{BUILTIN_PICKERS, Live};
 
 // The built-in steps a picker's next action opens; no key runs them.
-pub(super) const STEP_BUILTINS: [(&str, Live); 18] = [
+pub(super) const STEP_BUILTINS: [(&str, Live); 24] = [
     ("commit-files", Live::Never),
     ("checkout", Live::Never),
     ("stash-files", Live::Always),
@@ -20,6 +20,12 @@ pub(super) const STEP_BUILTINS: [(&str, Live); 18] = [
     ("send-to", Live::Never),
     ("quick-answer", Live::Always),
     ("answer", Live::Never),
+    ("contact-fields", Live::Never),
+    ("contact-call", Live::Never),
+    ("chats", Live::Never),
+    ("message-history", Live::Never),
+    ("message-links", Live::Never),
+    ("message-attachments", Live::Never),
 ];
 
 // The step builtins that read more than one source; the first is the one a step opens on.
@@ -37,4 +43,21 @@ pub fn step_sources(name: &str) -> &'static [&'static str] {
         .iter()
         .find(|(step, _)| *step == name)
         .map_or(&[], |(_, sources)| sources)
+}
+
+// Whether a picker's or step's command runs again as the user types.
+pub fn follows_query(builtin: &str, source: Option<&str>) -> bool {
+    let shipped = BUILTIN_PICKERS
+        .iter()
+        .find(|picker| picker.name == builtin)
+        .map(|picker| picker.live);
+    let step = STEP_BUILTINS
+        .iter()
+        .find(|(step, _)| *step == builtin)
+        .map(|(_, live)| *live);
+    match shipped.or(step) {
+        Some(Live::Always) => true,
+        Some(Live::On(sources)) => source.is_some_and(|source| sources.contains(&source)),
+        Some(Live::Never) | None => false,
+    }
 }

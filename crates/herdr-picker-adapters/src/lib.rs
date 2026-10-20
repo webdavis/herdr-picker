@@ -23,6 +23,7 @@ mod process;
 mod program;
 mod quickfix;
 mod response;
+mod saved_contacts;
 mod screen;
 mod socket;
 mod state;
@@ -35,7 +36,8 @@ pub use cli::CliWorkspaceDirectory;
 pub use clipboard::copy_to_clipboard;
 pub use command_preview::command_preview;
 pub use config::{
-    ConfigError, PluginConfig, UnifiSettings, config_file, read_config, read_picker_config,
+    BlueBubblesSettings, ConfigError, PluginConfig, UnifiSettings, config_file, read_config,
+    read_picker_config,
 };
 pub use fzf::{
     Chrome, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
@@ -60,6 +62,7 @@ pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
 pub use program::{bare_program, on_path};
 pub use quickfix::{open_quickfix, read_quickfix, save_quickfix, send_quickfix};
+pub use saved_contacts::{contacts_file, save_contacts, saved_contacts};
 pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
 pub use state::{

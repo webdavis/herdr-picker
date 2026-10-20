@@ -7,13 +7,13 @@ use serde::Deserialize;
 
 mod error;
 mod pickers;
-mod unifi;
+mod services;
 mod workspaces;
 
 pub use error::ConfigError;
 use pickers::{PickerEntry, declared_pickers};
-pub use unifi::UnifiSettings;
-use unifi::unifi_settings;
+use services::service_tables;
+pub use services::{BlueBubblesSettings, UnifiSettings};
 use workspaces::Declaration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,6 +23,7 @@ pub struct PluginConfig {
     pub theme: Theme,
     pub pickers: Vec<Picker>,
     pub unifi: Option<UnifiSettings>,
+    pub bluebubbles: Option<BlueBubblesSettings>,
 }
 
 #[derive(Deserialize)]
@@ -113,10 +114,7 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
         })?,
     };
     let mut entries = file.pickers;
-    let unifi = unifi_settings(&mut entries).map_err(|picker| ConfigError::Misplaced {
-        path: path.to_owned(),
-        table: format!("[pickers.{picker}.unifi]"),
-    })?;
+    let (unifi, bluebubbles) = service_tables(&mut entries, path)?;
     let pickers = declared_pickers(entries, &path.with_file_name("pickers")).map_err(|cause| {
         ConfigError::InvalidPicker {
             path: path.to_owned(),
@@ -134,6 +132,7 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
         theme: theme.into(),
         pickers,
         unifi,
+        bluebubbles,
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {

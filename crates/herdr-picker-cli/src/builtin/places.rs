@@ -1,7 +1,9 @@
 use std::env;
 use std::path::PathBuf;
 
-use herdr_picker_adapters::{bookmarks_file, captures_dir, on_path, places_file, quickfix_file};
+use herdr_picker_adapters::{
+    bookmarks_file, captures_dir, contacts_file, on_path, places_file, quickfix_file,
+};
 use herdr_picker_protocol::SOCKET_PATH_VARIABLE;
 
 use crate::agent_hook::snapshot_path;
@@ -15,6 +17,8 @@ pub(crate) struct Places {
     pub(crate) bookmarks: PathBuf,
     pub(crate) quickfix: PathBuf,
     pub(crate) captures: PathBuf,
+    // The apple picker's copy of the address book.
+    pub(crate) contacts: PathBuf,
     pub(crate) herdr: HerdrPlaces,
 }
 
@@ -58,6 +62,7 @@ impl Places {
             bookmarks: bookmarks_file(&state),
             quickfix: quickfix_file(&state),
             captures: captures_dir(&state),
+            contacts: contacts_file(&state),
             herdr: HerdrPlaces {
                 socket: set(SOCKET_PATH_VARIABLE).map(PathBuf::from),
                 tab: set("HERDR_TAB_ID"),

@@ -269,6 +269,33 @@ you type it, asks `claude -p` through clauth on the personal or Broccoli profile
 answer as a page: Enter copies it and Esc goes back. A Broccoli picker's rows are only asked on the
 Broccoli profile.
 
+## Apple apps and Arc tabs
+
+`ctrl-t m` reads the Mac's own apps. Its sources are messages, contacts and shortcuts. Contacts
+copies a contact's card on enter, alt+y copies and stays, alt+0 to alt+6 choose which fields
+enter copies (all, name, phone, email, address, work, link), alt+7 lists the fields to pick
+from, ctrl+v calls, and alt+m opens the contact's conversations. Reading the address book takes
+seconds, so a copy is kept in `contacts.json` in the plugin's state folder until the address book
+changes. Shortcuts prepares `shortcuts run` on enter, and ctrl+o prepares opening the editor.
+
+Messages come from a [BlueBubbles](https://bluebubbles.app) server. Its URL goes in the config
+and its server password in the Keychain; the password reaches `curl` on stdin, never on its
+command line:
+
+```toml
+[pickers.apple.bluebubbles]
+url = "https://messages.example.net:1234"
+keychain-service = "BlueBubbles server password"
+```
+
+Store the password with `security add-generic-password -s "BlueBubbles server password" -a
+"$USER" -w`. Without the table, messages says BlueBubbles is not configured. Attachments open
+from the Messages database, which needs Full Disk Access for the terminal.
+
+`ctrl-t w` lists Arc's open tabs by Space: enter switches to the tab, alt+y copies its URL, and
+alt+b switches to Chrome's tabs and back. Both pickers say so in one row on other systems, and
+when Arc is not running or not installed.
+
 ## Developing
 
 `just preview` builds the plugin and opens the picker in a throwaway herdr with your theme and

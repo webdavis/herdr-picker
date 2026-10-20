@@ -9,6 +9,8 @@ use herdr_picker_protocol::{
 use crate::command::{CommandError, failed};
 
 pub(crate) mod agents;
+mod apple;
+mod automation;
 mod bookmark;
 mod catalog;
 mod clock;
@@ -25,6 +27,7 @@ mod program;
 mod project;
 mod recipes;
 mod rows;
+mod tabs;
 
 pub(crate) use bookmark::{bookmark, bookmark_folder};
 pub(crate) use data::data_command;
@@ -32,6 +35,7 @@ pub(crate) use git::git_preview;
 pub(crate) use network::network_tool;
 pub(crate) use places::{HerdrPlaces, Places};
 pub(crate) use project::save_check;
+pub(crate) use tabs::tabs_tool;
 
 use rows::RowWriter;
 
@@ -80,7 +84,8 @@ pub(crate) fn print_rows(
     };
     let step = git::git_rows(name, arguments, &asked, places, &mut rows)
         .or_else(|| network::network_step(name, arguments, &asked, places, &mut rows))
-        .or_else(|| data::data_rows(name, arguments, &asked, places, &mut rows));
+        .or_else(|| data::data_rows(name, arguments, &asked, places, &mut rows))
+        .or_else(|| apple::apple_step(name, arguments, places, &mut rows));
     if let Some(listed) = step {
         listed?;
         return written(rows.finish());
@@ -96,6 +101,8 @@ pub(crate) fn print_rows(
         ("tests", [], Some(source)) => project::tests(source, places, &mut rows)?,
         ("processes", [], Some(source)) => processes::processes(source, &mut rows)?,
         ("network", [], Some(source)) => network::network(source, &asked, places, &mut rows)?,
+        ("apple", [], Some(source)) => apple::apple(source, &asked, places, &mut rows)?,
+        ("tabs", [], _) => tabs::tabs(asked.state, &mut rows)?,
         ("unified-logs", [], _) => processes::unified_logs(&mut rows)?,
         ("crashes", [], _) => processes::crashes(places, &mut rows)?,
         ("echo-args", words, _) => written(

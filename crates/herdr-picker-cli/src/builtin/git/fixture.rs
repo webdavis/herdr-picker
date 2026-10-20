@@ -52,6 +52,7 @@ impl GitRepo {
             bookmarks: self.0.join(".git/bookmarks"),
             quickfix: self.0.join(".git/quickfix.json"),
             captures: self.0.join(".git/captures"),
+            contacts: self.0.join(".git/contacts.json"),
             herdr: crate::builtin::HerdrPlaces::outside(&self.0.join(".git")),
         }
     }

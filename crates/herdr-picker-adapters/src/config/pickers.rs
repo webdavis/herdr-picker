@@ -6,7 +6,7 @@ use herdr_picker_domain::{
 };
 use serde::Deserialize;
 
-use super::unifi::UnifiSettings;
+use super::services::{BlueBubblesSettings, UnifiSettings};
 
 mod command_line;
 
@@ -29,6 +29,7 @@ pub(super) struct PickerEntry {
     #[serde(default)]
     steps: BTreeMap<String, StepEntry>,
     pub(super) unifi: Option<UnifiSettings>,
+    pub(super) bluebubbles: Option<BlueBubblesSettings>,
 }
 
 // A script only a row's next opens: it runs on no key, so it needs nothing but its command.

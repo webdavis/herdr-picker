@@ -43,6 +43,7 @@ pub fn bindable_keys() -> impl Iterator<Item = Key> {
     let alt = ('a'..='z')
         .filter(|letter| !ENGINE_ALT_LETTERS.contains(*letter))
         .map(|letter| format!("alt-{letter}"));
+    let digits = ('0'..='9').map(|digit| format!("alt-{digit}"));
     // Alt-. shows hidden files, as dotfiles start with a dot; Alt-; opens a picker's small menu.
     let dot = ["alt-.", "alt-;"].map(str::to_string);
     let function = (2..=12).map(|number| format!("f{number}"));
@@ -50,6 +51,7 @@ pub fn bindable_keys() -> impl Iterator<Item = Key> {
         .into_iter()
         .chain(ctrl)
         .chain(alt)
+        .chain(digits)
         .chain(dot)
         .chain(function)
         .map(Key)

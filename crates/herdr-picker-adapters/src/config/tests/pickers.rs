@@ -78,7 +78,9 @@ fn pickers_sit_beside_workspaces() {
             "network",
             "data",
             "agents",
-            "pickers"
+            "pickers",
+            "apple",
+            "tabs"
         ]
     );
 }
@@ -154,6 +156,12 @@ fn a_config_without_pickers_runs_the_builtin_ones_on_their_keys() {
                 "ctrl-t ;",
                 "Every picker by its key, or every key binding in the shell"
             ),
+            builtin(
+                "apple",
+                "ctrl-t m",
+                "Messages through BlueBubbles, Contacts, and Shortcuts"
+            ),
+            builtin("tabs", "ctrl-t w", "Open Arc tabs, by Space"),
         ]
     );
 }
@@ -381,7 +389,9 @@ fn a_builtin_picker_gives_its_key_to_a_configured_picker_that_claims_it() {
             "network",
             "data",
             "agents",
-            "pickers"
+            "pickers",
+            "apple",
+            "tabs"
         ]
     );
 }
@@ -410,7 +420,9 @@ fn a_configured_picker_turned_off_is_not_declared() {
             "network",
             "data",
             "agents",
-            "pickers"
+            "pickers",
+            "apple",
+            "tabs"
         ]
     );
 }
@@ -467,7 +479,9 @@ fn without_a_config_file_the_pickers_are_the_builtin_ones() {
             "network",
             "data",
             "agents",
-            "pickers"
+            "pickers",
+            "apple",
+            "tabs"
         ]
     );
     assert_eq!(config.targets, Vec::new());
@@ -531,4 +545,5 @@ fn a_unifi_table_under_another_picker_is_refused() {
     );
 }
 
+mod bluebubbles;
 mod sources;

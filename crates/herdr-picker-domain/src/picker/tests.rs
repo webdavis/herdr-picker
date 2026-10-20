@@ -117,7 +117,9 @@ fn the_builtin_pickers_are_the_ctrl_t_and_ctrl_g_ones() {
             ("network", "ctrl-t n"),
             ("data", "ctrl-t i"),
             ("agents", "ctrl-t a"),
-            ("pickers", "ctrl-t ;")
+            ("pickers", "ctrl-t ;"),
+            ("apple", "ctrl-t m"),
+            ("tabs", "ctrl-t w")
         ]
     );
     assert!(
@@ -138,6 +140,10 @@ fn a_picker_running_a_builtin_offers_its_sources_and_a_command_offers_none() {
         ["subfolders", "parents", "git", "bookmarks"]
     );
     assert!(builtin_sources("bookmark").is_empty());
+    assert_eq!(
+        builtin_sources("apple"),
+        ["messages", "contacts", "shortcuts"]
+    );
     assert!(only(declared("files", "ctrl-t f")).sources.is_empty());
 }
 
@@ -196,6 +202,12 @@ fn the_steps_only_a_next_reaches_are_builtins_too() {
         "pull",
         "prune",
         "change-setting",
+        "contact-fields",
+        "contact-call",
+        "chats",
+        "message-history",
+        "message-links",
+        "message-attachments",
     ] {
         assert!(is_step_builtin(name), "{name}");
     }

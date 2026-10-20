@@ -1,11 +1,12 @@
 mod agents;
+mod macos;
 mod pickers;
 mod steps;
 
 use agents::AGENTS;
+use macos::{APPLE, TABS};
 use pickers::PICKERS;
-use steps::STEP_BUILTINS;
-pub use steps::{is_step_builtin, step_sources};
+pub use steps::{follows_query, is_step_builtin, step_sources};
 
 // The pickers herdr-picker ships, on their keys unless the config turns them off or moves them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,7 +27,7 @@ pub enum Live {
     On(&'static [&'static str]),
 }
 
-pub const BUILTIN_PICKERS: [BuiltinPicker; 15] = [
+pub const BUILTIN_PICKERS: [BuiltinPicker; 17] = [
     BuiltinPicker {
         name: "files",
         key: "ctrl-t f",
@@ -129,20 +130,6 @@ pub const BUILTIN_PICKERS: [BuiltinPicker; 15] = [
     },
     AGENTS,
     PICKERS,
+    APPLE,
+    TABS,
 ];
-
-pub fn follows_query(builtin: &str, source: Option<&str>) -> bool {
-    let shipped = BUILTIN_PICKERS
-        .iter()
-        .find(|picker| picker.name == builtin)
-        .map(|picker| picker.live);
-    let step = STEP_BUILTINS
-        .iter()
-        .find(|(step, _)| *step == builtin)
-        .map(|(_, live)| *live);
-    match shipped.or(step) {
-        Some(Live::Always) => true,
-        Some(Live::On(sources)) => source.is_some_and(|source| sources.contains(&source)),
-        Some(Live::Never) | None => false,
-    }
-}

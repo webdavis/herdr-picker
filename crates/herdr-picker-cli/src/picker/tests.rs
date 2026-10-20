@@ -84,6 +84,8 @@ fn init_bash_binds_each_configured_picker() {
             "bind -x '\"\\C-ti\": __herdr_picker data'\n",
             "bind -x '\"\\C-ta\": __herdr_picker agents'\n",
             "bind -x '\"\\C-t;\": __herdr_picker pickers'\n",
+            "bind -x '\"\\C-tm\": __herdr_picker apple'\n",
+            "bind -x '\"\\C-tw\": __herdr_picker tabs'\n",
         )),
         "{script}"
     );
