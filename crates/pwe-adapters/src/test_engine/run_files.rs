@@ -25,6 +25,16 @@ impl RunFile {
     }
 }
 
+pub fn save_listing(runs: &Path, runner: &str, text: &str) -> io::Result<()> {
+    let mut file = create_private(
+        &runs
+            .join("listings")
+            .join(format!("{runner}.{RUN_FILE_EXTENSION}")),
+    )?;
+    file.write_all(text.as_bytes())?;
+    file.flush()
+}
+
 pub fn run_folder(state_folder: &Path, repo_root: &Path) -> PathBuf {
     let repo_key = repo_root.to_string_lossy().replace('/', "%");
     state_folder.join("tests").join(repo_key)

@@ -70,7 +70,7 @@ fn target(target: &Target) -> Fields {
     Fields::default().put("kind", kind).put("value", value)
 }
 
-fn diagnostic(diagnostic: &Diagnostic) -> Fields {
+pub(super) fn diagnostic(diagnostic: &Diagnostic) -> Fields {
     Fields::default()
         .put("file", diagnostic.file.clone())
         .put("line", diagnostic.line)

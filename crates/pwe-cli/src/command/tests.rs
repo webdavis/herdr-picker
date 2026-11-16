@@ -124,6 +124,7 @@ fn the_usage_line_names_every_verb() {
         "test runners",
         "test run --all",
         "test results",
+        "test list",
     ] {
         assert!(USAGE.contains(verb), "the usage line omits {verb}: {USAGE}");
     }

@@ -108,3 +108,25 @@ fn a_runner_named_with_runner_that_does_not_match_lists_the_ones_that_do() {
         (&json!("NO_RUNNER"), &json!(["cargo"]))
     );
 }
+
+#[test]
+fn listing_with_a_runner_that_has_no_list_command_is_refused_with_no_tests() {
+    let project = TestProject::new("refuse-no-list");
+    project
+        .file("absent.txt", "")
+        .user_runner("absent.toml", MISSING_TOOL_RUNNER);
+
+    let error = refusal(&project, &["test", "list", "--format", "json"]);
+
+    assert_eq!(error["code"], json!("NO_TESTS"));
+}
+
+#[test]
+fn listing_with_a_tool_missing_from_the_path_is_refused_with_tool_missing() {
+    let project = TestProject::new("refuse-list-missing-tool");
+    project.file("Cargo.toml", "");
+
+    let error = refusal(&project, &["test", "list", "--format", "json"]);
+
+    assert_eq!(error["code"], json!("TOOL_MISSING"));
+}

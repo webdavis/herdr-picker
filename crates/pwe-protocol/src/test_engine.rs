@@ -16,6 +16,7 @@ mod runner_file_error;
 mod runner_listing;
 mod severity_words;
 mod test_error;
+mod test_listing;
 
 pub use event_lines::EventLines;
 pub use event_reading::read_event_line;
@@ -27,3 +28,6 @@ pub use runner_file::read_runner_file;
 pub use runner_file_error::RunnerFileError;
 pub use runner_listing::{runner_listing_json, runner_listing_text};
 pub use test_error::{Hint, TestError, TestErrorCode};
+pub use test_listing::{
+    LIST_PARSERS, Listing, listing_json, listing_text, read_listing, test_json,
+};
