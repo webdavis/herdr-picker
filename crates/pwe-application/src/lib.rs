@@ -4,6 +4,7 @@ mod jump;
 mod mru;
 mod pick;
 mod popup;
+mod step_finder;
 mod system_service;
 
 pub use agents::{
@@ -14,4 +15,5 @@ pub use jump::{WorkspaceDirectory, jump};
 pub use mru::{WorkspaceHistory, bounce, record};
 pub use pick::{InputSource, PickError, PickInput, Screen, pick};
 pub use popup::{PopupHost, open_picker};
+pub use step_finder::{StepFinder, StepOutcome, StepSetup};
 pub use system_service::{DaemonLaunch, SystemService, SystemServiceError};

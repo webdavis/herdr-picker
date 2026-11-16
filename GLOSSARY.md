@@ -45,6 +45,12 @@ A page a row's `next` action opens, run on no key: a built-in one, or a script a
 under `steps`. esc goes back to the step before it.
 _Avoid_: subpicker, screen
 
+**Step finder**:
+What shows one step's rows, lets the user search and mark them, and reports the rows found and the
+ending that closed it: Enter or a row's key, esc, alt+o, ctrl+q or a source chosen. fzf is the
+first; pwe's own finder engine comes next.
+_Avoid_: finder engine (the program behind it), window
+
 **Live step**:
 A picker or step whose command runs again each time the query changes, reading it in
 `PWE_QUERY`, rather than listing once for fzf to filter.

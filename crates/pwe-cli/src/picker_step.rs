@@ -1,12 +1,9 @@
 use std::path::Path;
 
-use pwe_adapters::{
-    Chrome, Helper, Placement, PluginConfig, fzf_arguments, open_quickfix, read_view,
-    remove_run_files, run_picker, save_step_command, write_view,
-};
+use pwe_adapters::{PluginConfig, open_quickfix};
+use pwe_application::{StepFinder, StepOutcome, StepSetup};
 use pwe_domain::finder::{Ending, Found};
 use pwe_domain::{Action, Page, PickerRow, Spot, Trail, View, ViewState, act, header};
-use pwe_protocol::PICKER_QUERY_VARIABLE;
 
 use crate::builtin::agents::send_call;
 use crate::command::{CommandError, failed};
@@ -15,19 +12,17 @@ mod command;
 
 use command::{StepCommand, picker_title, step_command};
 
-pub(crate) struct Run<'a> {
+pub(crate) struct Run<'a, F> {
     pub(crate) config: &'a PluginConfig,
-    pub(crate) helper: Helper<'a>,
-    pub(crate) cache: &'a Path,
-    pub(crate) placement: Placement,
+    pub(crate) finder: &'a F,
     pub(crate) quickfix: &'a Path,
 }
 
-impl Run<'_> {
+impl<F: StepFinder> Run<'_, F> {
     pub(crate) fn show(&self, trail: &Trail) -> Result<Option<(Action, Spot)>, CommandError> {
         let step = trail.current();
         let StepCommand {
-            mut command,
+            command,
             description,
             source,
             sources,
@@ -44,39 +39,31 @@ impl Run<'_> {
             group: step.spot.group.clone(),
         };
         let header = header(&titles, &first_view, source.as_deref(), &[]);
-        remove_run_files(self.cache);
-        let state = ViewState {
-            view: first_view,
-            titles,
-            description: description.clone(),
-            source,
-            sources,
-        };
-        write_view(self.cache, &state).map_err(failed)?;
-        if live {
-            save_step_command(self.cache, &command).map_err(failed)?;
-            command.env(PICKER_QUERY_VARIABLE, &step.spot.query);
-        }
-        let chrome = Chrome {
-            helper: self.helper,
-            header: &header,
-            description: &description,
-            query: &step.spot.query,
+        let setup = StepSetup {
+            rows: command,
+            query: step.spot.query.clone(),
+            header,
+            view: ViewState {
+                view: first_view,
+                titles,
+                description,
+                source,
+                sources,
+            },
             live,
         };
-        let arguments = fzf_arguments(self.config.theme, &chrome, self.placement);
-        let picked = run_picker(&mut command, Path::new("fzf"), &arguments, self.cache);
-        let left = read_view(self.cache);
-        remove_run_files(self.cache);
         let name = match &step.page {
             Page::Picker(call) => call.name.as_str(),
             Page::Confirm { .. } => "confirm",
         };
-        let picked = picked.map_err(|failure| failed(format!("picker {name}: {failure}")))?;
-        Ok(picked.map(|found| {
+        let outcome = self
+            .finder
+            .find(setup)
+            .map_err(|failure| failed(format!("picker {name}: {failure}")))?;
+        Ok(outcome.map(|StepOutcome { found, view_left }| {
             let action = chosen_action(
                 &found,
-                left.source.as_deref(),
+                view_left.source.as_deref(),
                 self.quickfix,
                 &first_picker_title,
             );
@@ -87,12 +74,12 @@ impl Run<'_> {
                 } else {
                     found.query
                 },
-                group: match left.view {
+                group: match view_left.view {
                     View::Streamed { group } | View::List { group } | View::Chooser { group } => {
                         group
                     }
                 },
-                source: left.source,
+                source: view_left.source,
             };
             (action, spot)
         }))
