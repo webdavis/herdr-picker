@@ -61,55 +61,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
 
 [[package]]
-name = "herdr-picker-adapters"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "herdr-picker-application",
- "herdr-picker-domain",
- "herdr-picker-protocol",
- "rustix",
- "serde",
- "serde_json",
- "toml",
-]
-
-[[package]]
-name = "herdr-picker-application"
-version = "0.1.0"
-dependencies = [
- "herdr-picker-domain",
-]
-
-[[package]]
-name = "herdr-picker-cli"
-version = "0.1.0"
-dependencies = [
- "herdr-picker-adapters",
- "herdr-picker-application",
- "herdr-picker-domain",
- "herdr-picker-protocol",
- "serde",
- "serde_json",
- "toml",
- "toon-format",
-]
-
-[[package]]
-name = "herdr-picker-domain"
-version = "0.1.0"
-
-[[package]]
-name = "herdr-picker-protocol"
-version = "0.1.0"
-dependencies = [
- "herdr-picker-domain",
- "serde",
- "serde_json",
- "toml",
-]
-
-[[package]]
 name = "indexmap"
 version = "2.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -206,6 +157,55 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "pwe-adapters"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "pwe-application",
+ "pwe-domain",
+ "pwe-protocol",
+ "rustix",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
+name = "pwe-application"
+version = "0.1.0"
+dependencies = [
+ "pwe-domain",
+]
+
+[[package]]
+name = "pwe-cli"
+version = "0.1.0"
+dependencies = [
+ "pwe-adapters",
+ "pwe-application",
+ "pwe-domain",
+ "pwe-protocol",
+ "serde",
+ "serde_json",
+ "toml",
+ "toon-format",
+]
+
+[[package]]
+name = "pwe-domain"
+version = "0.1.0"
+
+[[package]]
+name = "pwe-protocol"
+version = "0.1.0"
+dependencies = [
+ "pwe-domain",
+ "serde",
+ "serde_json",
+ "toml",
 ]
 
 [[package]]

@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 checkout=$PWD
 dir=$checkout/target/preview
 registry=$dir/xdg
-bin=$checkout/target/release/herdr-picker
+bin=$checkout/target/release/pwe
 prefix=ctrl+x
 user_shell=${SHELL:-/bin/sh}
 how_to_leave="exit or $prefix q leaves"

@@ -1,0 +1,17 @@
+[package]
+name = "pwe-adapters"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pwe-domain = { path = "../pwe-domain" }
+pwe-application = { path = "../pwe-application" }
+pwe-protocol = { path = "../pwe-protocol" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "1"
+crossterm = { version = "0.29", default-features = false, features = [
+  "bracketed-paste",
+  "events",
+] }
+rustix = { version = "1", features = ["process"] }
