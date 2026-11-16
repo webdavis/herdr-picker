@@ -1,4 +1,4 @@
-# herdr-picker
+# pwe
 
 Two pieces of workspace navigation [herdr](https://herdr.dev) has no built-in for:
 
@@ -66,7 +66,7 @@ taken means giving one of the two its own `key`.
 Then render the manifest and link the directory:
 
 ```bash
-./target/release/herdr-picker generate --output .
+./target/release/pwe generate --output .
 herdr plugin link ~/.local/share/herdr-picker
 ```
 
@@ -151,9 +151,9 @@ and four rows go to the prompt, the legend and the blank rows around the list. A
 for what is left of its row is cut short with an ellipsis, or left out, and so is a label too long
 for its row or a message above the legend, so the list, the hint and the legend never wrap.
 
-The action runs `herdr-picker popup`. That asks herdr for the window's size and opens the
+The action runs `pwe popup`. That asks herdr for the window's size and opens the
 manifest's `pick` pane as a popup at the size worked out from it, telling the pane which workspace
-the key was pressed in. The pane runs `herdr-picker pick`, which reads the same config file
+the key was pressed in. The pane runs `pwe pick`, which reads the same config file
 the manifest comes from and has no `--config` flag; `HERDR_PLUGIN_CONFIG_DIR` is what points it
 elsewhere. A `type = "popup"` binding that runs `pick` itself still works, at whatever size that
 binding gives.
@@ -165,13 +165,13 @@ before it asks herdr for anything, and gives up waiting after two seconds.
 
 ## Pickers in the shell
 
-`herdr-picker init bash` prints a function and one `bind -x` line per picker, for each of the
+`pwe init bash` prints a function and one `bind -x` line per picker, for each of the
 `emacs-standard`, `vi-insert` and `vi-command` keymaps, so the keys work whichever editing mode the
-shell is in or switches to. The function calls `herdr-picker run`, so the binary has to be on
+shell is in or switches to. The function calls `pwe run`, so the binary has to be on
 `PATH`. Load it from `~/.bashrc`:
 
 ```bash
-eval "$(herdr-picker init bash)"
+eval "$(pwe init bash)"
 ```
 
 A picker's result comes back to the prompt: text is typed at the cursor, a folder is changed into,
@@ -300,12 +300,12 @@ what runs there takes it:
 | A command to run | run | `! <command>` sent |
 | An editor, `ssh`, `sudo`, `docker exec` | run | run in a new pane to the right |
 
-Before typing into an agent, herdr-picker reads its input line. If it holds typing, or the agent
+Before typing into an agent, pwe reads its input line. If it holds typing, or the agent
 waits on a question, nothing is sent and a herdr notification says why; the draft is never
 cleared. Any other agent is refused the same way.
 
 A shell gets the same care for a folder or a command to run, since Enter would submit whatever is
-already typed. herdr-picker reads the shell's current line, the last line on its screen with text,
+already typed. pwe reads the shell's current line, the last line on its screen with text,
 and takes what follows the first prompt character on it (`❯` or `❮` from Starship, or `$`, `#`,
 `%` or `>` followed by a space) as typing. When there is typing, or no prompt character, the `cd`
 or command is refused with a notification. Text or paths are typed at the cursor, after any typing,
@@ -415,7 +415,7 @@ A command gets the picker's `args`, then the `next`'s `args`, and three variable
 a live picker or step only.
 
 `ctrl-t ;` lists every picker by its key; Enter starts one. Its bindings source lists every shell
-key herdr-picker binds, then the rows of `~/.config/chord/bindings-menu.tsv` if there is one: Enter
+key pwe binds, then the rows of `~/.config/chord/bindings-menu.tsv` if there is one: Enter
 runs a `run` row, types an `insert` or `function` row, and leaves a readline command or macro to its
 key.
 

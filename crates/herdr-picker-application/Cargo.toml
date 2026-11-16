@@ -1,7 +1,0 @@
-[package]
-name = "herdr-picker-application"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-herdr-picker-domain = { path = "../herdr-picker-domain" }

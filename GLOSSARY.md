@@ -1,4 +1,4 @@
-# herdr-picker
+# pwe
 
 Jumps between herdr workspaces by key, from a chord or a pick popup.
 
