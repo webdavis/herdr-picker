@@ -1,18 +1,18 @@
 use super::*;
 
 #[test]
-fn the_state_folder_is_the_one_herdr_names_then_xdg_state_home_then_the_home_default() {
+fn the_state_folder_is_the_one_herdr_names_then_pwes_own_under_xdg_state_home_then_home() {
     assert_eq!(
         plugin_state_dir(Some("/tmp/herdr-named"), Some("/xdg"), Some("/home/me")),
         PathBuf::from("/tmp/herdr-named")
     );
     assert_eq!(
         plugin_state_dir(None, Some("/xdg"), Some("/home/me")),
-        PathBuf::from("/xdg/herdr/plugins/herdr-picker")
+        PathBuf::from("/xdg/pwe")
     );
     assert_eq!(
         plugin_state_dir(Some(""), Some(""), Some("/home/me")),
-        PathBuf::from("/home/me/.local/state/herdr/plugins/herdr-picker")
+        PathBuf::from("/home/me/.local/state/pwe")
     );
 }
 

@@ -11,7 +11,7 @@ bin=$checkout/target/release/pwe
 prefix=ctrl+x
 user_shell=${SHELL:-/bin/sh}
 how_to_leave="exit or $prefix q leaves"
-users_workspaces=${HERDR_PLUGIN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/plugins/config/herdr-picker}/config.toml
+users_workspaces=${HERDR_PLUGIN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/pwe}/config.toml
 preview_workspaces=$registry/herdr/plugins/config/herdr-picker/config.toml
 
 in_preview() {
