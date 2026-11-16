@@ -504,6 +504,22 @@ a small fake, and any one can be replaced where the parts are chosen, in the CLI
 The colors are one `Palette` per theme in `palette.rs` beside the view. Another theme is a pull
 request adding a palette there, its name to the domain's `Theme`, and its `[picker]` value.
 
+### Standards
+
+`just standards` runs `scripts/check-standards`, and CI runs it on every push and pull request. It
+reads the Rust files git tracks under `crates/` and fails the build when one breaks a rule:
+
+1. Production code holds no comments: no `//`, `///`, `//!` or `/* */`, on a line of its own or
+   after code. A `//` inside a string is not a comment.
+2. A production file is at most 150 lines.
+3. A test file, named `tests.rs` or under a `tests/` folder, is at most 250 lines.
+4. Production code holds no inline test module. It declares `#[cfg(test)] mod tests;` and the tests
+   sit in their own file.
+5. Production code holds no `unsafe`.
+
+Each breach prints as `path:line: rule`. `scripts/check-standards.test` proves each rule on small
+throwaway trees.
+
 ## License
 
 MIT
