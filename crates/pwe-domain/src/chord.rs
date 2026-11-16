@@ -15,6 +15,29 @@ impl Stroke {
             Self::Plain(letter) => letter.to_string(),
         }
     }
+
+    pub fn pick_key(self) -> Option<char> {
+        match self {
+            Self::Plain(key) => Some(key),
+            Self::Ctrl(letter) => u8::try_from(letter)
+                .ok()
+                .filter(u8::is_ascii_alphabetic)
+                .map(|letter| char::from(letter & CONTROL_BITS)),
+            Self::Alt(_) => None,
+        }
+    }
+}
+
+const CONTROL_BITS: u8 = 0x1f;
+const CARET_LETTER_OFFSET: u8 = 0x40;
+
+pub fn pick_key_label(key: char) -> String {
+    match u8::try_from(key) {
+        Ok(byte) if byte.is_ascii_control() => {
+            format!("^{}", char::from(byte | CARET_LETTER_OFFSET))
+        }
+        _ => key.to_string(),
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

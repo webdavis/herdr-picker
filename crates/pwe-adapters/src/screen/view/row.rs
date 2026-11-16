@@ -1,7 +1,7 @@
 use super::layout::{BEFORE_LABEL, LABEL_INDENT, Layout};
 use super::palette::Palette;
 use super::text::{Span, cut, line, room, span, width, width_of};
-use pwe_domain::{Frame, Row, RowLook};
+use pwe_domain::{Frame, Row, RowLook, pick_key_label};
 
 const KEY_COLUMN_WIDTH: usize = 4;
 
@@ -78,7 +78,10 @@ fn key_cell(key: char, searching: bool, palette: &Palette) -> Span {
     if searching {
         span("", format!("{:>KEY_COLUMN_WIDTH$}", ""))
     } else {
-        span(palette.key, format!("{key:>KEY_COLUMN_WIDTH$}"))
+        span(
+            palette.key,
+            format!("{:>KEY_COLUMN_WIDTH$}", pick_key_label(key)),
+        )
     }
 }
 

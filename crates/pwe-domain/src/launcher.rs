@@ -8,11 +8,11 @@ pub fn launcher_targets(pickers: &[Picker], base: Stroke) -> Vec<JumpTarget> {
     let mut targets: Vec<JumpTarget> = pickers
         .iter()
         .filter_map(|picker| match picker.chord.strokes() {
-            [first, Stroke::Plain(key)] if *first == base => Some(JumpTarget {
+            [first, second] if *first == base => second.pick_key().map(|pick_key| JumpTarget {
                 action_id: picker.name.clone(),
                 label: picker.name.clone(),
                 directory: picker.description.clone(),
-                pick_key: *key,
+                pick_key,
             }),
             _ => None,
         })
@@ -24,7 +24,8 @@ pub fn launcher_targets(pickers: &[Picker], base: Stroke) -> Vec<JumpTarget> {
 pub fn launcher_bases(pickers: &[Picker]) -> Vec<Stroke> {
     let mut bases: Vec<Stroke> = Vec::new();
     for picker in pickers {
-        if let [first, Stroke::Plain(_)] = picker.chord.strokes()
+        if let [first, second] = picker.chord.strokes()
+            && second.pick_key().is_some()
             && !bases.contains(first)
         {
             bases.push(*first);
@@ -55,6 +56,13 @@ impl Keymap for LauncherKeymap {
         match (key, mode) {
             (PickKey::Enter, Mode::Browsing) => Command::Search,
             (PickKey::Character(character), Mode::Browsing) => Command::Key(character),
+            (PickKey::Control(letter), Mode::Browsing)
+                if ReadlineKeymap.command(key, mode) == Command::Unbound =>
+            {
+                Stroke::Ctrl(letter)
+                    .pick_key()
+                    .map_or(Command::Unbound, Command::Key)
+            }
             _ => ReadlineKeymap.command(key, mode),
         }
     }
