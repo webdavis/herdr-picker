@@ -16,3 +16,11 @@ fn newlines_and_tabs_stay() {
         ("left:\t2\nright:\t3\n", 0)
     );
 }
+
+#[test]
+fn a_printed_name_loses_every_control_character_newlines_and_tabs_too() {
+    assert_eq!(
+        printed_name("tests::\u{1b}[31mred\n\tname\u{7}"),
+        "tests::[31mredname"
+    );
+}

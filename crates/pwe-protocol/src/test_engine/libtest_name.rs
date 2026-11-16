@@ -1,4 +1,4 @@
-use pwe_domain::test_engine::TestId;
+use pwe_domain::test_engine::{TestId, printed_name};
 
 use super::libtest_target::{TestTarget, TestTargets};
 
@@ -35,10 +35,10 @@ fn id_in(runner: &str, file: &str, path: &str, case: Option<String>) -> TestId {
     let (suite, name) = path.rsplit_once("::").unwrap_or(("", path));
     TestId {
         runner: runner.to_string(),
-        file: file.to_string(),
-        suite: suite.to_string(),
-        name: name.to_string(),
-        case,
+        file: printed_name(file),
+        suite: printed_name(suite),
+        name: printed_name(name),
+        case: case.as_deref().map(printed_name),
     }
 }
 
@@ -59,3 +59,6 @@ pub fn read_libtest_listing<'a>(
     }
     ids
 }
+
+#[cfg(test)]
+mod tests;

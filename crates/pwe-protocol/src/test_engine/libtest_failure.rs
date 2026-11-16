@@ -1,4 +1,4 @@
-use pwe_domain::test_engine::{Failure, UntrustedText};
+use pwe_domain::test_engine::{Failure, UntrustedText, printed_name};
 
 const PANICKED_AT: &str = " panicked at ";
 const LEFT: &str = "  left: ";
@@ -39,7 +39,7 @@ pub(super) fn read_failure_block(
                     .copied()
                     .take_while(|line| !line.starts_with(LEFT)),
             )),
-            file: place.as_ref().map(|(file, _)| file.clone()),
+            file: place.as_ref().map(|(file, _)| printed_name(file)),
             line: place.map(|(_, line)| line),
             expected: value_after(&message, RIGHT),
             actual: value_after(&message, LEFT),

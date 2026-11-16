@@ -19,5 +19,5 @@ pub use runner_match::{MatchedRunner, matched_runners};
 pub use runner_spec::{ListCommand, OutputSpec, Report, RunCommands, RunnerSpec, RunnerStatus};
 pub use target::Target;
 pub use test_id::{TestId, TestIdError};
-pub use untrusted_text::UntrustedText;
+pub use untrusted_text::{UntrustedText, printed_name};
 pub use verdict::{Counts, RunStatus, ToolEnd, Verdict, verdict};
