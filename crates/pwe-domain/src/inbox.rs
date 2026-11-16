@@ -39,5 +39,10 @@ pub fn prune_inbox(rows: Vec<Notice>, now: u64, limits: &InboxLimits) -> Vec<Not
     kept
 }
 
+pub fn newest_first(mut rows: Vec<Notice>) -> Vec<Notice> {
+    rows.sort_by_key(|row| std::cmp::Reverse(row.updated_at));
+    rows
+}
+
 #[cfg(test)]
 mod tests;

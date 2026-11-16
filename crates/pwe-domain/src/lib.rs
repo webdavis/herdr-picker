@@ -32,7 +32,7 @@ pub use agent::{Agent, AgentStatus, age, carry_since, ordered};
 pub use chord::{Chord, Stroke};
 pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Match, Matcher};
-pub use inbox::{InboxLimits, prune_inbox};
+pub use inbox::{InboxLimits, newest_first, prune_inbox};
 pub use jump::{Jump, Workspace, decide};
 pub use keymap::{Keymap, Legend, PickKey, ReadlineKeymap};
 pub use launcher::{LauncherKeymap, launcher_base, launcher_bases, launcher_targets};

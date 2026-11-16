@@ -47,7 +47,7 @@ pub use fzf::{
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
-pub use inbox::{prune_inbox_file, read_inbox, save_inbox_row};
+pub use inbox::{inbox_listing_json, prune_inbox_file, read_inbox, save_inbox_row};
 pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step, save_step_command};
 pub use manifest::{ManifestError, write_manifest};

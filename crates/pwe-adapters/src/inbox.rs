@@ -6,8 +6,15 @@ use std::path::Path;
 
 use pwe_domain::{InboxLimits, Notice, prune_inbox};
 
+use serde::Serialize;
+
 use crate::private::write_private_atomically;
 use row::InboxRow;
+
+#[derive(Serialize)]
+struct InboxListing {
+    inbox: Vec<InboxRow>,
+}
 
 pub fn read_inbox(file: &Path) -> io::Result<Vec<Notice>> {
     let text = match fs::read_to_string(file) {
@@ -33,6 +40,12 @@ pub fn save_inbox_row(file: &Path, row: &Notice) -> io::Result<()> {
 
 pub fn prune_inbox_file(file: &Path, now: u64, limits: &InboxLimits) -> io::Result<()> {
     write_inbox(file, &prune_inbox(read_inbox(file)?, now, limits))
+}
+
+pub fn inbox_listing_json(rows: &[Notice]) -> serde_json::Result<String> {
+    serde_json::to_string(&InboxListing {
+        inbox: rows.iter().map(InboxRow::from).collect(),
+    })
 }
 
 fn read_row(line: &str) -> io::Result<Notice> {
