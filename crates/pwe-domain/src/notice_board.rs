@@ -1,7 +1,9 @@
 mod float;
 mod input;
+mod line;
 mod settings;
 mod showing;
+mod updating;
 
 pub use input::{NoticeEffect, NoticeInput, Raised, RexFocus};
 pub use settings::NoticeSettings;
@@ -36,6 +38,7 @@ impl NoticeBoard {
                 self.focus = focus;
                 Vec::new()
             }
+            NoticeInput::Resolve { key } => self.resolve(&key, now),
             NoticeInput::TimePassed => self.expire(now),
         }
     }

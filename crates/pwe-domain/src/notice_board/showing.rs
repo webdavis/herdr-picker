@@ -3,10 +3,14 @@ use std::mem;
 use super::NoticeBoard;
 use super::float::{Float, lowest_free_slot};
 use super::input::{NoticeEffect, Raised, RexFocus};
+use super::line::notice_line;
 use crate::notice::{Level, Notice};
 
 impl NoticeBoard {
     pub(super) fn raise(&mut self, raised: Raised, now: u64) -> Vec<NoticeEffect> {
+        if let Some(index) = self.live.iter().position(|live| live.key == raised.key) {
+            return self.update(index, raised, now);
+        }
         let notice = Notice {
             id: format!("{now}-{}", self.next_number()),
             key: raised.key,
@@ -31,14 +35,25 @@ impl NoticeBoard {
         if notice.level == Level::Quiet || self.is_in_view(notice) {
             return Vec::new();
         }
-        self.open_float(notice.level, notice.text.clone(), now)
+        self.open_float(
+            notice.level,
+            vec![notice.id.clone()],
+            notice_line(notice),
+            now,
+        )
     }
 
     fn is_in_view(&self, notice: &Notice) -> bool {
         matches!(&self.focus, RexFocus::Front(pane) if notice.is_about(pane))
     }
 
-    pub(super) fn open_float(&mut self, level: Level, line: String, now: u64) -> Vec<NoticeEffect> {
+    pub(super) fn open_float(
+        &mut self,
+        level: Level,
+        members: Vec<String>,
+        line: String,
+        now: u64,
+    ) -> Vec<NoticeEffect> {
         let mut effects = Vec::new();
         if self.floats.len() >= self.settings.most_on_screen {
             let Some(index) = self.oldest_float_no_more_urgent_than(level) else {
@@ -54,6 +69,7 @@ impl NoticeBoard {
             id: format!("float-{}", self.next_number()),
             slot: lowest_free_slot(&self.floats),
             level,
+            members,
             shown_at: now,
             until: now + seconds,
         };
