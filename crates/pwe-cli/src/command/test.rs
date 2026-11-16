@@ -4,6 +4,7 @@ mod history;
 mod output;
 mod results;
 mod run;
+mod run_again;
 mod run_runner;
 mod run_target;
 mod runners;

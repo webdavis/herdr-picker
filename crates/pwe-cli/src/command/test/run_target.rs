@@ -3,15 +3,27 @@ use pwe_protocol::test_engine::{Hint, TestError, TestErrorCode, tool_test_name};
 
 use super::flags::Flags;
 
-const TARGETS: [&str; 3] = ["--all", "--file", "--id"];
+const TARGETS: [&str; 5] = ["--all", "--file", "--id", "--failed", "--last"];
 
 pub(super) fn chosen_target(flags: &Flags) -> Result<Target, TestError> {
-    let named = [flags.all, flags.file.is_some(), !flags.ids.is_empty()];
+    let named = [
+        flags.all,
+        flags.file.is_some(),
+        !flags.ids.is_empty(),
+        flags.failed,
+        flags.last,
+    ];
     if named.iter().filter(|named| **named).count() != 1 {
         return Err(bad_target("pwe test run takes exactly one target."));
     }
     if flags.all {
         return Ok(Target::All);
+    }
+    if flags.failed {
+        return Ok(Target::Failed);
+    }
+    if flags.last {
+        return Ok(Target::Last);
     }
     if let Some(file) = &flags.file {
         return Ok(Target::File(file.clone()));
