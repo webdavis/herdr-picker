@@ -3,6 +3,7 @@ mod builtin;
 mod command;
 mod generate;
 mod handing;
+mod inbox;
 mod last_workspace;
 mod launch;
 mod path;

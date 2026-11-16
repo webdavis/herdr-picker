@@ -138,6 +138,7 @@ pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
         ["git-preview", arguments @ ..] => {
             builtin::git_preview(arguments).map(|preview| print!("{preview}"))
         }
+        ["inbox", options @ ..] => crate::inbox::run(options),
         ["init", shell] => picker::init(shell, &config_path()).map(|script| print!("{script}")),
         _ => Err(CommandError::Usage),
     }
