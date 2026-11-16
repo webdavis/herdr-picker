@@ -6,6 +6,7 @@ use colors::colors;
 mod chrome;
 mod colors;
 mod ending;
+mod step_finder;
 mod unbound;
 
 pub use chrome::{
@@ -14,6 +15,7 @@ pub use chrome::{
 };
 pub(crate) use ending::fzf_ending;
 pub use ending::{SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE};
+pub use step_finder::FzfStepFinder;
 pub use unbound::unbound_action;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

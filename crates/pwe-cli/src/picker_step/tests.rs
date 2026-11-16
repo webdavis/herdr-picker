@@ -10,6 +10,7 @@ use pwe_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE};
 use super::*;
 
 mod chosen;
+mod finder;
 mod scripted;
 mod send;
 mod sources;

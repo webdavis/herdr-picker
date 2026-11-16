@@ -55,15 +55,15 @@ pub use daemon_files::{
     daemon_log_file, daemon_socket_file, launch_agent_file, pwe_state_folder, systemd_unit_file,
 };
 pub use fzf::{
-    Chrome, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
-    chooser_lines, error_footer, finder_actions, fzf_arguments, help_page, leave, list_lines,
-    step_footer, unbound_action,
+    FzfStepFinder, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
+    chooser_lines, error_footer, finder_actions, help_page, leave, list_lines, step_footer,
+    unbound_action,
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
 pub use inbox::{inbox_listing_json, prune_inbox_file, read_inbox, save_inbox_row};
 pub use keyboard::TerminalInput;
-pub use live_step::{is_live_step, rerun_step, save_step_command};
+pub use live_step::{is_live_step, rerun_step};
 pub use manifest::{ManifestError, write_manifest};
 pub use pane_handover::{
     HandoverError, PaneHost, Sent, SocketPanes, drain_queue, hand_over, send_prompt,
@@ -71,7 +71,7 @@ pub use pane_handover::{
 pub use pane_result::{PaneWaitError, await_pane_result, write_pane_state};
 pub use path_preview::path_preview;
 pub use picker_files::{
-    cached_rows, picker_error_file, read_run_error, read_step_header, read_view, remove_run_files,
+    cached_rows, picker_error_file, read_run_error, read_step_header, read_view,
     remove_runs_whose_process_is_gone, write_view,
 };
 pub use picker_run::{PickerRunError, run_picker};

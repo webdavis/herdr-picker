@@ -2,8 +2,8 @@ use std::path::Path;
 use std::{env, fs, process};
 
 use pwe_adapters::{
-    Placement, bare_program, command_preview, copy_to_clipboard, path_preview, picker_rows_file,
-    read_picker_config, remove_runs_whose_process_is_gone,
+    FzfStepFinder, Placement, bare_program, command_preview, copy_to_clipboard, path_preview,
+    picker_rows_file, read_picker_config, remove_runs_whose_process_is_gone,
 };
 use pwe_domain::{Action, Picker, PickerCall, PickerCommand, Preview, Trail, Turn};
 use pwe_protocol::{Shell, bash_init, instruction, parse_row};
@@ -63,11 +63,15 @@ pub(crate) fn pick(
         query: None,
     });
     let quickfix = quickfix_path();
-    let step = picker_step::Run {
-        config: &config,
+    let finder = FzfStepFinder {
         helper: quoted.helper(),
         cache: &cache,
+        theme: config.theme,
         placement,
+    };
+    let step = picker_step::Run {
+        config: &config,
+        finder: &finder,
         quickfix: &quickfix,
     };
     loop {
