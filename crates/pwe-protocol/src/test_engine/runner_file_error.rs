@@ -27,6 +27,28 @@ pub enum RunnerFileError {
     },
 }
 
+impl RunnerFileError {
+    pub fn file(&self) -> &str {
+        match self {
+            RunnerFileError::Unreadable { file, .. }
+            | RunnerFileError::Missing { file, .. }
+            | RunnerFileError::Empty { file, .. }
+            | RunnerFileError::NotOneOf { file, .. }
+            | RunnerFileError::NotKebabCase { file, .. } => file,
+        }
+    }
+
+    pub fn field(&self) -> Option<&'static str> {
+        match self {
+            RunnerFileError::Unreadable { .. } => None,
+            RunnerFileError::Missing { field, .. }
+            | RunnerFileError::Empty { field, .. }
+            | RunnerFileError::NotOneOf { field, .. }
+            | RunnerFileError::NotKebabCase { field, .. } => Some(field),
+        }
+    }
+}
+
 impl fmt::Display for RunnerFileError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

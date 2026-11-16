@@ -1,6 +1,7 @@
 mod event;
 mod invocation;
 mod retention;
+mod runner_match;
 mod runner_spec;
 mod target;
 mod test_id;
@@ -12,6 +13,7 @@ pub use event::{
 };
 pub use invocation::{Invocation, InvocationError, Selection, invocation};
 pub use retention::{Retention, StoredRun, runs_to_drop};
+pub use runner_match::{MatchedRunner, matched_runners};
 pub use runner_spec::{ListCommand, OutputSpec, Report, RunCommands, RunnerSpec, RunnerStatus};
 pub use target::Target;
 pub use test_id::{TestId, TestIdError};

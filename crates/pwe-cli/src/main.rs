@@ -37,6 +37,7 @@ fn main() -> ExitCode {
             eprintln!("pwe: {reason}");
             ExitCode::FAILURE
         }
+        Err(CommandError::Exit(code)) => ExitCode::from(code),
     }
 }
 
