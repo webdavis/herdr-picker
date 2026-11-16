@@ -1,7 +1,8 @@
 use pwe_domain::test_engine::{Failure, Stream, TestEvent, TestFinished, TestId, TestStatus};
 
 use super::libtest_failure::read_failure_block;
-use super::libtest_name::{TestTarget, doc_test_place, target_of, test_id};
+use super::libtest_name::{doc_test_place, test_id};
+use super::libtest_target::{TestTarget, TestTargets};
 
 const RESULT_LINE: &str = "test result:";
 const FAILURES_HEADING: &str = "failures:";
@@ -15,15 +16,17 @@ enum Section {
 
 pub struct LibtestReader {
     runner: String,
+    targets: TestTargets,
     target: TestTarget,
     failed: Vec<String>,
     section: Section,
 }
 
 impl LibtestReader {
-    pub fn new(runner: &str) -> Self {
+    pub fn new(runner: &str, repo_root: &str) -> Self {
         LibtestReader {
             runner: runner.to_string(),
+            targets: TestTargets::new(repo_root),
             target: TestTarget::Unknown,
             failed: Vec::new(),
             section: Section::Results,
@@ -31,7 +34,7 @@ impl LibtestReader {
     }
 
     pub fn read_line(&mut self, line: &str) -> Vec<TestEvent> {
-        if let Some(target) = target_of(line) {
+        if let Some(target) = self.targets.read(line) {
             let events = self.close_binary();
             self.target = target;
             return events;

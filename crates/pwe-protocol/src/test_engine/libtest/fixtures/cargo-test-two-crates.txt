@@ -1,0 +1,69 @@
+   Compiling alpha v0.1.0 (/work/crates/alpha)
+   Compiling beta v0.1.0 (/work/crates/beta)
+{"reason":"compiler-artifact","package_id":"path+file:///work/crates/alpha#0.1.0","manifest_path":"/work/crates/alpha/Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"alpha","src_path":"/work/crates/alpha/src/lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":2,"debug_assertions":true,"overflow_checks":true,"test":false},"features":[],"filenames":["/work/target/debug/build/alpha/5555555555555555/out/libalpha-5555555555555555.rlib","/work/target/debug/build/alpha/5555555555555555/out/libalpha-5555555555555555.rmeta"],"executable":null,"fresh":false}
+{"reason":"compiler-artifact","package_id":"path+file:///work/crates/beta#0.1.0","manifest_path":"/work/crates/beta/Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"beta","src_path":"/work/crates/beta/src/lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":2,"debug_assertions":true,"overflow_checks":true,"test":false},"features":[],"filenames":["/work/target/debug/build/beta/6666666666666666/out/libbeta-6666666666666666.rlib","/work/target/debug/build/beta/6666666666666666/out/libbeta-6666666666666666.rmeta"],"executable":null,"fresh":false}
+{"reason":"compiler-artifact","package_id":"path+file:///work/crates/beta#0.1.0","manifest_path":"/work/crates/beta/Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"beta","src_path":"/work/crates/beta/src/lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":2,"debug_assertions":true,"overflow_checks":true,"test":true},"features":[],"filenames":["/work/target/debug/build/beta/3333333333333333/out/beta-3333333333333333"],"executable":"/work/target/debug/build/beta/3333333333333333/out/beta-3333333333333333","fresh":false}
+{"reason":"compiler-artifact","package_id":"path+file:///work/crates/alpha#0.1.0","manifest_path":"/work/crates/alpha/Cargo.toml","target":{"kind":["test"],"crate_types":["bin"],"name":"it","src_path":"/work/crates/alpha/tests/it.rs","edition":"2024","doc":false,"doctest":false,"test":true},"profile":{"opt_level":"0","debuginfo":2,"debug_assertions":true,"overflow_checks":true,"test":true},"features":[],"filenames":["/work/target/debug/build/alpha/2222222222222222/out/it-2222222222222222"],"executable":"/work/target/debug/build/alpha/2222222222222222/out/it-2222222222222222","fresh":false}
+{"reason":"compiler-artifact","package_id":"path+file:///work/crates/alpha#0.1.0","manifest_path":"/work/crates/alpha/Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"alpha","src_path":"/work/crates/alpha/src/lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":2,"debug_assertions":true,"overflow_checks":true,"test":true},"features":[],"filenames":["/work/target/debug/build/alpha/1111111111111111/out/alpha-1111111111111111"],"executable":"/work/target/debug/build/alpha/1111111111111111/out/alpha-1111111111111111","fresh":false}
+{"reason":"compiler-artifact","package_id":"path+file:///work/crates/beta#0.1.0","manifest_path":"/work/crates/beta/Cargo.toml","target":{"kind":["test"],"crate_types":["bin"],"name":"it","src_path":"/work/crates/beta/tests/it.rs","edition":"2024","doc":false,"doctest":false,"test":true},"profile":{"opt_level":"0","debuginfo":2,"debug_assertions":true,"overflow_checks":true,"test":true},"features":[],"filenames":["/work/target/debug/build/beta/4444444444444444/out/it-4444444444444444"],"executable":"/work/target/debug/build/beta/4444444444444444/out/it-4444444444444444","fresh":false}
+{"reason":"build-finished","success":true}
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s
+     Running unittests src/lib.rs (target/debug/build/alpha/1111111111111111/out/alpha-1111111111111111)
+
+running 1 test
+test tests::same_name ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/it.rs (target/debug/build/alpha/2222222222222222/out/it-2222222222222222)
+
+running 1 test
+test outside ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/build/beta/3333333333333333/out/beta-3333333333333333)
+
+running 1 test
+test tests::same_name ... FAILED
+
+failures:
+
+---- tests::same_name stdout ----
+
+thread 'tests::same_name' (100001) panicked at crates/beta/src/lib.rs:9:9:
+assertion `left == right` failed: two is two
+  left: 2
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::same_name
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p beta --lib`
+     Running tests/it.rs (target/debug/build/beta/4444444444444444/out/it-4444444444444444)
+
+running 1 test
+test outside ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests alpha
+
+running 1 test
+test crates/alpha/src/lib.rs - two (line 1) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+all doctests ran in 0.53s; merged doctests compilation took 0.38s
+   Doc-tests beta
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p beta --lib`

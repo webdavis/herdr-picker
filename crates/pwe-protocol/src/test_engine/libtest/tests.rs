@@ -11,7 +11,7 @@ const DOC_TESTS: &str = include_str!("fixtures/cargo-test-doc.txt");
 const LISTING: &str = include_str!("fixtures/cargo-test-list.txt");
 
 fn read_all(output: &str) -> Vec<TestEvent> {
-    let mut reader = LibtestReader::new("cargo");
+    let mut reader = LibtestReader::new("cargo", "/work");
     let mut events: Vec<TestEvent> = output
         .lines()
         .flat_map(|line| reader.read_line(line))
@@ -63,7 +63,7 @@ fn a_failed_assert_eq_reports_its_file_line_and_left_and_right() {
 
 #[test]
 fn a_passing_test_finishes_the_moment_its_line_arrives() {
-    let mut reader = LibtestReader::new("cargo");
+    let mut reader = LibtestReader::new("cargo", "/work");
     in_the_lib_target(&mut reader);
 
     let events = reader.read_line("test tests::passes ... ok");
@@ -84,7 +84,7 @@ fn a_passing_test_finishes_the_moment_its_line_arrives() {
 
 #[test]
 fn a_failed_test_waits_for_its_failure_block() {
-    let mut reader = LibtestReader::new("cargo");
+    let mut reader = LibtestReader::new("cargo", "/work");
     in_the_lib_target(&mut reader);
 
     assert!(reader.read_line("test tests::fails ... FAILED").is_empty());
@@ -173,7 +173,7 @@ fn a_failed_doc_test_points_at_its_line_in_the_source_file() {
 
 #[test]
 fn control_characters_in_a_failure_are_stripped_and_counted() {
-    let mut reader = LibtestReader::new("cargo");
+    let mut reader = LibtestReader::new("cargo", "/work");
     in_the_lib_target(&mut reader);
     let lines = [
         "test tests::loud ... FAILED",
@@ -208,7 +208,7 @@ fn control_characters_in_a_failure_are_stripped_and_counted() {
 
 #[test]
 fn a_failed_test_whose_block_never_came_finishes_failed_at_the_end() {
-    let mut reader = LibtestReader::new("cargo");
+    let mut reader = LibtestReader::new("cargo", "/work");
     in_the_lib_target(&mut reader);
     reader.read_line("test tests::fails ... FAILED");
 
@@ -220,7 +220,7 @@ fn a_failed_test_whose_block_never_came_finishes_failed_at_the_end() {
 #[test]
 fn the_listing_names_every_test_of_every_target() {
     assert_eq!(
-        read_libtest_listing("cargo", LISTING.lines()),
+        read_libtest_listing("cargo", "/work", LISTING.lines()),
         vec![
             id("cargo:src/lib.rs::tests::fails"),
             id("cargo:src/lib.rs::tests::passes"),
@@ -233,7 +233,7 @@ fn the_listing_names_every_test_of_every_target() {
 
 #[test]
 fn a_should_panic_test_keeps_its_plain_name() {
-    let mut reader = LibtestReader::new("cargo");
+    let mut reader = LibtestReader::new("cargo", "/work");
     in_the_lib_target(&mut reader);
 
     let events = reader.read_line("test tests::refuses - should panic ... ok");

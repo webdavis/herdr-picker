@@ -4,6 +4,7 @@ mod fields;
 mod libtest;
 mod libtest_failure;
 mod libtest_name;
+mod libtest_target;
 mod runner_file;
 mod runner_file_check;
 mod runner_file_error;
