@@ -8,6 +8,7 @@ mod pick;
 mod popup;
 mod step_finder;
 mod system_service;
+pub mod test_engine;
 mod whereabouts;
 
 pub use agents::{
