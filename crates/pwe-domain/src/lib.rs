@@ -38,7 +38,7 @@ pub use agent_session::{
     StateFrom, WaitingFor, WaitingKind,
 };
 pub use backoff::Backoff;
-pub use chord::{Chord, Stroke};
+pub use chord::{Chord, Stroke, pick_key_label};
 pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Match, Matcher};
 pub use inbox::{InboxLimits, newest_first, prune_inbox};

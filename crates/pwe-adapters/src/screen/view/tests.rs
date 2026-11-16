@@ -3,6 +3,7 @@ use super::*;
 use crate::screen::fixtures::{browsing, layout, refused, searching, three_workspaces};
 
 mod base;
+mod ctrl_key;
 mod fit;
 mod layout;
 mod leaders;

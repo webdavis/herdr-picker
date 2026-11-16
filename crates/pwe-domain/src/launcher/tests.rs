@@ -40,6 +40,11 @@ fn the_launcher_offers_each_picker_on_its_base_by_the_key_after_it_in_key_order(
     assert_eq!(
         offered("ctrl-t"),
         vec![
+            (
+                '\u{2}',
+                "bookmark".to_string(),
+                "bookmark picker".to_string()
+            ),
             ('f', "files".to_string(), "files picker".to_string()),
             ('n', "network".to_string(), "network picker".to_string()),
         ]
@@ -80,10 +85,31 @@ fn a_typed_key_even_slash_starts_its_picker_and_enter_opens_the_search() {
 }
 
 #[test]
-fn a_picker_whose_second_key_holds_ctrl_is_left_out_of_the_launcher() {
-    assert!(
-        offered("ctrl-t")
-            .iter()
-            .all(|(_, label, _)| label != "bookmark")
+fn ctrl_t_offers_the_bookmark_on_ctrl_b() {
+    let ctrl_b = Stroke::Ctrl('b').pick_key().expect("a pick key");
+
+    assert!(offered("ctrl-t").contains(&(
+        ctrl_b,
+        "bookmark".to_string(),
+        "bookmark picker".to_string()
+    )));
+    assert_eq!(
+        LauncherKeymap.command(PickKey::Control('b'), Mode::Browsing),
+        Command::Key(ctrl_b)
     );
+}
+
+#[test]
+fn ctrl_keys_the_launcher_already_uses_keep_their_meaning() {
+    let browsing = |key| LauncherKeymap.command(key, Mode::Browsing);
+
+    assert_eq!(browsing(PickKey::Control('c')), Command::Cancel);
+    assert_eq!(browsing(PickKey::Control('n')), Command::Next);
+}
+
+#[test]
+fn a_base_whose_only_picker_follows_it_with_a_ctrl_key_is_still_a_base() {
+    let only_bookmark = pickers([declared("bookmark", "ctrl-b ctrl-b")]).expect("pickers");
+
+    assert_eq!(launcher_bases(&only_bookmark), vec![Stroke::Ctrl('b')]);
 }

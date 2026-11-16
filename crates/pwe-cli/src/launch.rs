@@ -11,6 +11,7 @@ use pwe_protocol::{PICKER_BASE_VARIABLE, PICKER_TARGET_VARIABLE, PopupPane, pars
 
 use crate::command::{CommandError, config_path, failed, state_dir};
 use crate::pick::AFTER_PID;
+use crate::picker;
 use crate::popup::present;
 
 pub(crate) fn open(
@@ -67,6 +68,9 @@ pub(crate) fn choose() -> Result<(), CommandError> {
     else {
         return Ok(());
     };
+    if picker::is_bookmark(&chosen.label, &config.pickers) {
+        return picker::bookmark_this_folder();
+    }
     let binary = env::current_exe()
         .map_err(|failure| failed(format!("cannot find this binary: {failure}")))?;
     let popup = process::id().to_string();

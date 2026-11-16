@@ -5,7 +5,7 @@ use pwe_adapters::{
     Placement, bare_program, command_preview, copy_to_clipboard, path_preview, picker_rows_file,
     read_picker_config, remove_runs_whose_process_is_gone,
 };
-use pwe_domain::{Action, PickerCall, PickerCommand, Preview, Trail, Turn};
+use pwe_domain::{Action, Picker, PickerCall, PickerCommand, Preview, Trail, Turn};
 use pwe_protocol::{Shell, bash_init, instruction, parse_row};
 
 use crate::builtin::{self, Places};
@@ -22,16 +22,8 @@ const OPENER: &str = if cfg!(target_os = "macos") {
 
 pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), CommandError> {
     let config = config_path();
-    let bookmarks = PickerCommand::Builtin("bookmark".to_string());
-    let pickers = read_picker_config(&config).map_err(failed)?.pickers;
-    if pickers
-        .iter()
-        .any(|picker| picker.name == name && picker.command == bookmarks)
-    {
-        let places = Places::here()?;
-        let folder = builtin::bookmark_folder(env::var("HERDR_ACTIVE_PANE_CWD").ok(), &places.cwd);
-        eprintln!("{}", builtin::bookmark(&folder, &places)?);
-        return Ok(());
+    if is_bookmark(name, &read_picker_config(&config).map_err(failed)?.pickers) {
+        return bookmark_this_folder();
     }
     let socket = picker_popup::popup_socket(socket_path);
     let instruction = match &socket {
@@ -39,6 +31,20 @@ pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), Command
         None => pick(name, &config, Placement::Inline)?,
     };
     handing::answer(socket.as_deref(), instruction)
+}
+
+pub(crate) fn is_bookmark(name: &str, pickers: &[Picker]) -> bool {
+    let bookmarks = PickerCommand::Builtin("bookmark".to_string());
+    pickers
+        .iter()
+        .any(|picker| picker.name == name && picker.command == bookmarks)
+}
+
+pub(crate) fn bookmark_this_folder() -> Result<(), CommandError> {
+    let places = Places::here()?;
+    let folder = builtin::bookmark_folder(env::var("HERDR_ACTIVE_PANE_CWD").ok(), &places.cwd);
+    eprintln!("{}", builtin::bookmark(&folder, &places)?);
+    Ok(())
 }
 
 pub(crate) fn pick(

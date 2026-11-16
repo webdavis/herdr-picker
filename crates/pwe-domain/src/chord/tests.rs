@@ -61,3 +61,14 @@ fn a_chord_shows_as_its_strokes_the_way_a_key_is_declared() {
 
     assert_eq!(shown, ["ctrl-t b", "alt-f", "ctrl-t ;", "ctrl-t ctrl-b"]);
 }
+
+#[test]
+fn a_ctrl_stroke_picks_by_the_control_character_the_terminal_sends_and_shows_with_a_caret() {
+    let ctrl_b = Stroke::Ctrl('b').pick_key();
+
+    assert_eq!(ctrl_b, Some('\u{2}'));
+    assert_eq!(Stroke::Plain('f').pick_key(), Some('f'));
+    assert_eq!(Stroke::Alt('f').pick_key(), None);
+    assert_eq!(pick_key_label('\u{2}'), "^B");
+    assert_eq!(pick_key_label('f'), "f");
+}
