@@ -49,13 +49,17 @@ impl TestProject {
     }
 
     pub fn fake_tool(&self, name: &str, output: &str, exit_code: i32) -> &Self {
+        self.fake_tool_ending(name, output, &format!("exit {exit_code}"))
+    }
+
+    pub fn fake_tool_ending(&self, name: &str, output: &str, ending: &str) -> &Self {
         let replay = self.folder.join(format!("{name}.output"));
         write(
             &replay,
             &output.replace("/work", &self.project().to_string_lossy()),
         );
         let script = format!(
-            "#!/bin/sh\nprintf '%s\\n' \"$@\" > '{}'\ncat '{}'\nexit {exit_code}\n",
+            "#!/bin/sh\nprintf '%s\\n' \"$@\" > '{}'\ncat '{}'\n{ending}\n",
             self.folder.join(format!("{name}.arguments")).display(),
             replay.display()
         );
@@ -124,6 +128,10 @@ pub fn stdout_of(output: &Output) -> String {
 
 pub fn json_of(text: &str) -> Value {
     serde_json::from_str(text).unwrap_or_else(|failure| panic!("{failure}: {text}"))
+}
+
+pub fn lines_of(output: &Output) -> Vec<Value> {
+    stdout_of(output).lines().map(json_of).collect()
 }
 
 pub fn exit_code(output: &Output) -> Option<i32> {

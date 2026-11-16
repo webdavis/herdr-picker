@@ -1,10 +1,12 @@
 mod event_fields;
 mod event_lines;
+mod event_text;
 mod fields;
 mod libtest;
 mod libtest_failure;
 mod libtest_name;
 mod libtest_target;
+mod result_readers;
 mod runner_file;
 mod runner_file_check;
 mod runner_file_error;
@@ -12,8 +14,10 @@ mod runner_listing;
 mod test_error;
 
 pub use event_lines::EventLines;
+pub use event_text::event_text;
 pub use libtest::LibtestReader;
 pub use libtest_name::read_libtest_listing;
+pub use result_readers::{PARSERS, result_reader, tool_test_name};
 pub use runner_file::read_runner_file;
 pub use runner_file_error::RunnerFileError;
 pub use runner_listing::{runner_listing_json, runner_listing_text};
