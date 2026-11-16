@@ -9,10 +9,7 @@ mod ending;
 mod step_finder;
 mod unbound;
 
-pub use chrome::{
-    change_footer, chooser_lines, error_footer, finder_actions, help_page, leave, list_lines,
-    step_footer,
-};
+pub use chrome::{change_footer, chooser_lines, finder_actions, leave, list_lines};
 pub(crate) use ending::fzf_ending;
 pub use ending::{SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE};
 pub use step_finder::FzfStepFinder;

@@ -9,7 +9,7 @@ use crate::program::on_path;
 const SHOWN_LINES: usize = 200;
 const SNIFFED_BYTES: u64 = 8192;
 
-pub fn path_preview(path: &Path, path_variable: Option<&OsStr>) -> String {
+pub fn path_preview(path: &Path, path_variable: Option<&OsStr>, width: Option<usize>) -> String {
     let shown = fs::metadata(path).and_then(|found| {
         if found.is_dir() {
             return folder(path, path_variable);
@@ -17,7 +17,7 @@ pub fn path_preview(path: &Path, path_variable: Option<&OsStr>) -> String {
         if is_binary(path)? {
             return Ok(format!("Binary file, {} bytes", found.len()));
         }
-        file(path, path_variable)
+        file(path, path_variable, width)
     });
     shown.unwrap_or_else(|failure| format!("Cannot read {}: {failure}", path.display()))
 }
@@ -58,7 +58,7 @@ fn folder(path: &Path, path_variable: Option<&OsStr>) -> io::Result<String> {
         .collect())
 }
 
-fn file(path: &Path, path_variable: Option<&OsStr>) -> io::Result<String> {
+fn file(path: &Path, path_variable: Option<&OsStr>, width: Option<usize>) -> io::Result<String> {
     if let Some(bat) = on_path("bat", path_variable) {
         let mut command = Command::new(bat);
         command.args([
@@ -68,8 +68,8 @@ fn file(path: &Path, path_variable: Option<&OsStr>) -> io::Result<String> {
             "--wrap=never",
             &format!("--line-range=:{SHOWN_LINES}"),
         ]);
-        if let Some(columns) = std::env::var_os("FZF_PREVIEW_COLUMNS") {
-            command.arg(format!("--terminal-width={}", columns.to_string_lossy()));
+        if let Some(width) = width {
+            command.arg(format!("--terminal-width={width}"));
         }
         return output(command.arg("--").arg(path));
     }

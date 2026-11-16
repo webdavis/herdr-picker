@@ -1,4 +1,5 @@
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 use super::*;
@@ -24,6 +25,8 @@ impl Drop for Sandbox {
 // An empty PATH finds neither bat nor eza, so the preview falls back to reading the path itself.
 const NO_TOOLS: Option<&OsStr> = None;
 
+const NO_WIDTH: Option<usize> = None;
+
 #[test]
 fn a_folder_lists_its_folders_first_then_its_files() {
     let sandbox = Sandbox::new("folder");
@@ -31,7 +34,10 @@ fn a_folder_lists_its_folders_first_then_its_files() {
     fs::write(sandbox.0.join("b.txt"), "b").expect("a file");
     fs::write(sandbox.0.join("a.txt"), "a").expect("a file");
 
-    assert_eq!(path_preview(&sandbox.0, NO_TOOLS), "src/\na.txt\nb.txt\n");
+    assert_eq!(
+        path_preview(&sandbox.0, NO_TOOLS, NO_WIDTH),
+        "src/\na.txt\nb.txt\n"
+    );
 }
 
 #[test]
@@ -41,7 +47,7 @@ fn a_text_file_shows_its_first_lines() {
     let lines: String = (1..=300).map(|number| format!("line {number}\n")).collect();
     fs::write(&file, lines).expect("a file");
 
-    let preview = path_preview(&file, NO_TOOLS);
+    let preview = path_preview(&file, NO_TOOLS, NO_WIDTH);
 
     assert_eq!(preview.lines().count(), 200);
     assert!(preview.starts_with("line 1\nline 2\n"), "{preview}");
@@ -53,13 +59,33 @@ fn a_binary_file_gets_a_short_note_instead_of_its_bytes() {
     let file = sandbox.0.join("image.png");
     fs::write(&file, [0x89, b'P', b'N', b'G', 0, 1, 2]).expect("a file");
 
-    assert_eq!(path_preview(&file, NO_TOOLS), "Binary file, 7 bytes");
+    assert_eq!(
+        path_preview(&file, NO_TOOLS, NO_WIDTH),
+        "Binary file, 7 bytes"
+    );
 }
 
 #[test]
 fn a_path_that_is_gone_says_so() {
     assert_eq!(
-        path_preview(Path::new("/nonexistent/notes.txt"), NO_TOOLS),
+        path_preview(Path::new("/nonexistent/notes.txt"), NO_TOOLS, NO_WIDTH),
         "Cannot read /nonexistent/notes.txt: No such file or directory (os error 2)"
+    );
+}
+
+#[test]
+fn bat_gets_the_width_it_is_given() {
+    let sandbox = Sandbox::new("bat-width");
+    let bat = sandbox.0.join("bat");
+    fs::write(&bat, "#!/bin/sh\nprintf '%s\\n' \"$@\"\n").expect("a fake bat");
+    fs::set_permissions(&bat, fs::Permissions::from_mode(0o700)).expect("executable");
+    let file = sandbox.0.join("notes.txt");
+    fs::write(&file, "notes").expect("a file");
+
+    let preview = path_preview(&file, Some(sandbox.0.as_os_str()), Some(42));
+
+    assert!(
+        preview.lines().any(|word| word == "--terminal-width=42"),
+        "{preview}"
     );
 }

@@ -127,7 +127,11 @@ pub(crate) fn preview(cache: &Path, field: &str) -> Result<String, CommandError>
     Ok(match preview {
         None => String::new(),
         Some(Preview::Text(text)) => text,
-        Some(Preview::Path(path)) => path_preview(Path::new(&path), env::var_os("PATH").as_deref()),
+        Some(Preview::Path(path)) => {
+            let width = env::var("FZF_PREVIEW_COLUMNS").ok();
+            let width = width.and_then(|columns| columns.parse().ok());
+            path_preview(Path::new(&path), env::var_os("PATH").as_deref(), width)
+        }
         Some(Preview::Command(argv)) => command_preview(&argv),
     })
 }
