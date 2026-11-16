@@ -2,6 +2,7 @@ mod agents;
 mod daemon;
 mod inbox;
 mod pickers;
+mod rex;
 mod tools;
 mod workspaces;
 
@@ -11,7 +12,7 @@ use std::path::PathBuf;
 use pwe_adapters::{config_file, plugin_state_dir};
 use pwe_protocol::PICKER_CONFIG_VARIABLE;
 
-pub(crate) const USAGE: &str = "usage: pwe jump <label> <cwd> [--after-pid <pid>] | pwe pick | pwe popup | pwe last-workspace | pwe record | pwe agent-changed | pwe launch <base> | pwe launcher | pwe deliver <picker> <pane> --after-pid <pid> | pwe generate --output <directory> [--config <file>] | pwe run <picker> | pwe run-in-popup | pwe preview <rows-file> <index> | pwe header <rows-file> | pwe rows <rows-file> | pwe live <rows-file> <query> | pwe view <rows-file> load|choose|back|key <key> <index>... | pwe footer <rows-file> [index] | pwe help <rows-file> [index] | pwe builtin <name> [args] | pwe git-preview <diff|stages|blob> <args> | pwe capture <output> <cwd> <category> <framework> -- <command>... | pwe network ping <address> <page> | pwe network wake <mac> <broadcast>... | pwe tabs focus <browser> <window> <tab> [space] | pwe init bash | pwe daemon run|start|stop|enable|disable | pwe daemon status [--output json] | pwe agents";
+pub(crate) const USAGE: &str = "usage: pwe jump <label> <cwd> [--after-pid <pid>] | pwe pick | pwe popup | pwe last-workspace | pwe record | pwe agent-changed | pwe launch <base> | pwe launcher | pwe deliver <picker> <pane> --after-pid <pid> | pwe generate --output <directory> [--config <file>] | pwe run <picker> | pwe run-in-popup | pwe preview <rows-file> <index> | pwe header <rows-file> | pwe rows <rows-file> | pwe live <rows-file> <query> | pwe view <rows-file> load|choose|back|key <key> <index>... | pwe footer <rows-file> [index] | pwe help <rows-file> [index] | pwe builtin <name> [args] | pwe git-preview <diff|stages|blob> <args> | pwe capture <output> <cwd> <category> <framework> -- <command>... | pwe network ping <address> <page> | pwe network wake <mac> <broadcast>... | pwe tabs focus <browser> <window> <tab> [space] | pwe init bash | pwe daemon run|start|stop|enable|disable | pwe daemon status [--output json] | pwe agents | pwe rex key <base>";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -46,6 +47,7 @@ pub(crate) fn state_dir() -> PathBuf {
 pub(crate) fn execute(arguments: &[String]) -> Result<(), CommandError> {
     let words: Vec<&str> = arguments.iter().map(String::as_str).collect();
     workspaces::execute(&words)
+        .or_else(|| rex::execute(&words))
         .or_else(|| pickers::execute(&words))
         .or_else(|| tools::execute(&words))
         .or_else(|| inbox::execute(&words))

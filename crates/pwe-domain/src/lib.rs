@@ -27,6 +27,7 @@ mod picker_trail;
 mod picker_view;
 mod place;
 mod popup;
+mod rex_key;
 mod send_queue;
 mod target;
 pub mod test_engine;
@@ -67,6 +68,7 @@ pub use picker_view::{
 };
 pub use place::{Place, RECENT_PLACES, remember};
 pub use popup::{Size, popup_size, preview_popup_size};
+pub use rex_key::{FLOAT_LABEL, key_passes_on};
 pub use send_queue::{Queued, take_next};
 pub use target::{JumpTarget, TargetError, WorkspaceDeclaration, action_id, jump_targets};
 pub use timers::Timers;

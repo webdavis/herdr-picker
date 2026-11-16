@@ -7,11 +7,13 @@ use serde::Deserialize;
 
 mod error;
 mod pickers;
+mod rex;
 mod services;
 mod workspaces;
 
 pub use error::ConfigError;
 use pickers::{PickerEntry, declared_pickers};
+pub use rex::RexSettings;
 use services::service_tables;
 pub use services::{BlueBubblesSettings, UnifiSettings};
 use workspaces::Declaration;
@@ -24,6 +26,7 @@ pub struct PluginConfig {
     pub pickers: Vec<Picker>,
     pub unifi: Option<UnifiSettings>,
     pub bluebubbles: Option<BlueBubblesSettings>,
+    pub rex: RexSettings,
 }
 
 #[derive(Deserialize)]
@@ -34,6 +37,8 @@ struct ConfigFile {
     picker: PickerTable,
     #[serde(default)]
     pickers: BTreeMap<String, PickerEntry>,
+    #[serde(default)]
+    rex: RexSettings,
 }
 
 #[derive(Deserialize, Default)]
@@ -132,6 +137,7 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
         pickers,
         unifi,
         bluebubbles,
+        rex: file.rex,
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {
