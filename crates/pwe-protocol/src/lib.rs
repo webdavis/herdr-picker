@@ -10,6 +10,7 @@ mod panes;
 mod popup;
 mod rows;
 mod shell;
+mod system_job;
 pub mod test_engine;
 mod view;
 mod wire;
@@ -46,6 +47,7 @@ pub use rows::{
     parse_row,
 };
 pub use shell::{Shell, UnclosedQuote, instruction, shell_quote, shell_word, split_words};
+pub use system_job::{SystemJob, launchd_job, systemd_unit};
 pub use view::{encode_view_state, parse_view_state};
 pub use wire::{
     ProtocolError, WireWorkspace, create_request, focus_request, list_request, result_of,
