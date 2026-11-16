@@ -121,3 +121,19 @@ fn a_key_raised_again_after_it_resolved_is_a_new_notice() {
 
     assert_ne!(again.id, first.id);
 }
+
+#[test]
+fn the_board_forgets_its_oldest_finished_notices_past_two_hundred_and_keeps_what_waits() {
+    let mut board = board_in_front();
+    let waiting = &saved_rows(&board.apply(raise("agent", Level::NeedsYou), 1))[0];
+    let first = &saved_rows(&board.apply(raise("build-0", Level::Finished), 2))[0];
+    for number in 1..200 {
+        board.apply(raise(&format!("build-{number}"), Level::Finished), 2);
+    }
+
+    let again = &saved_rows(&board.apply(raise("build-0", Level::Finished), 3))[0];
+    let still_waiting = &saved_rows(&board.apply(raise("agent", Level::NeedsYou), 3))[0];
+
+    assert_ne!(again.id, first.id);
+    assert_eq!(still_waiting.id, waiting.id);
+}
