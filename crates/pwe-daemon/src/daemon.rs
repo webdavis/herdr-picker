@@ -64,21 +64,26 @@ impl Daemon {
         let listener = self.claim.listener.try_clone()?;
         let (requests, received) = mpsc::channel();
         let listening = thread::spawn(move || listen(&listener, &requests));
-        answer_until_stopped(&self.core, &received);
+        answer_until_stopped(&self.core, &received, || self.claim.remove_socket());
         listening
             .join()
             .map_err(|_| io::Error::other("the socket listener panicked"))
     }
 }
 
-fn answer_until_stopped(core: &DaemonCore, received: &Receiver<Request>) {
+fn answer_until_stopped(
+    core: &DaemonCore,
+    received: &Receiver<Request>,
+    close_to_new_requests: impl FnOnce(),
+) {
     while let Ok(request) = received.recv() {
         let answer = core.answer(&request.line);
-        let keeps_serving = answer.keeps_serving;
-        let _ = request.answer_to.send(answer);
-        if !keeps_serving {
+        if !answer.keeps_serving {
+            close_to_new_requests();
+            let _ = request.answer_to.send(answer);
             return;
         }
+        let _ = request.answer_to.send(answer);
     }
 }
 

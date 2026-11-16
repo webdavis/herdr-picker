@@ -44,6 +44,10 @@ impl SocketClaim {
             _instance_lock: instance_lock,
         })
     }
+
+    pub(crate) fn remove_socket(&self) {
+        let _ = remove_stale(&self.socket);
+    }
 }
 
 fn remove_stale(socket: &Path) -> io::Result<()> {
@@ -55,6 +59,6 @@ fn remove_stale(socket: &Path) -> io::Result<()> {
 
 impl Drop for SocketClaim {
     fn drop(&mut self) {
-        let _ = remove_stale(&self.socket);
+        self.remove_socket();
     }
 }

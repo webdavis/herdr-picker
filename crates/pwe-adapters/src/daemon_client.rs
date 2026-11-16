@@ -1,7 +1,7 @@
 use std::fmt;
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::os::unix::net::UnixStream;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Duration;
 
 use pwe_protocol::{DaemonError, DaemonRequest, daemon_request_line, parse_daemon_reply};
@@ -27,18 +27,6 @@ impl fmt::Display for DaemonAskError {
             }
         }
     }
-}
-
-pub fn daemon_socket_file(
-    runtime_dir: Option<&str>,
-    state_home: Option<&str>,
-    home: Option<&str>,
-) -> PathBuf {
-    let set = |value: Option<&str>| value.filter(|value| !value.is_empty()).map(PathBuf::from);
-    set(runtime_dir)
-        .or_else(|| set(state_home))
-        .unwrap_or_else(|| PathBuf::from(home.unwrap_or_default()).join(".local/state"))
-        .join("pwe/daemon.sock")
 }
 
 pub fn ask_daemon(socket: &Path, request: DaemonRequest) -> Result<Value, DaemonAskError> {
