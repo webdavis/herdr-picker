@@ -1,5 +1,6 @@
 use super::NoticeBoard;
 use super::input::{NoticeEffect, Raised};
+use crate::notice::Notice;
 
 impl NoticeBoard {
     pub(super) fn update(&mut self, index: usize, raised: Raised, now: u64) -> Vec<NoticeEffect> {
@@ -29,8 +30,24 @@ impl NoticeBoard {
         let Some(index) = self.live.iter().position(|live| live.key == key) else {
             return Vec::new();
         };
+        self.retire(index, now, |notice| notice.resolved_at = Some(now))
+    }
+
+    pub(super) fn mark_read(&mut self, id: &str, now: u64) -> Vec<NoticeEffect> {
+        let Some(index) = self.live.iter().position(|live| live.id == id) else {
+            return Vec::new();
+        };
+        self.retire(index, now, |notice| notice.read_at = Some(now))
+    }
+
+    fn retire(
+        &mut self,
+        index: usize,
+        now: u64,
+        mark: impl FnOnce(&mut Notice),
+    ) -> Vec<NoticeEffect> {
         let mut notice = self.live.remove(index);
-        notice.resolved_at = Some(now);
+        mark(&mut notice);
         let mut effects = self.withdraw(&notice.id, now);
         effects.insert(0, NoticeEffect::SaveRow(Box::new(notice)));
         effects

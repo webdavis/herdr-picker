@@ -2,6 +2,7 @@ mod float;
 mod grouping;
 mod input;
 mod line;
+mod moving;
 mod settings;
 mod showing;
 mod updating;
@@ -18,6 +19,8 @@ pub struct NoticeBoard {
     live: Vec<Notice>,
     floats: Vec<Float>,
     focus: RexFocus,
+    focused_since: u64,
+    asking_for_session: bool,
     numbers: u64,
 }
 
@@ -28,20 +31,22 @@ impl NoticeBoard {
             live: Vec::new(),
             floats: Vec::new(),
             focus: RexFocus::Closed,
+            focused_since: 0,
+            asking_for_session: false,
             numbers: 0,
         }
     }
 
     pub fn apply(&mut self, input: NoticeInput, now: u64) -> Vec<NoticeEffect> {
-        match input {
+        let mut effects = match input {
             NoticeInput::Raise(raised) => self.raise(raised, now),
-            NoticeInput::OwnerMoved(focus) => {
-                self.focus = focus;
-                Vec::new()
-            }
+            NoticeInput::OwnerMoved(focus) => self.owner_moved(focus, now),
             NoticeInput::Resolve { key } => self.resolve(&key, now),
-            NoticeInput::TimePassed => self.expire(now),
-        }
+            NoticeInput::TimePassed => [self.expire(now), self.mark_seen(now)].concat(),
+            NoticeInput::ListWaiting => vec![NoticeEffect::Waiting(self.waiting())],
+        };
+        effects.extend(self.follow_waiting());
+        effects
     }
 
     fn next_number(&mut self) -> u64 {

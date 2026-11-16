@@ -5,6 +5,8 @@ pub struct NoticeSettings {
     pub finished_seconds: u64,
     pub needs_you_seconds: u64,
     pub most_on_screen: usize,
+    pub seen_after_seconds: u64,
+    pub ask_session_every_seconds: u64,
 }
 
 impl Default for NoticeSettings {
@@ -13,6 +15,8 @@ impl Default for NoticeSettings {
             finished_seconds: 6,
             needs_you_seconds: 10,
             most_on_screen: 3,
+            seen_after_seconds: 1,
+            ask_session_every_seconds: 2,
         }
     }
 }

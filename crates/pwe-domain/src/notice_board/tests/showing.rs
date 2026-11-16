@@ -59,7 +59,7 @@ fn a_notice_about_the_pane_in_view_stays_silent() {
 
     let effects = board.apply(NoticeInput::Raise(about_view), 100);
 
-    assert_eq!(effects.len(), 1);
+    assert!(shown(&effects).is_empty());
     assert_eq!(saved_rows(&effects).len(), 1);
 }
 

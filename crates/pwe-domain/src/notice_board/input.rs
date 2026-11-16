@@ -24,6 +24,7 @@ pub enum NoticeInput {
     Resolve { key: String },
     OwnerMoved(RexFocus),
     TimePassed,
+    ListWaiting,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -44,4 +45,9 @@ pub enum NoticeEffect {
         float: String,
     },
     SaveRow(Box<Notice>),
+    AskForSession {
+        every_seconds: u64,
+    },
+    StopAskingForSession,
+    Waiting(Vec<Notice>),
 }
