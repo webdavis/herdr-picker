@@ -17,6 +17,12 @@ impl UntrustedText {
     }
 }
 
+pub fn printed_name(raw: &str) -> String {
+    raw.chars()
+        .filter(|character| !character.is_control())
+        .collect()
+}
+
 fn is_kept(character: char) -> bool {
     !character.is_control() || character == '\n' || character == '\t'
 }
