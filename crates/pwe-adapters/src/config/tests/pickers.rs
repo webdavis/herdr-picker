@@ -37,6 +37,7 @@ fn a_config_of_only_pickers_is_valid_and_declares_no_workspace() {
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
                 live: false,
+                engine: pwe_domain::Engine::Fzf,
             },
             Picker {
                 name: "files".to_string(),
@@ -48,6 +49,7 @@ fn a_config_of_only_pickers_is_valid_and_declares_no_workspace() {
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
                 live: false,
+                engine: pwe_domain::Engine::Fzf,
             },
         ]
     );
@@ -158,6 +160,7 @@ fn builtin(name: &str, key: &str, description: &str) -> Picker {
             }),
         steps: BTreeMap::new(),
         live: false,
+        engine: pwe_domain::Engine::Fzf,
     }
 }
 
@@ -171,6 +174,7 @@ fn refusal_path(refusal: &ConfigError) -> PathBuf {
 mod bluebubbles;
 mod builtins;
 mod commands;
+mod engines;
 mod overrides;
 mod sources;
 mod unifi;

@@ -31,6 +31,10 @@ pub enum PickerError {
     BuiltinLive {
         name: String,
     },
+    UnknownEngine {
+        name: String,
+        engine: String,
+    },
 }
 
 impl fmt::Display for PickerError {
@@ -67,6 +71,10 @@ impl fmt::Display for PickerError {
             Self::BuiltinLive { name } => write!(
                 formatter,
                 "the picker {name} runs a built-in picker, which decides itself whether it follows the query"
+            ),
+            Self::UnknownEngine { name, engine } => write!(
+                formatter,
+                "the picker {name} sets engine to {engine:?}, which is not one of \"fzf\" or \"pwe\""
             ),
         }
     }

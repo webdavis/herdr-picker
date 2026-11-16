@@ -14,6 +14,7 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         sources: Vec::new(),
         steps: BTreeMap::new(),
         live: false,
+        engine: crate::Engine::Fzf,
     }
 }
 
@@ -37,6 +38,7 @@ fn pickers_parse_each_key_into_a_chord_and_keep_the_rest() {
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
                 live: false,
+                engine: crate::Engine::Fzf,
             },
             Picker {
                 name: "files".to_string(),
@@ -48,6 +50,7 @@ fn pickers_parse_each_key_into_a_chord_and_keep_the_rest() {
                 sources: Vec::new(),
                 steps: BTreeMap::new(),
                 live: false,
+                engine: crate::Engine::Fzf,
             },
         ])
     );

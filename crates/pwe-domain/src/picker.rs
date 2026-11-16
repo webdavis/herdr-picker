@@ -4,10 +4,12 @@ use crate::chord::Chord;
 use crate::picker_builtin::BUILTIN_PICKERS;
 use crate::picker_header::title;
 
+mod engine;
 mod error;
 mod step;
 mod words;
 
+pub use engine::Engine;
 pub use error::PickerError;
 pub use step::PickerStep;
 use words::{checked_sources, is_bare_word};
@@ -23,6 +25,7 @@ pub struct PickerDeclaration {
     pub sources: Vec<String>,
     pub steps: BTreeMap<String, PickerStep>,
     pub live: bool,
+    pub engine: Engine,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,6 +45,7 @@ pub struct Picker {
     pub sources: Vec<String>,
     pub steps: BTreeMap<String, PickerStep>,
     pub live: bool,
+    pub engine: Engine,
 }
 
 pub fn pickers(
@@ -73,6 +77,7 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
         sources,
         steps,
         live,
+        engine,
     } = declaration;
     if !is_bare_word(&name) {
         return Err(PickerError::UnusableName { name });
@@ -102,6 +107,7 @@ fn picker(declaration: PickerDeclaration) -> Result<Picker, PickerError> {
         sources,
         steps,
         live,
+        engine,
     })
 }
 

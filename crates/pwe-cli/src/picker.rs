@@ -2,8 +2,8 @@ use std::path::Path;
 use std::{env, fs, process};
 
 use pwe_adapters::{
-    FzfStepFinder, Placement, bare_program, command_preview, copy_to_clipboard, path_preview,
-    picker_rows_file, read_picker_config, remove_runs_whose_process_is_gone,
+    Placement, bare_program, command_preview, copy_to_clipboard, path_preview, picker_rows_file,
+    read_picker_config, remove_runs_whose_process_is_gone,
 };
 use pwe_domain::{Action, Picker, PickerCall, PickerCommand, Preview, Trail, Turn};
 use pwe_protocol::{Shell, bash_init, instruction, parse_row};
@@ -12,7 +12,7 @@ use crate::builtin::{self, Places};
 use crate::command::{CommandError, config_path, failed, state_dir};
 use crate::picker_chrome::QuotedHelper;
 use crate::quickfix::quickfix_path;
-use crate::{handing, picker_popup, picker_step};
+use crate::{handing, picker_engine, picker_popup, picker_step};
 
 const OPENER: &str = if cfg!(target_os = "macos") {
     "open"
@@ -63,12 +63,7 @@ pub(crate) fn pick(
         query: None,
     });
     let quickfix = quickfix_path();
-    let finder = FzfStepFinder {
-        helper: quoted.helper(),
-        cache: &cache,
-        theme: config.theme,
-        placement,
-    };
+    let finder = picker_engine::step_finder(name, &config, &cache, &quoted, &quickfix, placement);
     let step = picker_step::Run {
         config: &config,
         finder: &finder,

@@ -384,9 +384,12 @@ A `[pickers.<name>]` table adds a picker or changes a built-in one. The name is 
 | `sources` | `[]` | The sources a script reads, in lowercase; refused on a built-in picker |
 | `live` | `false` | The script runs again as the query changes; refused on a built-in picker, which decides that itself |
 | `steps.<step>` | | A script only a row's `next` opens, with its own `command`, `sources` and `live` |
+| `engine` | `"fzf"` | The window the picker runs in: `"fzf"`, or `"pwe"` for pwe's own, which needs no fzf. The steps it opens use the same one, except a `live` step, which stays in fzf |
 
 A table named for a built-in picker that names no `command` changes that built-in picker: its
-`key` moves it, `enabled = false` turns it off. A configured picker that takes a built-in picker's
+`key` moves it, `enabled = false` turns it off, `engine = "pwe"` runs it in pwe's own window. To
+try both windows side by side, add a second table such as `[pickers.files-pwe]` with
+`builtin = "files"`, `engine = "pwe"` and a key of its own. A configured picker that takes a built-in picker's
 key replaces it there; two configured pickers on one key are refused, naming both.
 
 ```toml
