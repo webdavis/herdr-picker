@@ -59,3 +59,8 @@ _Avoid_: paste
 The pane a picker's result goes to: the pane underneath for a launcher, or a new pane or tab for
 alt+h, alt+j, alt+k, alt+l and alt+n.
 _Avoid_: destination, output pane
+
+**Pane host**:
+The program that holds the panes, herdr or Rex, which a handover reads the target pane from and
+types into.
+_Avoid_: backend, multiplexer
