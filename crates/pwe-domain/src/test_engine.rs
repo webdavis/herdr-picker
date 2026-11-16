@@ -1,5 +1,6 @@
 mod event;
 mod invocation;
+mod result_reader;
 mod retention;
 mod runner_match;
 mod runner_spec;
@@ -12,6 +13,7 @@ pub use event::{
     Diagnostic, Failure, RunFinished, RunStarted, Stream, TestEvent, TestFinished, TestStatus,
 };
 pub use invocation::{Invocation, InvocationError, Selection, invocation};
+pub use result_reader::ResultReader;
 pub use retention::{Retention, StoredRun, runs_to_drop};
 pub use runner_match::{MatchedRunner, matched_runners};
 pub use runner_spec::{ListCommand, OutputSpec, Report, RunCommands, RunnerSpec, RunnerStatus};
