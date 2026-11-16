@@ -6,6 +6,8 @@ use super::input::{NoticeEffect, Raised, RexFocus};
 use super::line::{level_name, notice_line, said};
 use crate::notice::{Level, Notice};
 
+const MOST_REMEMBERED_NOTICES: usize = 200;
+
 impl NoticeBoard {
     pub(super) fn raise(&mut self, raised: Raised, now: u64) -> Vec<NoticeEffect> {
         if let Some(index) = self.live.iter().position(|live| live.key == raised.key) {
@@ -26,9 +28,22 @@ impl NoticeBoard {
             read_at: None,
         };
         self.live.push(notice.clone());
+        self.forget_oldest_settled();
         let mut effects = vec![NoticeEffect::SaveRow(Box::new(notice.clone()))];
         effects.extend(self.present(&notice, now));
         effects
+    }
+
+    fn forget_oldest_settled(&mut self) {
+        if self.live.len() <= MOST_REMEMBERED_NOTICES {
+            return;
+        }
+        let settled = self.live.iter().position(|notice| {
+            notice.level != Level::NeedsYou && self.float_holding(&notice.id).is_none()
+        });
+        if let Some(index) = settled {
+            self.live.remove(index);
+        }
     }
 
     pub(super) fn present(&mut self, notice: &Notice, now: u64) -> Vec<NoticeEffect> {
