@@ -1,8 +1,8 @@
 use std::path::Path;
-use std::process::Command;
 
 use serde_json::Value;
 
+use super::folder_command::wt_in_folder;
 use super::output;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -21,12 +21,7 @@ pub(super) struct Worktree {
 }
 
 pub(super) fn list(root: &Path) -> Option<Vec<Item>> {
-    let listed = output(Command::new("wt").arg("-C").arg(root).args([
-        "list",
-        "--branches",
-        "--format=json",
-    ]))
-    .ok()?;
+    let listed = output(wt_in_folder(root).args(["list", "--branches", "--format=json"])).ok()?;
     parse(&String::from_utf8_lossy(&listed))
 }
 

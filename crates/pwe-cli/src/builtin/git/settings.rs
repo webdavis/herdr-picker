@@ -1,10 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
-use std::process::Command;
 
 use pwe_domain::PickerRow;
 
-use super::{Repo, output, strings};
+use super::{Repo, git_in_folder, output, strings};
 use crate::builtin::rows::RowWriter;
 use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
@@ -30,7 +29,7 @@ pub(super) fn settings(
     places: &Places,
     rows: &mut RowWriter<impl Write>,
 ) -> Result<(), CommandError> {
-    let listed = output(Command::new("git").arg("-C").arg(&places.cwd).args([
+    let listed = output(git_in_folder(&places.cwd).args([
         "config",
         "--null",
         "--list",

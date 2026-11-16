@@ -1,10 +1,10 @@
 use std::io::Write;
 use std::path::Path;
-use std::process::Command;
 use std::thread;
 
 use pwe_domain::Action;
 
+use super::folder_command::wt_in_folder;
 use super::steps::{ask, choice};
 use super::{plural, wt};
 use crate::builtin::rows::RowWriter;
@@ -49,10 +49,8 @@ pub(super) fn prune(roots: &[&str], rows: &mut RowWriter<impl Write>) -> Result<
 }
 
 pub(super) fn dry_run(root: &str, format: &[&str]) -> String {
-    let mut command = Command::new("wt");
-    command
-        .args(["-C", root, "step", "prune", "--dry-run"])
-        .args(format);
+    let mut command = wt_in_folder(Path::new(root));
+    command.args(["step", "prune", "--dry-run"]).args(format);
     match command.output() {
         Ok(ran) => {
             String::from_utf8_lossy(&ran.stdout).into_owned()

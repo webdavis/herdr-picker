@@ -14,6 +14,7 @@ use crate::command::{CommandError, failed};
 mod branches;
 mod checkout;
 mod contents;
+mod folder_command;
 mod history;
 mod inputs;
 use super::paint;
@@ -24,6 +25,7 @@ mod status;
 mod steps;
 mod worktrunk;
 
+pub(super) use folder_command::git_in_folder;
 pub(crate) use preview::git_preview;
 
 pub(super) struct Repo {
@@ -32,13 +34,8 @@ pub(super) struct Repo {
 
 impl Repo {
     pub(super) fn at(folder: &Path) -> Result<Self, CommandError> {
-        let top = output(
-            Command::new("git")
-                .arg("-C")
-                .arg(folder)
-                .args(["rev-parse", "--show-toplevel"]),
-        )
-        .map_err(|_| failed("This picker needs a Git repository."))?;
+        let top = output(git_in_folder(folder).args(["rev-parse", "--show-toplevel"]))
+            .map_err(|_| failed("This picker needs a Git repository."))?;
         Ok(Self {
             root: PathBuf::from(OsStr::from_bytes(top.trim_ascii_end())),
         })
@@ -49,10 +46,9 @@ impl Repo {
     }
 
     pub(super) fn command(&self, arguments: &[&str]) -> Command {
-        let mut command = Command::new("git");
+        let mut command = git_in_folder(&self.root);
         command
-            .args(["--no-pager", "-c", "core.quotePath=false", "-C"])
-            .arg(&self.root)
+            .args(["--no-pager", "-c", "core.quotePath=false"])
             .args(arguments);
         command
     }

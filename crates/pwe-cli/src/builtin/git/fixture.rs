@@ -1,9 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use pwe_protocol::{parse_header, parse_row};
 
+use super::git_in_folder;
 use crate::builtin::Places;
 use pwe_domain::PickerRow;
 
@@ -57,9 +57,7 @@ impl GitRepo {
 }
 
 pub(crate) fn git_in(folder: &Path, arguments: &[&str]) -> String {
-    let ran = Command::new("git")
-        .arg("-C")
-        .arg(folder)
+    let ran = git_in_folder(folder)
         .args(arguments)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")
