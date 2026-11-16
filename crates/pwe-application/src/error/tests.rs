@@ -20,3 +20,18 @@ fn every_error_renders_on_one_line() {
         assert!(!rendered.is_empty());
     }
 }
+
+#[test]
+fn no_error_names_the_pane_host_it_came_from() {
+    for error in [
+        JumpError::Unreachable("rex is not on PATH".to_string()),
+        JumpError::Transport("rex send exited 1".to_string()),
+        JumpError::Malformed("not JSON".to_string()),
+        JumpError::Server {
+            code: "not_found".to_string(),
+            message: "gone".to_string(),
+        },
+    ] {
+        assert!(!error.to_string().contains("herdr"), "{error}");
+    }
+}

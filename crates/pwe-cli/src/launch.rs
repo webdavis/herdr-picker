@@ -69,7 +69,8 @@ pub(crate) fn choose() -> Result<(), CommandError> {
         return Ok(());
     };
     if picker::is_bookmark(&chosen.label, &config.pickers) {
-        return picker::bookmark_this_folder();
+        eprintln!("{}", picker::bookmark_this_folder()?);
+        return Ok(());
     }
     let binary = env::current_exe()
         .map_err(|failure| failed(format!("cannot find this binary: {failure}")))?;

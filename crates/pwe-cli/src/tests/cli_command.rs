@@ -33,6 +33,25 @@ impl RecordedCli {
         )
     }
 
+    pub(crate) fn rex(answers: &[(&str, &str)]) -> Self {
+        let cases: String = answers
+            .iter()
+            .map(|(arguments, answer)| {
+                format!(
+                    "  {}) printf '%s' {} ;;\n",
+                    quoted(arguments),
+                    quoted(answer)
+                )
+            })
+            .collect();
+        Self::recording(
+            "rex",
+            &format!(
+                "case \"$*\" in\n{cases}  *) echo \"no answer for $*\" >&2; exit 2 ;;\nesac\n"
+            ),
+        )
+    }
+
     fn recording(name: &str, answers: &str) -> Self {
         let number = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
         let directory =

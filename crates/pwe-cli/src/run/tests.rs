@@ -46,7 +46,7 @@ fn run_falls_back_to_the_cli_when_the_socket_path_is_absent() {
         "the socket failure is carried behind it: {rendered}"
     );
     assert_eq!(
-        rendered.matches("herdr unreachable").count(),
+        rendered.matches("unreachable: ").count(),
         2,
         "one prefix for each of the two failures, none stacked: {rendered}"
     );

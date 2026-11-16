@@ -23,7 +23,8 @@ const OPENER: &str = if cfg!(target_os = "macos") {
 pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), CommandError> {
     let config = config_path();
     if is_bookmark(name, &read_picker_config(&config).map_err(failed)?.pickers) {
-        return bookmark_this_folder();
+        eprintln!("{}", bookmark_this_folder()?);
+        return Ok(());
     }
     let socket = picker_popup::popup_socket(socket_path);
     let instruction = match &socket {
@@ -40,11 +41,10 @@ pub(crate) fn is_bookmark(name: &str, pickers: &[Picker]) -> bool {
         .any(|picker| picker.name == name && picker.command == bookmarks)
 }
 
-pub(crate) fn bookmark_this_folder() -> Result<(), CommandError> {
+pub(crate) fn bookmark_this_folder() -> Result<String, CommandError> {
     let places = Places::here()?;
     let folder = builtin::bookmark_folder(env::var("HERDR_ACTIVE_PANE_CWD").ok(), &places.cwd);
-    eprintln!("{}", builtin::bookmark(&folder, &places)?);
-    Ok(())
+    builtin::bookmark(&folder, &places)
 }
 
 pub(crate) fn pick(

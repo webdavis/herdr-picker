@@ -322,6 +322,50 @@ once, in `places` in the plugin's state folder, for a picker of recent places.
 The state folder is the one herdr names in `HERDR_PLUGIN_STATE_DIR`. Without it, pwe uses
 `$XDG_STATE_HOME/pwe`, or `~/.local/state/pwe` without `XDG_STATE_HOME`.
 
+## Rex
+
+In [Rex](https://www.superlogical.com/rex), pwe opens in a floating window over the pane you are in,
+and hands what you pick to that pane. Rex takes your keys before the shell sees them, so a Lua file
+binds them instead of `pwe init bash`.
+
+Install the Lua file and load it from Rex's `init.lua`:
+
+```bash
+pwe init rex > ~/.config/rex/pwe.lua
+```
+
+```lua
+require("pwe")
+```
+
+Then reload Rex's config. Run `pwe init rex` again after you change the keys in `config.toml`.
+
+What works in Rex:
+
+- Each launcher key, such as ctrl-t and ctrl-g, opens the launcher in a float labelled `pwe`, sized
+  to the window as herdr's picker popup is. The next key starts that picker in the same float.
+- A pick reaches the pane underneath the way it does in herdr: typed, run, `cd`, or opened in a new
+  pane beside it, and refused when Claude or Codex holds a draft or waits on a question. A refusal
+  or an error stays in the float until you press a key.
+- ctrl-t then ctrl-b bookmarks the pane's folder.
+- The keys pass on to Neovim and to pwe's own float. `[rex] pass-keys-to` names the programs they
+  pass on to:
+
+```toml
+[rex]
+pass-keys-to = ["nvim"]
+app-name = "Rex Beta"
+```
+
+pwe runs `rex` from `PATH`, or else from inside the app that `app-name` names in `/Applications`.
+It never starts a Rex server.
+
+What still needs herdr: the agents picker and sending rows to an agent, recent places and the send
+queue, and the workspace jumps (`jump`, `pick`, `popup` and `last-workspace`).
+
+In an ssh pane pwe opens on this computer, not on the remote one, so the files and folders it
+offers are this computer's.
+
 ## Your own pickers
 
 A `[pickers.<name>]` table adds a picker or changes a built-in one. The name is letters, digits,
