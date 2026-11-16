@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use pwe_adapters::{config_file, plugin_state_dir};
 use pwe_protocol::PICKER_CONFIG_VARIABLE;
 
-pub(crate) const USAGE: &str = "usage: pwe jump <label> <cwd> [--after-pid <pid>] | pwe pick | pwe popup | pwe last-workspace | pwe record | pwe agent-changed | pwe launch <base> | pwe launcher [<base> --under <block>] | pwe deliver <picker> <pane> --after-pid <pid> | pwe generate --output <directory> [--config <file>] | pwe run <picker> | pwe run-in-popup | pwe preview <rows-file> <index> | pwe header <rows-file> | pwe rows <rows-file> | pwe live <rows-file> <query> | pwe view <rows-file> load|choose|back|key <key> <index>... | pwe footer <rows-file> [index] | pwe help <rows-file> [index] | pwe builtin <name> [args] | pwe git-preview <diff|stages|blob> <args> | pwe capture <output> <cwd> <category> <framework> -- <command>... | pwe network ping <address> <page> | pwe network wake <mac> <broadcast>... | pwe tabs focus <browser> <window> <tab> [space] | pwe init bash|rex | pwe daemon run|start|stop|enable|disable | pwe daemon status [--output json] | pwe agents | pwe rex key <base>";
+pub(crate) const USAGE: &str = "usage: pwe jump <label> <cwd> [--after-pid <pid>] | pwe pick | pwe popup | pwe last-workspace | pwe record | pwe agent-changed | pwe launch <base> | pwe launcher [<base> --under <block>] | pwe deliver <picker> <pane> --after-pid <pid> | pwe generate --output <directory> [--config <file>] | pwe run <picker> | pwe run-in-popup | pwe preview <rows-file> <index> | pwe header <rows-file> | pwe rows <rows-file> | pwe live <rows-file> <query> | pwe view <rows-file> load|choose|back|key <key> <index>... | pwe footer <rows-file> [index] | pwe help <rows-file> [index] | pwe builtin <name> [args] | pwe git-preview <diff|stages|blob> <args> | pwe capture <output> <cwd> <category> <framework> -- <command>... | pwe network ping <address> <page> | pwe network wake <mac> <broadcast>... | pwe tabs focus <browser> <window> <tab> [space] | pwe init bash|rex | pwe daemon run|start|stop|enable|disable | pwe daemon status [--format json|text] | pwe agents | pwe rex key <base>";
 
 #[derive(Debug)]
 pub(crate) enum CommandError {
@@ -22,6 +22,14 @@ pub(crate) enum CommandError {
 
 pub(crate) fn failed(refusal: impl std::fmt::Display) -> CommandError {
     CommandError::Failed(refusal.to_string())
+}
+
+pub(crate) fn prints_json(options: &[&str]) -> Result<bool, CommandError> {
+    match options {
+        [] | ["--format", "text"] => Ok(false),
+        ["--format", "json"] => Ok(true),
+        _ => Err(CommandError::Usage),
+    }
 }
 
 pub(crate) fn config_path() -> PathBuf {

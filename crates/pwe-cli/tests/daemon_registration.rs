@@ -33,7 +33,7 @@ fn enable_writes_the_job_and_bootstraps_it_for_this_user() {
         home.system_calls()
     );
     let status = json_of(&succeeded(
-        home.pwe(&["daemon", "status", "--output", "json"]),
+        home.pwe(&["daemon", "status", "--format", "json"]),
     ));
     assert_eq!(
         (&status["running"], &status["enabled"]),
@@ -62,7 +62,7 @@ fn disable_boots_the_job_out_and_removes_it() {
         home.system_calls()
     );
     let status = json_of(&succeeded(
-        home.pwe(&["daemon", "status", "--output", "json"]),
+        home.pwe(&["daemon", "status", "--format", "json"]),
     ));
     assert_eq!(
         (&status["running"], &status["enabled"]),
@@ -88,7 +88,7 @@ fn enable_writes_the_unit_and_enables_it_for_this_user() {
         ]
     );
     let status = json_of(&succeeded(
-        home.pwe(&["daemon", "status", "--output", "json"]),
+        home.pwe(&["daemon", "status", "--format", "json"]),
     ));
     assert_eq!(
         (&status["running"], &status["enabled"]),
@@ -117,7 +117,7 @@ fn disable_stops_the_unit_and_removes_it() {
         home.system_calls()
     );
     let status = json_of(&succeeded(
-        home.pwe(&["daemon", "status", "--output", "json"]),
+        home.pwe(&["daemon", "status", "--format", "json"]),
     ));
     assert_eq!(
         (&status["running"], &status["enabled"]),
