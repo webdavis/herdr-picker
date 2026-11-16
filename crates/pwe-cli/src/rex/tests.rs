@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use pwe_adapters::RexSettings;
 use serde_json::{Value, json};
 
@@ -62,4 +64,12 @@ fn a_base_that_is_not_one_key_or_facts_pwe_cannot_read_are_refused() {
         answer_key("ctrl-t", "{}", &settings, "/bin/pwe"),
         Err(CommandError::Failed(_))
     ));
+}
+
+#[test]
+fn init_rex_binds_the_launcher_bases_of_the_builtin_pickers_to_this_pwe() {
+    let script = lua_for(Path::new("/nonexistent/pwe/config.toml"), "/bin/pwe").expect("a script");
+
+    assert!(script.starts_with("local pwe = \"/bin/pwe\"\n"));
+    assert!(script.contains("rex.bind(\"ctrl+t\", key(\"ctrl-t\"))"));
 }
