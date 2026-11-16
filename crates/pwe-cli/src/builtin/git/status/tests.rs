@@ -1,6 +1,7 @@
 use pwe_domain::{Action, Key, Location, PickerCall, Preview};
 
 use crate::builtin::git::fixture::{GitRepo, labels, read};
+use crate::builtin::git::git_in_folder;
 use crate::builtin::tests::printed;
 
 const DIM: &str = "\x1b[2m";
@@ -144,10 +145,8 @@ fn a_conflict_previews_its_three_sides_and_the_header_counts_it() {
     repo.git(&["checkout", "-q", "main"]);
     repo.write("a.txt", "ours\n");
     repo.commit("ours");
-    let _ = std::process::Command::new("git")
+    let _ = git_in_folder(&repo.0)
         .args([
-            "-C",
-            &*repo.0.to_string_lossy(),
             "-c",
             "user.name=A",
             "-c",

@@ -1,6 +1,6 @@
 use std::fs;
-use std::process::Command;
 
+use crate::builtin::git::git_in_folder;
 use crate::builtin::tests::{Tree, printed};
 
 fn folders(source: &str, places: &crate::builtin::Places) -> Vec<String> {
@@ -60,9 +60,7 @@ fn git_lists_every_folder_holding_a_tracked_file_and_the_repository_root() {
         &["src/deep/x.rs", "README.md", "untracked/y.txt"],
     );
     let git = |arguments: &[&str]| {
-        let ran = Command::new("git")
-            .arg("-C")
-            .arg(&tree.0)
+        let ran = git_in_folder(&tree.0)
             .args(arguments)
             .output()
             .expect("git runs");

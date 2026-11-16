@@ -10,7 +10,7 @@ use serde_json::Value;
 
 use super::super::paint::dim;
 use super::super::steps::next;
-use super::super::{Repo, output, plural};
+use super::super::{Repo, git_in_folder, output, plural};
 use super::dry_run;
 use crate::builtin::rows::{RowWriter, in_home, key};
 use crate::builtin::{Places, finder_closing_is_no_failure};
@@ -125,11 +125,8 @@ fn worktrees_in(base: &Path) -> Vec<PathBuf> {
 }
 
 pub(super) fn main_repo(tree: &Path) -> Option<PathBuf> {
-    let mut command = Command::new("git");
-    command
-        .arg("-C")
-        .arg(tree)
-        .args(["rev-parse", "--path-format=absolute", "--git-common-dir"]);
+    let mut command = git_in_folder(tree);
+    command.args(["rev-parse", "--path-format=absolute", "--git-common-dir"]);
     let common = String::from_utf8_lossy(&output(&mut command).ok()?)
         .trim()
         .to_string();

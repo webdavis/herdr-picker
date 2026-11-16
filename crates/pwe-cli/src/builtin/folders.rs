@@ -3,10 +3,11 @@ use std::ffi::OsStr;
 use std::io::Write;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use pwe_adapters::{Entry, Walk, read_bookmarks, walk};
 
+use super::git::git_in_folder;
 use super::rows::{RowWriter, folder_row};
 use super::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
@@ -49,9 +50,7 @@ pub(super) fn folders(
 
 fn tracked_folders(cwd: &Path) -> BTreeSet<PathBuf> {
     let git = |folder: &Path, arguments: &[&str]| {
-        let ran = Command::new("git")
-            .arg("-C")
-            .arg(folder)
+        let ran = git_in_folder(folder)
             .args(arguments)
             .stdin(Stdio::null())
             .stderr(Stdio::null())

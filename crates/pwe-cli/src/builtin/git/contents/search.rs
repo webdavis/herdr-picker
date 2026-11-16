@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::Command;
 use std::thread;
 
-use super::super::{output, strings};
+use super::super::{git_in_folder, output, strings};
 use super::state::Switches;
 use crate::command::{CommandError, failed};
 
@@ -19,7 +19,7 @@ pub(super) fn names(root: &Path, switches: &Switches) -> Result<Vec<String>, Com
         true => &["ls-files", "-z", "--others", "--exclude-standard"],
         false => &["ls-files", "-z", "--cached"],
     };
-    let found = output(Command::new("git").arg("-C").arg(root).args(listing))?;
+    let found = output(git_in_folder(root).args(listing))?;
     Ok(strings(&found)
         .into_iter()
         .filter(|name| !name.split('/').any(|part| part == ".git"))

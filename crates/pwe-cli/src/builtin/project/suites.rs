@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use pwe_adapters::{Entry, Walk, walk};
 use pwe_domain::{Action, Location, PickerRow};
@@ -9,7 +8,7 @@ use super::discovered::{discovered, discoveries};
 use super::packages::{nested_projects, npm_scripts};
 use super::{JUSTFILES, command_row, nearest, notice, root, words};
 use crate::builtin::Places;
-use crate::builtin::git::{output, strings};
+use crate::builtin::git::{git_in_folder, output, strings};
 use crate::builtin::recipes::{recipe_row, recipes};
 use crate::builtin::rows::key;
 use crate::command::CommandError;
@@ -45,8 +44,7 @@ pub(super) fn suites(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
 }
 
 fn files(root: &Path, places: &Places) -> Vec<PathBuf> {
-    let mut listing = Command::new("git");
-    listing.arg("-C").arg(root);
+    let mut listing = git_in_folder(root);
     listing.args(["ls-files", "-co", "--exclude-standard", "-z"]);
     let mut found: Vec<PathBuf> = match output(&mut listing) {
         Ok(listed) => strings(&listed)
