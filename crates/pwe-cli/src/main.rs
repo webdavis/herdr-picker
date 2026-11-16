@@ -17,6 +17,7 @@ mod picker_step;
 mod popup;
 mod quickfix;
 mod record;
+mod rex;
 mod run;
 
 use std::env;

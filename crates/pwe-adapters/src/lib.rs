@@ -45,8 +45,8 @@ pub use cli::CliWorkspaceDirectory;
 pub use clipboard::copy_to_clipboard;
 pub use command_preview::command_preview;
 pub use config::{
-    BlueBubblesSettings, ConfigError, PluginConfig, UnifiSettings, config_file, read_config,
-    read_picker_config,
+    BlueBubblesSettings, ConfigError, PluginConfig, RexSettings, UnifiSettings, config_file,
+    read_config, read_picker_config,
 };
 pub use daemon_client::{DaemonAskError, ask_daemon};
 pub use daemon_files::{

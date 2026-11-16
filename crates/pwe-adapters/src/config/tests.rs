@@ -3,6 +3,7 @@ use pwe_domain::TargetError;
 
 mod pickers;
 mod refusals;
+mod rex;
 
 const FIVE_WORKSPACES_DECLARED_OUT_OF_ORDER: &str = r#"
 [workspaces]
