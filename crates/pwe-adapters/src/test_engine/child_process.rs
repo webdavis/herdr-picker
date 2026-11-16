@@ -8,6 +8,7 @@ use pwe_application::test_engine::{ToolProcess, ToolRun, ToolStartError};
 use pwe_domain::test_engine::ToolEnd;
 use rustix::process::{Pid, Signal, kill_process_group};
 
+use super::interrupts::{InterruptsCaught, InterruptsForwarded};
 use crate::program::on_path;
 
 const LONGEST_LINE_BYTES: u64 = 1024 * 1024;
@@ -19,6 +20,7 @@ pub struct ChildProcess {
 struct ChildRun {
     child: Child,
     output: BufReader<PipeReader>,
+    interrupts: Option<InterruptsForwarded>,
 }
 
 impl ChildProcess {
@@ -46,6 +48,7 @@ impl ToolProcess for ChildProcess {
             reason: failure.to_string(),
         };
         let (output, writer) = io::pipe().map_err(refused)?;
+        let interrupts = InterruptsCaught::catch().map_err(refused)?;
         let child = Command::new(program)
             .args(arguments)
             .current_dir(cwd)
@@ -55,9 +58,11 @@ impl ToolProcess for ChildProcess {
             .process_group(0)
             .spawn()
             .map_err(refused)?;
+        let group = process_group(&child);
         Ok(Box::new(ChildRun {
             child,
             output: BufReader::new(output),
+            interrupts: Some(interrupts.forward_to(group)),
         }))
     }
 }
@@ -77,22 +82,30 @@ impl ToolRun for ChildRun {
     }
 
     fn wait(&mut self) -> ToolEnd {
-        ToolEnd::Exited {
-            code: self.child.wait().ok().and_then(|status| status.code()),
+        let code = self.child.wait().ok().and_then(|status| status.code());
+        match self.interrupts.take().map(InterruptsForwarded::interrupted) {
+            Some(true) => ToolEnd::Cancelled,
+            _ => ToolEnd::Exited { code },
         }
     }
 }
 
 impl Drop for ChildRun {
     fn drop(&mut self) {
+        if let Some(interrupts) = self.interrupts.take() {
+            interrupts.interrupted();
+        }
         if let Ok(None) = self.child.try_wait() {
-            let group = i32::try_from(self.child.id()).ok().and_then(Pid::from_raw);
-            if let Some(group) = group {
+            if let Some(group) = process_group(&self.child) {
                 let _ = kill_process_group(group, Signal::KILL);
             }
             let _ = self.child.wait();
         }
     }
+}
+
+fn process_group(child: &Child) -> Option<Pid> {
+    i32::try_from(child.id()).ok().and_then(Pid::from_raw)
 }
 
 #[cfg(test)]
