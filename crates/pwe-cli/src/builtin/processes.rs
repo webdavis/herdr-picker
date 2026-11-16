@@ -8,7 +8,7 @@ use super::clock::local_offset;
 use super::page::notice;
 use super::program::run;
 use super::rows::RowWriter;
-use super::{Places, written};
+use super::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 mod docker;
@@ -38,7 +38,7 @@ pub(super) fn processes(
             ps::process_rows(&listed.map_err(failed)?, &sockets)
         }
     };
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn services() -> Vec<super::PickerRow> {
@@ -97,7 +97,7 @@ pub(super) fn unified_logs(rows: &mut RowWriter<impl Write>) -> Result<(), Comma
         .try_for_each(|row| rows.row(&row));
     let _ = log.kill();
     let _ = log.wait();
-    written(shown)
+    finder_closing_is_no_failure(shown)
 }
 
 pub(super) fn crashes(
@@ -111,5 +111,5 @@ pub(super) fn crashes(
         .collect();
     folders.push(PathBuf::from("/Library/Logs/DiagnosticReports"));
     let listed = logs::crash_rows(&folders, local_offset());
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }

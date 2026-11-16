@@ -8,7 +8,7 @@ use std::process::{Command, Stdio};
 use pwe_adapters::{Entry, Walk, read_bookmarks, walk};
 
 use super::rows::{RowWriter, folder_row};
-use super::{Places, written};
+use super::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 pub(super) fn folders(
@@ -25,15 +25,17 @@ pub(super) fn folders(
                 hidden: false,
                 depth: None,
             };
-            written(walk(&search, places.fd.as_deref(), show))
+            finder_closing_is_no_failure(walk(&search, places.fd.as_deref(), show))
         }
-        "parents" => written(places.cwd.ancestors().skip(1).try_for_each(show)),
-        "git" => written(
+        "parents" => {
+            finder_closing_is_no_failure(places.cwd.ancestors().skip(1).try_for_each(show))
+        }
+        "git" => finder_closing_is_no_failure(
             tracked_folders(&places.cwd)
                 .iter()
                 .try_for_each(|path| show(path)),
         ),
-        "bookmarks" => written(
+        "bookmarks" => finder_closing_is_no_failure(
             read_bookmarks(&places.bookmarks)
                 .iter()
                 .filter(|folder| folder.is_dir())

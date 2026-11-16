@@ -6,7 +6,7 @@ use super::paint::{dim, yellow};
 use super::steps::next;
 use super::{Repo, own_preview, strings};
 use crate::builtin::rows::{RowWriter, key};
-use crate::builtin::{Asked, Places, written};
+use crate::builtin::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod state;
@@ -47,7 +47,7 @@ pub(super) fn history(
     if sort == Sort::OldestFirst {
         listed.reverse();
     }
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn commit_row(repo: &Repo, fields: &[String; 4], sort: Sort) -> PickerRow {
@@ -86,7 +86,7 @@ pub(super) fn commit_files(
             .to_string();
     let mut parts = about.splitn(3, '\t');
     let (short, subject, age) = (parts.next(), parts.next(), parts.next());
-    written(rows.header(&format!(
+    finder_closing_is_no_failure(rows.header(&format!(
         "{} {} ({})",
         short.unwrap_or_default(),
         subject.unwrap_or_default(),
@@ -110,7 +110,7 @@ pub(super) fn commit_files(
             })
         })
         .collect();
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 #[cfg(test)]

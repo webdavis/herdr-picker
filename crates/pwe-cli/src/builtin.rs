@@ -86,7 +86,7 @@ pub(crate) fn print_rows(
         .or_else(|| apple::apple_step(name, arguments, places, &mut rows));
     if let Some(listed) = step {
         listed?;
-        return written(rows.finish());
+        return finder_closing_is_no_failure(rows.finish());
     }
     match (name, arguments, asked.source) {
         (name @ ("agents" | "send-to" | "quick-answer" | "answer"), [], _) => {
@@ -103,22 +103,22 @@ pub(crate) fn print_rows(
         ("tabs", [], _) => tabs::tabs(asked.state, &mut rows)?,
         ("unified-logs", [], _) => processes::unified_logs(&mut rows)?,
         ("crashes", [], _) => processes::crashes(places, &mut rows)?,
-        ("echo-args", words, _) => written(
+        ("echo-args", words, _) => finder_closing_is_no_failure(
             words
                 .iter()
                 .try_for_each(|word| rows.row(&row(word, None, Action::Insert(shell_word(word))))),
         )?,
         ("confirm", [question, action], _) => {
             let action = parse_action(action).map_err(failed)?;
-            written(rows.row(&row("No", Some(question), Action::Back)))?;
-            written(rows.row(&row("Yes", Some(question), action)))?;
+            finder_closing_is_no_failure(rows.row(&row("No", Some(question), Action::Back)))?;
+            finder_closing_is_no_failure(rows.row(&row("Yes", Some(question), action)))?;
         }
         _ => return Err(failed(format!("no builtin picker is named {name}"))),
     }
-    written(rows.finish())
+    finder_closing_is_no_failure(rows.finish())
 }
 
-fn written(result: io::Result<()>) -> Result<(), CommandError> {
+fn finder_closing_is_no_failure(result: io::Result<()>) -> Result<(), CommandError> {
     match result {
         Err(failure) if failure.kind() != io::ErrorKind::BrokenPipe => Err(failed(failure)),
         _ => Ok(()),

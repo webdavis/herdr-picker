@@ -5,10 +5,10 @@ use pwe_domain::{Action, Key, PickerRow, Preview};
 use serde_json::{Value, json};
 
 use super::automation::automation;
+use super::finder_closing_is_no_failure;
 use super::page::{fields, notice, own_program, words};
 use super::paint::dim;
 use super::rows::{RowWriter, key};
-use super::written;
 use crate::command::{CommandError, failed};
 
 const SECTIONS: [(&str, &str); 3] = [
@@ -37,7 +37,7 @@ pub(super) fn tabs(
             Err(why) => vec![unanswered(&why, browser)],
         },
     };
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 pub(super) fn tab_rows(tabs: &[Value], browser: &str, program: &str) -> Vec<PickerRow> {

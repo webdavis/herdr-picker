@@ -40,19 +40,19 @@ pub(super) fn service_tables(
 fn owned_table<T>(
     entries: &mut BTreeMap<String, PickerEntry>,
     path: &Path,
-    owner: &'static str,
+    reading_picker: &'static str,
     table: &str,
     take: impl Fn(&mut PickerEntry) -> Option<T>,
 ) -> Result<Option<T>, ConfigError> {
     let mut found = None;
     for (name, entry) in entries.iter_mut() {
-        match (take(entry), name == owner) {
+        match (take(entry), name == reading_picker) {
             (Some(settings), true) => found = Some(settings),
             (Some(_), false) => {
                 return Err(ConfigError::Misplaced {
                     path: path.to_owned(),
                     table: format!("[pickers.{name}.{table}]"),
-                    owner,
+                    reading_picker,
                 });
             }
             (None, _) => {}

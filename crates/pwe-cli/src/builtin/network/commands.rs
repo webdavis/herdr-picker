@@ -8,7 +8,7 @@ use crate::builtin::page::notice;
 use crate::builtin::paint::dim;
 
 const CATALOG: &str = include_str!("actions.toml");
-const SOURCES: [(&str, &str); 3] = [
+const CATALOG_ENTRIES_OPENING_A_SOURCE: [(&str, &str); 3] = [
     ("devices", "devices"),
     ("captures", "captures"),
     ("url", "web checks"),
@@ -42,7 +42,10 @@ pub(super) fn command_rows() -> Vec<PickerRow> {
             let label = format!("{}  {}", entry.title, dim(&entry.tool));
             let (Some(text), None) = (&entry.command, &entry.next) else {
                 let next = entry.next.as_deref()?;
-                let enter = match SOURCES.iter().find(|(name, _)| *name == next) {
+                let enter = match CATALOG_ENTRIES_OPENING_A_SOURCE
+                    .iter()
+                    .find(|(name, _)| *name == next)
+                {
                     Some((_, source)) => Action::Source(source.to_string()),
                     None => Action::Next(PickerCall {
                         name: next.to_string(),

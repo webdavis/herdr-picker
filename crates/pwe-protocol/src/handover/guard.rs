@@ -52,7 +52,7 @@ pub fn guard(kind: &PaneKind, status: &str, screen: &str) -> Result<(), Refusal>
     }
 }
 
-const SHELL_PROMPTS: [char; 6] = ['❯', '❮', '$', '#', '%', '>'];
+const STARSHIP_AND_CLASSIC_PROMPT_CHARACTERS: [char; 6] = ['❯', '❮', '$', '#', '%', '>'];
 
 fn shell_guard(screen: &str) -> Result<(), Refusal> {
     let line = screen
@@ -62,7 +62,7 @@ fn shell_guard(screen: &str) -> Result<(), Refusal> {
         .ok_or(Refusal::InputUnseen)?;
     let (before, typed) = line
         .char_indices()
-        .filter(|(_, character)| SHELL_PROMPTS.contains(character))
+        .filter(|(_, character)| STARSHIP_AND_CLASSIC_PROMPT_CHARACTERS.contains(character))
         .map(|(at, character)| (&line[..at], &line[at + character.len_utf8()..]))
         .find(|(_, rest)| rest.is_empty() || rest.starts_with(' '))
         .ok_or(Refusal::InputUnseen)?;
@@ -81,7 +81,8 @@ fn prompt_like(word: &str) -> bool {
         || word.starts_with(['~', '/'])
         || wrapped('(', ')')
         || wrapped('[', ']')
-        || word
-            .chars()
-            .all(|character| !character.is_alphanumeric() && !SHELL_PROMPTS.contains(&character))
+        || word.chars().all(|character| {
+            !character.is_alphanumeric()
+                && !STARSHIP_AND_CLASSIC_PROMPT_CHARACTERS.contains(&character)
+        })
 }

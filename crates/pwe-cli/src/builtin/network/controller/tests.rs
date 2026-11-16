@@ -78,3 +78,16 @@ fn a_plain_http_or_credentialed_url_is_refused() {
         );
     }
 }
+
+#[test]
+fn the_api_key_reaches_curl_on_stdin_and_never_in_its_arguments() {
+    let reached = controller(&settings("https://192.168.1.1/", None), Some("/Users/me"))
+        .expect("a controller");
+
+    let arguments = curl_args(&reached, "/sites", 0);
+
+    assert!(
+        arguments.windows(2).any(|pair| pair == ["--header", "@-"]),
+        "{arguments:?}"
+    );
+}

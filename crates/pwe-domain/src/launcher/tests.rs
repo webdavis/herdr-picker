@@ -78,3 +78,12 @@ fn a_typed_key_even_slash_starts_its_picker_and_enter_opens_the_search() {
         Command::Accept
     );
 }
+
+#[test]
+fn a_picker_whose_second_key_holds_ctrl_is_left_out_of_the_launcher() {
+    assert!(
+        offered("ctrl-t")
+            .iter()
+            .all(|(_, label, _)| label != "bookmark")
+    );
+}

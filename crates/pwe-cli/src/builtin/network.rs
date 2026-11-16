@@ -6,7 +6,7 @@ use pwe_domain::{Action, PickerRow, Preview};
 
 use super::clock::{local_offset, now};
 use super::rows::{RowWriter, key};
-use super::{Asked, Places, written};
+use super::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, picker_config_path};
 
 mod analysis;
@@ -76,7 +76,7 @@ pub(super) fn network(
             )
         }
     };
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn command(title: &str, command: &str, purpose: &str) -> PickerRow {

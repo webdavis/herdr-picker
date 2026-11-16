@@ -9,7 +9,7 @@ use super::{
 };
 use crate::builtin::program::run;
 use crate::builtin::rows::RowWriter;
-use crate::builtin::{Asked, Places, written};
+use crate::builtin::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 const QUICK: Duration = Duration::from_secs(3);
@@ -73,7 +73,7 @@ pub(in crate::builtin) fn network_step(
         _ => return None,
     };
     let header = prompt.map_or(Ok(()), |prompt| rows.header(&prompt));
-    Some(written(header.and_then(|()| {
+    Some(finder_closing_is_no_failure(header.and_then(|()| {
         listed.iter().try_for_each(|row| rows.row(row))
     })))
 }

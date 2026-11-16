@@ -27,7 +27,7 @@ pub(super) fn setting_row(
     } else {
         redact(&entry.value)
     };
-    let hidden = shown != entry.value || name != entry.name;
+    let shown_redacted = shown != entry.value || name != entry.name;
     let label = match note.is_empty() {
         true => format!("{name} = {}", dim(&shown)),
         false => format!("{}  {}", dim(&format!("{name} = {shown}")), dim(note)),
@@ -56,7 +56,7 @@ pub(super) fn setting_row(
         (None, _) => Some(format!(
             "{name} was set on the command line, not in a file."
         )),
-        _ if hidden => Some(format!(
+        _ if shown_redacted => Some(format!(
             "{name} holds a secret, which a command line would show and keep in your history. Press Ctrl-Enter to edit it in its file."
         )),
         _ if several => Some(format!(

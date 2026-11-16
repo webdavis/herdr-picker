@@ -4,7 +4,7 @@ use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process;
 
-pub(crate) fn write_private(file: &Path, contents: &[u8]) -> io::Result<()> {
+pub(crate) fn write_private_atomically(file: &Path, contents: &[u8]) -> io::Result<()> {
     let mut temporary = file.as_os_str().to_owned();
     temporary.push(format!(".{}.tmp", process::id()));
     let temporary = PathBuf::from(temporary);

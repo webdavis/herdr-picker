@@ -2,7 +2,9 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use pwe_adapters::{FileWorkspaceHistory, SocketPanes, mru_file, places_file, record_place};
+use pwe_adapters::{
+    FileWorkspaceHistory, SocketPanes, mru_file, places_file, record_place_without_a_lock,
+};
 use pwe_application::record;
 use pwe_domain::{Place, RECENT_PLACES};
 use pwe_protocol::{SOCKET_PATH_VARIABLE, parse_focused_id, parse_focused_pane};
@@ -48,7 +50,7 @@ pub(crate) fn remember_pane(socket: &Path, pane_id: &str, places: &Path, at: u64
         pane_id: pane.pane_id,
         cwd: pane.cwd,
     };
-    record_place(places, place, RECENT_PLACES);
+    record_place_without_a_lock(places, place, RECENT_PLACES);
 }
 
 #[cfg(test)]

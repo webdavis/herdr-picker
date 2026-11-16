@@ -144,7 +144,7 @@ fn starting_a_run_clears_the_files_of_runs_whose_process_is_gone() {
         fs::write(sandbox.0.join(name), "").expect("a file");
     }
 
-    remove_stale_runs(&sandbox.0);
+    remove_runs_whose_process_is_gone(&sandbox.0);
 
     let mut left: Vec<String> = fs::read_dir(&sandbox.0)
         .expect("the state lists")

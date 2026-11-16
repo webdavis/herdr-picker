@@ -4,7 +4,7 @@ use pwe_domain::{Action, PickerRow, Preview};
 
 use super::sending;
 use crate::builtin::Asked;
-use crate::builtin::agents::start::{BROCCOLI, PERSONAL};
+use crate::builtin::agents::start::{BROCCOLI_CLAUTH_PROFILE, PERSONAL_CLAUTH_PROFILE};
 use crate::builtin::page::notice;
 
 pub(in crate::builtin) fn answer(asked: &Asked) -> Vec<PickerRow> {
@@ -21,10 +21,10 @@ pub(in crate::builtin) fn quick_answer_argv(
     question: &str,
     text: &str,
 ) -> Vec<String> {
-    let profile = if account == BROCCOLI {
-        BROCCOLI
+    let profile = if account == BROCCOLI_CLAUTH_PROFILE {
+        BROCCOLI_CLAUTH_PROFILE
     } else {
-        PERSONAL
+        PERSONAL_CLAUTH_PROFILE
     };
     let prompt = format!("{question}\n\nThe rows I picked:\n{text}");
     ["clauth", "start", profile, "-p", &prompt]

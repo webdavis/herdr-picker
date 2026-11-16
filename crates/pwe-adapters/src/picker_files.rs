@@ -6,7 +6,7 @@ use pwe_domain::{PickerRow, ViewState};
 use pwe_protocol::{encode_view_state, parse_row, parse_view_state};
 
 use crate::pane_result::alive;
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 pub fn picker_view_file(cache: &Path) -> PathBuf {
     cache.with_extension("view")
@@ -45,7 +45,7 @@ pub fn read_view(cache: &Path) -> ViewState {
 }
 
 pub fn write_view(cache: &Path, state: &ViewState) -> io::Result<()> {
-    write_private(
+    write_private_atomically(
         &picker_view_file(cache),
         encode_view_state(state).as_bytes(),
     )
@@ -71,7 +71,7 @@ pub fn remove_run_files(cache: &Path) {
 #[cfg(test)]
 mod tests;
 
-pub fn remove_stale_runs(state: &Path) {
+pub fn remove_runs_whose_process_is_gone(state: &Path) {
     let Ok(entries) = fs::read_dir(state) else {
         return;
     };

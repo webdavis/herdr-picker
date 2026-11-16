@@ -7,7 +7,7 @@ use super::paint::dim;
 use super::steps::confirm;
 use super::{Repo, plural, strings};
 use crate::builtin::rows::RowWriter;
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 pub(super) fn stash_files(
@@ -109,7 +109,7 @@ fn answer(
     row: PickerRow,
     rows: &mut RowWriter<impl Write>,
 ) -> Result<(), CommandError> {
-    written(rows.header(prompt).and_then(|()| rows.row(&row)))
+    finder_closing_is_no_failure(rows.header(prompt).and_then(|()| rows.row(&row)))
 }
 
 #[cfg(test)]

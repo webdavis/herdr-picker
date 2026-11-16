@@ -4,7 +4,7 @@ use pwe_domain::PickerRow;
 
 use super::page::notice;
 use super::rows::RowWriter;
-use super::{Asked, Places, written};
+use super::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 mod copy;
@@ -51,7 +51,7 @@ pub(super) fn data_rows(
         _ => return None,
     };
     let header = header.map_or(Ok(()), |header| rows.header(&header));
-    Some(written(header.and_then(|()| {
+    Some(finder_closing_is_no_failure(header.and_then(|()| {
         listed.iter().try_for_each(|row| rows.row(row))
     })))
 }

@@ -12,7 +12,7 @@ use crate::builtin::page::{own_program, words};
 use crate::builtin::paint::dim;
 use crate::builtin::rows::key;
 
-const LARGEST_ROW_COPY: usize = 64 * 1024;
+const LARGEST_VALUE_COPIED_FROM_THE_LIST: usize = 64 * 1024;
 
 pub(super) struct Doc<'a> {
     pub(super) origin: &'a Origin,
@@ -51,7 +51,7 @@ pub(super) fn node_row(
     };
     let mut keys = vec![(key("ctrl-enter"), opened(doc, place, value))];
     let (shown, visible) = (text(&redacted(value, place.last_key())), text(value));
-    if shown.len() <= LARGEST_ROW_COPY {
+    if shown.len() <= LARGEST_VALUE_COPIED_FROM_THE_LIST {
         if shown == visible {
             keys.push((key("alt-y"), Action::CopyStay(shown.clone())));
         } else {

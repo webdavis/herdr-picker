@@ -7,7 +7,7 @@ use super::Repo;
 use super::steps::{ask, choice};
 use super::worktrunk::{self};
 use crate::builtin::rows::RowWriter;
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 mod fallback;
@@ -35,9 +35,9 @@ pub(super) fn branches(
         return super::prune::repos(&repo, places, rows);
     }
     let root = repo.root.clone();
-    let listing = thread::spawn(move || worktrunk::list(&root));
+    let worktrunk_listing_while_git_lists_refs = thread::spawn(move || worktrunk::list(&root));
     let refs = refs(&repo)?;
-    let items = match listing.join().ok().flatten() {
+    let items = match worktrunk_listing_while_git_lists_refs.join().ok().flatten() {
         Some(items) => items,
         None => from_git(&repo, &refs)?,
     };
@@ -61,7 +61,7 @@ pub(super) fn branches(
             .then(|| rows::worktree(&repo, tree, item.branch.as_deref()))
     });
     listed.extend(others);
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn refs(repo: &Repo) -> Result<Vec<Ref>, CommandError> {

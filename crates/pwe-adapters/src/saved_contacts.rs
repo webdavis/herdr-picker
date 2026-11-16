@@ -2,10 +2,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 pub fn save_contacts(file: &Path, changed: &str, people: &str) -> io::Result<()> {
-    write_private(file, format!("{changed}\n{people}").as_bytes())
+    write_private_atomically(file, format!("{changed}\n{people}").as_bytes())
 }
 
 pub fn saved_contacts(file: &Path, changed: &str) -> Option<String> {

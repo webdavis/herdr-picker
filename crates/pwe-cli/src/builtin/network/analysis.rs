@@ -29,8 +29,8 @@ pub(super) fn analysis(path: &str) -> Vec<PickerRow> {
     ]
 }
 
-pub(super) fn filtered(path: &str, typed: &str) -> PickerRow {
-    match validate("display filter", typed) {
+pub(super) fn filtered(path: &str, display_filter: &str) -> PickerRow {
+    match validate("display filter", display_filter) {
         Ok(filter) => command(
             "Filtered capture",
             &words(&["tshark", "-n", "-r", path, "-Y", &filter]),

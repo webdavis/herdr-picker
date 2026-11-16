@@ -7,7 +7,7 @@ use super::paint::{dim, yellow};
 use super::steps::{confirm, next};
 use super::{Repo, own_preview, strings};
 use crate::builtin::rows::{RowWriter, file_row, key, painted, shown};
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod ignored;
@@ -27,7 +27,7 @@ pub(super) fn status(
         return ignored::ignored(&repo, places, rows);
     }
     let porcelain = Porcelain::read(&repo)?;
-    written(rows.header(&summary(&porcelain)))?;
+    finder_closing_is_no_failure(rows.header(&summary(&porcelain)))?;
     let stashes = match source {
         "all" | "stashes" => stashes(&repo)?,
         _ => Vec::new(),
@@ -45,7 +45,7 @@ pub(super) fn status(
         .chain(stashes)
         .chain(file_rows(true))
         .collect();
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn file_row_of(repo: &Repo, file: &File, all: bool, places: &Places) -> PickerRow {

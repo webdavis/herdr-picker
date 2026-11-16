@@ -7,7 +7,7 @@ use super::super::paint::dim;
 use super::super::{Repo, strings};
 use super::edit_at;
 use crate::builtin::rows::{RowWriter, file_row, key, painted, shown};
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 pub(super) fn ignored(
@@ -62,5 +62,5 @@ pub(super) fn ignored(
             row
         });
     let listed: Vec<PickerRow> = listed.collect();
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }

@@ -6,7 +6,7 @@ use pwe_domain::PickerRow;
 
 use super::{Repo, output, strings};
 use crate::builtin::rows::RowWriter;
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod files;
@@ -78,7 +78,7 @@ pub(super) fn settings(
         setting_row(entry, &note, several.contains(&lower), &managed, &base)
     });
     let listed: Vec<PickerRow> = listed.collect();
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 #[cfg(test)]

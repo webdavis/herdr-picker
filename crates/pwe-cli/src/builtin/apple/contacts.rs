@@ -26,7 +26,8 @@ pub(super) struct Field {
     pub(super) value: String,
 }
 
-const MODES: [&str; 7] = ["all", "name", "phone", "email", "address", "work", "link"];
+const ALT_DIGIT_COPY_MODES: [&str; 7] =
+    ["all", "name", "phone", "email", "address", "work", "link"];
 
 pub(super) fn contact_rows(people: &[Person], mode: &str, offset: i64) -> Vec<PickerRow> {
     people
@@ -52,12 +53,17 @@ fn contact_row(person: &Person, mode: &str, offset: i64) -> PickerRow {
         ),
     };
     let mut keys = vec![(key("alt-y"), Action::CopyStay(copied.clone()))];
-    keys.extend(MODES.iter().enumerate().map(|(digit, mode)| {
-        (
-            key(&format!("alt-{digit}")).labelled(&format!("enter copies {mode}")),
-            Action::State(json!(mode).to_string()),
-        )
-    }));
+    keys.extend(
+        ALT_DIGIT_COPY_MODES
+            .iter()
+            .enumerate()
+            .map(|(digit, mode)| {
+                (
+                    key(&format!("alt-{digit}")).labelled(&format!("enter copies {mode}")),
+                    Action::State(json!(mode).to_string()),
+                )
+            }),
+    );
     keys.push((
         key("alt-7"),
         step("contact-fields", vec![person.id.clone()]),

@@ -9,7 +9,7 @@ use serde_json::Value;
 use super::git::output;
 use super::paint::dim;
 use super::rows::{RowWriter, in_home, key};
-use super::{Places, written};
+use super::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 pub(super) struct Recipe {
@@ -28,7 +28,7 @@ pub(super) fn recipes_rows(
 ) -> Result<(), CommandError> {
     let recipes = recipes(&places.cwd)?;
     let width = recipes.iter().map(|recipe| recipe.name.len()).max();
-    written(
+    finder_closing_is_no_failure(
         recipes.iter().try_for_each(|recipe| {
             rows.row(&recipe_row(recipe, width.unwrap_or_default(), places))
         }),

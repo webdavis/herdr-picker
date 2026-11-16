@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use pwe_adapters::{Entry, Walk, walk};
 
 use super::rows::{RowWriter, file_row, named, painted, shown};
-use super::{Places, written};
+use super::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed};
 
 const RECENT_FOLDERS: [&str; 2] = ["Documents", "Downloads"];
@@ -34,7 +34,7 @@ pub(super) fn files(
         hidden,
         depth,
     };
-    written(walk(&search, places.fd.as_deref(), |path| {
+    finder_closing_is_no_failure(walk(&search, places.fd.as_deref(), |path| {
         let label = painted(&shown(path, &places.cwd));
         rows.row(&file_row(path, label, places, toggle))
     }))
@@ -50,14 +50,14 @@ fn recent(places: &Places, rows: &mut RowWriter<impl Write>) -> Result<(), Comma
             hidden: false,
             depth: None,
         };
-        written(walk(&search, places.fd.as_deref(), |path| {
+        finder_closing_is_no_failure(walk(&search, places.fd.as_deref(), |path| {
             let modified = fs::metadata(path).and_then(|found| found.modified());
             found.push((modified.unwrap_or(UNIX_EPOCH), path.to_path_buf()));
             Ok(())
         }))?;
     }
     found.sort_by(|newer, older| older.cmp(newer));
-    written(
+    finder_closing_is_no_failure(
         found.iter().try_for_each(|(_, path)| {
             rows.row(&file_row(path, named(path, Some(home)), places, None))
         }),

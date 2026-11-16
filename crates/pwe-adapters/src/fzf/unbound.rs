@@ -1,4 +1,4 @@
-const UNBOUND: [(&str, &str); 15] = [
+const FZF_DEFAULT_ACTIONS_OF_UNBOUND_KEYS: [(&str, &str); 15] = [
     ("ctrl-a", "beginning-of-line"),
     ("ctrl-b", "backward-char"),
     ("ctrl-d", "delete-char/eof"),
@@ -17,7 +17,7 @@ const UNBOUND: [(&str, &str); 15] = [
 ];
 
 pub fn unbound_action(key: &str) -> Option<&'static str> {
-    UNBOUND
+    FZF_DEFAULT_ACTIONS_OF_UNBOUND_KEYS
         .iter()
         .find(|(name, _)| *name == key)
         .map(|(_, action)| *action)

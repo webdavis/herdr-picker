@@ -4,8 +4,15 @@ use crate::screen::palette;
 
 pub(super) fn colors(theme: Theme) -> String {
     let palette = palette(theme);
-    let (base, bar, text) = (hex(palette.base), hex(palette.bar), hex(palette.text));
-    let (faint, matched) = (hex(palette.faint), format!("{}:bold", hex(palette.matched)));
+    let (base, bar, text) = (
+        sgr_to_hex(palette.base),
+        sgr_to_hex(palette.bar),
+        sgr_to_hex(palette.text),
+    );
+    let (faint, matched) = (
+        sgr_to_hex(palette.faint),
+        format!("{}:bold", sgr_to_hex(palette.matched)),
+    );
     [
         ("bg", &base),
         ("bg+", &bar),
@@ -16,9 +23,9 @@ pub(super) fn colors(theme: Theme) -> String {
         ("info", &faint),
         ("prompt", &text),
         ("query", &text),
-        ("pointer", &hex(palette.key)),
+        ("pointer", &sgr_to_hex(palette.key)),
         ("gutter", &base),
-        ("border", &hex(palette.leader)),
+        ("border", &sgr_to_hex(palette.leader)),
         ("preview-bg", &base),
         ("header", &faint),
         ("footer", &faint),
@@ -29,7 +36,7 @@ pub(super) fn colors(theme: Theme) -> String {
     .join(",")
 }
 
-fn hex(sgr: &str) -> String {
+fn sgr_to_hex(sgr: &str) -> String {
     let mut channels: Vec<&str> = sgr.trim_end_matches('m').rsplit(';').take(3).collect();
     channels.reverse();
     let digits: String = channels

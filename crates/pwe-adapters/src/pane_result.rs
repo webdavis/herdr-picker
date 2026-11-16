@@ -9,7 +9,7 @@ use pwe_protocol::{PaneState, encode_pane_state, parse_pane_state};
 use rustix::io::Errno;
 use rustix::process::{Pid, test_kill_process};
 
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 const POLL: Duration = Duration::from_millis(25);
 
@@ -37,7 +37,7 @@ impl fmt::Display for PaneWaitError {
 }
 
 pub fn write_pane_state(path: &Path, state: &PaneState) -> io::Result<()> {
-    write_private(path, encode_pane_state(state).as_bytes())
+    write_private_atomically(path, encode_pane_state(state).as_bytes())
 }
 
 pub fn await_pane_result(
@@ -47,7 +47,9 @@ pub fn await_pane_result(
     let asked = Instant::now();
     loop {
         match read_state(path)? {
-            Some(PaneState::Running { pid }) if !alive(pid) => return settled(read_state(path)?),
+            Some(PaneState::Running { pid }) if !alive(pid) => {
+                return settled(read_what_it_wrote_before_exiting(path)?);
+            }
             Some(PaneState::Running { .. }) => {}
             None if asked.elapsed() >= start_within => return Err(PaneWaitError::NeverStarted),
             None => {}
@@ -55,6 +57,10 @@ pub fn await_pane_result(
         }
         thread::sleep(POLL);
     }
+}
+
+fn read_what_it_wrote_before_exiting(path: &Path) -> Result<Option<PaneState>, PaneWaitError> {
+    read_state(path)
 }
 
 fn read_state(path: &Path) -> Result<Option<PaneState>, PaneWaitError> {

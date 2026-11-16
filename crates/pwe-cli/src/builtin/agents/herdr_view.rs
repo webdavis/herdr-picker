@@ -7,7 +7,7 @@ use pwe_domain::Place;
 use crate::agent_hook::{now, refresh};
 use crate::builtin::HerdrPlaces;
 
-const FRESH_FOR: Duration = Duration::from_secs(30);
+const SAVED_LIST_TRUSTED_FOR: Duration = Duration::from_secs(30);
 const ASK_CAP: Duration = Duration::from_secs(2);
 
 pub(super) struct HerdrView {
@@ -24,7 +24,7 @@ pub(super) fn herdr_view(
 ) -> Option<Result<HerdrView, JumpError>> {
     let socket = places.socket.as_ref()?;
     let saved = (!fresh)
-        .then(|| read_snapshot(&places.snapshot, FRESH_FOR, SystemTime::now()))
+        .then(|| read_snapshot(&places.snapshot, SAVED_LIST_TRUSTED_FOR, SystemTime::now()))
         .flatten();
     let snapshot = match saved {
         Some(snapshot) => Ok(snapshot),

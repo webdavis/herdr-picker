@@ -40,13 +40,15 @@ pub struct Chrome<'a> {
     pub live: bool,
 }
 
+const MATCH_COUNT_WITHOUT_THE_MULTI_AND_SORT_MARKERS: &str = "--info-command=echo $FZF_MATCH_COUNT";
+
 const LAYOUT: [&str; 16] = [
     "--ansi",
     "--delimiter=\t",
     "--with-nth=2..",
     "--layout=reverse",
     "--info=inline-right",
-    "--info-command=echo $FZF_MATCH_COUNT",
+    MATCH_COUNT_WITHOUT_THE_MULTI_AND_SORT_MARKERS,
     "--prompt= /",
     "--pointer= ",
     "--highlight-line",

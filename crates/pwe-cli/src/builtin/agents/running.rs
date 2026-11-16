@@ -3,7 +3,7 @@ use std::path::Path;
 use pwe_domain::{Action, Agent, AgentStatus, HerdrCall, PickerRow, Preview, ordered};
 
 use super::agent_row::{agent_row, close_tab, status_glyph, tab_label, workspace_label};
-use super::branch::branch;
+use super::branch::branch_from_git_files;
 use super::herdr_view::HerdrView;
 use crate::builtin::page::notice;
 use crate::builtin::paint::{blue, dim};
@@ -27,15 +27,15 @@ pub(super) fn rows(source: &str, view: &HerdrView, home: Option<&Path>) -> Vec<P
         "needs you" => picked(&|agent| agent.status == AgentStatus::Blocked),
         "done" => picked(&|agent| agent.status == AgentStatus::Done),
         "agents" => picked(&|_| true),
-        "terminals" => terminals(view),
+        "terminals" => tabs_without_an_agent(view),
         "workspaces" => workspaces(view),
         "recent" => recent_places(view, home),
-        "worktrees" => {
-            picked(&|agent| branch(Path::new(&agent.cwd)).is_some_and(|(_, linked)| linked))
-        }
+        "worktrees" => picked(&|agent| {
+            branch_from_git_files(Path::new(&agent.cwd)).is_some_and(|(_, linked)| linked)
+        }),
         _ => picked(&|_| true)
             .into_iter()
-            .chain(terminals(view))
+            .chain(tabs_without_an_agent(view))
             .collect(),
     };
     match listed.is_empty() {
@@ -47,7 +47,7 @@ pub(super) fn rows(source: &str, view: &HerdrView, home: Option<&Path>) -> Vec<P
     }
 }
 
-fn terminals(view: &HerdrView) -> Vec<PickerRow> {
+fn tabs_without_an_agent(view: &HerdrView) -> Vec<PickerRow> {
     view.snapshot
         .tabs
         .iter()

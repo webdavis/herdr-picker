@@ -2,7 +2,7 @@ use std::path::Path;
 
 use pwe_domain::{Action, Agent, AgentStatus, HerdrCall, PickerRow, Preview, age};
 
-use super::branch::branch;
+use super::branch::branch_from_git_files;
 use super::herdr_view::HerdrView;
 use crate::builtin::paint::{blue, dim, green, peach, yellow};
 use crate::builtin::rows::{in_home, key};
@@ -38,7 +38,7 @@ pub(super) fn agent_row(agent: &Agent, view: &HerdrView, home: Option<&Path>) ->
     let tab = tab_label(view, &agent.tab_id);
     let place = format!("{} › {tab}", workspace_label(view, &agent.workspace_id));
     let folder = in_home(Path::new(&agent.cwd), home);
-    let branch = branch(Path::new(&agent.cwd)).map(|(name, _)| name);
+    let branch = branch_from_git_files(Path::new(&agent.cwd)).map(|(name, _)| name);
     let running = agent.since.map(|since| {
         format!(
             "{} {}",
