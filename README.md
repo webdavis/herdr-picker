@@ -363,9 +363,9 @@ live = true
 ```
 
 The first source is the one a picker or step opens on, ctrl-space chooses another, the header says
-`Source: <source>`, and the script reads the chosen one in `HERDR_PICKER_SOURCE`. A picker or step
+`Source: <source>`, and the script reads the chosen one in `PWE_SOURCE`. A picker or step
 with `live = true` is run again each time the query changes, with the query in
-`HERDR_PICKER_QUERY`, and fzf shows its rows as they are rather than filtering them. Without it
+`PWE_QUERY`, and fzf shows its rows as they are rather than filtering them. Without it
 the script runs once and fzf filters what it printed.
 
 A step belongs to its picker: a row's `next` finds it from that picker or from any step opened
@@ -410,8 +410,8 @@ the line.
 | `{"in_pane": {"pane": "left", "action": <action>}}` | Opens a run, edit or cd in a new pane `left`, `below`, `above`, `right` or `tab` |
 
 A command gets the picker's `args`, then the `next`'s `args`, and three variables:
-`HERDR_PICKER_SOURCE`, the chosen source (unset without sources); `HERDR_PICKER_STATE`, the JSON a
-`next` or `state` action carried (unset without one); and `HERDR_PICKER_QUERY`, what is typed, for
+`PWE_SOURCE`, the chosen source (unset without sources); `PWE_STATE`, the JSON a
+`next` or `state` action carried (unset without one); and `PWE_QUERY`, what is typed, for
 a live picker or step only.
 
 `ctrl-t ;` lists every picker by its key; Enter starts one. Its bindings source lists every shell

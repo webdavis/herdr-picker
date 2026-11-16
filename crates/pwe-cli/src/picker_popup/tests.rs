@@ -63,9 +63,9 @@ fn the_popup_takes_most_of_the_window_and_is_told_the_picker_its_config_and_the_
             "height": 40,
             "cwd": "/home/me/repos",
             "env": {
-                "HERDR_PICKER_NAME": "files",
-                "HERDR_PICKER_CONFIG": "/home/me/config.toml",
-                "HERDR_PICKER_RESULT": "/state/picker-result-42"
+                "PWE_NAME": "files",
+                "PWE_CONFIG": "/home/me/config.toml",
+                "PWE_RESULT": "/state/picker-result-42"
             }
         })
     );
@@ -129,7 +129,7 @@ fn the_popup_side_needs_the_result_file_herdr_was_told_about() {
     let refusal = answer_in_popup(None, "files", Path::new("/unused/config.toml"));
 
     assert!(
-        matches!(&refusal, Err(CommandError::Failed(reason)) if reason.contains("HERDR_PICKER_RESULT")),
+        matches!(&refusal, Err(CommandError::Failed(reason)) if reason.contains("PWE_RESULT")),
         "{refusal:?}"
     );
 }

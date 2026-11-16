@@ -103,9 +103,9 @@ fn a_configured_picker_opens_in_the_callers_folder_and_is_told_what_to_run_and_w
             "height": 40,
             "cwd": "/home/me/repos/netpulse",
             "env": {
-                "HERDR_PICKER_NAME": "files",
-                "HERDR_PICKER_CONFIG": "/home/me/.config/pwe/config.toml",
-                "HERDR_PICKER_RESULT": "/home/me/.local/state/herdr/plugins/herdr-picker/picker-result-42"
+                "PWE_NAME": "files",
+                "PWE_CONFIG": "/home/me/.config/pwe/config.toml",
+                "PWE_RESULT": "/home/me/.local/state/herdr/plugins/herdr-picker/picker-result-42"
             }
         }})
     );
@@ -132,7 +132,7 @@ fn the_launcher_popup_carries_its_base_and_the_pane_under_it_and_opens_in_that_p
             "placement": "popup",
             "width": 129,
             "height": 40,
-            "env": {"HERDR_PICKER_BASE": "ctrl-g", "HERDR_PICKER_TARGET": "w1:p3"},
+            "env": {"PWE_BASE": "ctrl-g", "PWE_TARGET": "w1:p3"},
             "cwd": "/work/repo"
         })
     );
