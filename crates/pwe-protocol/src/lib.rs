@@ -3,6 +3,7 @@ mod agents;
 mod bash;
 mod daemon_line;
 mod daemon_status;
+mod doctor_report;
 mod focused;
 mod handover;
 mod manifest;
@@ -33,6 +34,7 @@ pub use daemon_line::{
     parse_daemon_reply, parse_daemon_request,
 };
 pub use daemon_status::{DaemonStatus, Listens, daemon_status_result, parse_daemon_status};
+pub use doctor_report::{doctor_report_json, doctor_report_words};
 pub use focused::{parse_context_pane, parse_focused_id, parse_focused_pane};
 pub use handover::{
     Delivery, Handover, Instruction, PaneKind, Refusal, Underneath, Verb, delivery, guard,

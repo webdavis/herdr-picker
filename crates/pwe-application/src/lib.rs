@@ -1,4 +1,5 @@
 mod agents;
+mod doctor;
 mod error;
 mod jump;
 mod mru;
@@ -11,6 +12,7 @@ mod whereabouts;
 pub use agents::{
     AgentProgram, AgentReadError, OpenFile, OpenFiles, ProcessEnvironment, agent_sessions,
 };
+pub use doctor::automation_permission_check;
 pub use error::JumpError;
 pub use jump::{WorkspaceDirectory, jump};
 pub use mru::{WorkspaceHistory, bounce, record};
