@@ -47,7 +47,7 @@ impl NoticeBoard {
         )
     }
 
-    fn is_in_view(&self, notice: &Notice) -> bool {
+    pub(super) fn is_in_view(&self, notice: &Notice) -> bool {
         matches!(&self.focus, RexFocus::Front(pane) if notice.is_about(pane))
     }
 

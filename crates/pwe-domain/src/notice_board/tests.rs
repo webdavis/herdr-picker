@@ -2,6 +2,7 @@ use super::*;
 use crate::notice::{Level, Pane};
 
 mod grouping;
+mod moving;
 mod showing;
 mod updating;
 
