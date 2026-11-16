@@ -1,5 +1,4 @@
 use std::io;
-use std::path::Path;
 
 use pwe_domain::PickerRow;
 
@@ -9,17 +8,26 @@ use crate::picker_run::row_sink::RowSink;
 #[derive(Default)]
 struct RecordedSink {
     taken: Vec<(usize, String, String)>,
+    headers: Vec<String>,
 }
 
 impl RowSink for RecordedSink {
-    fn take(&mut self, number: usize, row: &PickerRow, line: &str) -> io::Result<()> {
-        self.taken
-            .push((number, row.label.clone(), line.to_string()));
+    fn take(&mut self, number: usize, row: PickerRow, line: &str) -> io::Result<()> {
+        self.taken.push((number, row.label, line.to_string()));
         Ok(())
+    }
+
+    fn header(&mut self, header: &str) {
+        self.headers.push(header.to_string());
+    }
+
+    fn finish(self) -> Vec<PickerRow> {
+        Vec::new()
     }
 }
 
-const PRINTED: &str = r#"{"label":"beta","enter":"none"}
+const PRINTED: &str = r#"{"header":"Pick one"}
+{"label":"beta","enter":"none"}
 {"label":"alpha","enter":"none"}
 {"label":"gamma","enter":"none"}
 "#;
@@ -28,15 +36,10 @@ const PRINTED: &str = r#"{"label":"beta","enter":"none"}
 fn rows_reach_the_sink_in_the_order_printed() {
     let mut sink = RecordedSink::default();
 
-    let (rows, bad_row) = deliver(
-        PRINTED.as_bytes(),
-        &mut sink,
-        Path::new("/nonexistent/header"),
-    );
+    let bad_row = deliver(PRINTED.as_bytes(), &mut sink);
 
-    let labels: Vec<_> = rows.iter().map(|row| row.label.as_str()).collect();
-    assert_eq!(labels, ["beta", "alpha", "gamma"]);
     assert_eq!(bad_row, None);
+    assert_eq!(sink.headers, ["Pick one"]);
     assert_eq!(
         sink.taken,
         [

@@ -1,27 +1,27 @@
 use std::fs::File;
-use std::os::unix::process::CommandExt;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::time::Duration;
 
 use pwe_domain::PickerRow;
 use pwe_domain::finder::Found;
-use rustix::process::{Pid, Signal, kill_process_group};
 
 use crate::fzf::fzf_ending;
-use crate::picker_files::{cached_rows, picker_error_file, picker_header_file, picker_said_file};
+use crate::picker_files::{cached_rows, picker_error_file, picker_header_file};
 use crate::private::create_private;
 
 mod error;
 pub(crate) mod feed;
-mod row_sink;
+pub(crate) mod row_sink;
+mod source;
 
 pub use error::PickerRunError;
-
-const RESIGNAL_EVERY: Duration = Duration::from_millis(20);
+pub(crate) use source::{
+    signal, start_rows, stop_the_group_again_until_feeding_ends_to_catch_late_forks,
+};
+use source::{spawn, stop};
 
 pub fn run_picker(
     command: &mut Command,
@@ -29,19 +29,7 @@ pub fn run_picker(
     finder_arguments: &[String],
     cache: &Path,
 ) -> Result<Option<Found<PickerRow>>, PickerRunError> {
-    let said_file = picker_said_file(cache);
-    let stderr_in_a_file_that_cannot_block =
-        create_private(&said_file).map_err(|failure| PickerRunError::CannotCache {
-            path: said_file.clone(),
-            reason: failure.to_string(),
-        })?;
-    let mut source = spawn(
-        command
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(stderr_in_a_file_that_cannot_block)
-            .process_group(0),
-    )?;
+    let (mut source, said_file) = start_rows(command, cache)?;
     let (mut finder_process, cache_file) = match start_finder(finder, finder_arguments, cache) {
         Ok(started) => started,
         Err(refusal) => {
@@ -64,9 +52,10 @@ pub fn run_picker(
                 sink: row_sink::FzfRowSink {
                     rows_in,
                     cache: cache_file,
+                    header_file,
+                    rows: Vec::new(),
                 },
                 error_file,
-                header_file,
                 said_file,
                 stopping,
             })
@@ -78,16 +67,6 @@ pub fn run_picker(
     let rows = feeder.join().expect("feeding rows does not panic")?;
     let picked = picked.map_err(|failure| PickerRunError::FinderFailed(failure.to_string()))?;
     Ok(chosen(&picked.stdout, cached_rows(cache).unwrap_or(rows)))
-}
-
-fn stop_the_group_again_until_feeding_ends_to_catch_late_forks<T>(
-    source_pid: u32,
-    feeder: &thread::JoinHandle<T>,
-) {
-    while !feeder.is_finished() {
-        signal(source_pid, kill_process_group);
-        thread::sleep(RESIGNAL_EVERY);
-    }
 }
 
 fn start_finder(
@@ -108,15 +87,6 @@ fn start_finder(
     Ok((finder_process, cache_file))
 }
 
-fn spawn(command: &mut Command) -> Result<Child, PickerRunError> {
-    command
-        .spawn()
-        .map_err(|failure| PickerRunError::CannotStart {
-            program: PathBuf::from(command.get_program()),
-            reason: failure.to_string(),
-        })
-}
-
 fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<Found<PickerRow>> {
     let picked = String::from_utf8_lossy(picked);
     let mut lines = picked.lines();
@@ -130,17 +100,6 @@ fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<Found<PickerRow>> {
         ending,
         rows,
     })
-}
-
-fn stop(source: &mut Child) {
-    signal(source.id(), kill_process_group);
-    let _ = source.wait();
-}
-
-fn signal(pid: u32, send: fn(Pid, Signal) -> rustix::io::Result<()>) {
-    if let Some(pid) = i32::try_from(pid).ok().and_then(Pid::from_raw) {
-        let _ = send(pid, Signal::TERM);
-    }
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 use std::fs;
 use std::io::{self, BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Child, ExitStatus};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -9,30 +9,28 @@ use pwe_domain::PickerRow;
 use pwe_protocol::{RowError, parse_header, parse_row};
 use rustix::process::kill_process_group;
 
-use super::row_sink::{FzfRowSink, RowSink};
+use super::row_sink::RowSink;
 use super::{PickerRunError, signal};
 use crate::private::write_private_atomically;
 
-pub(super) struct Feed {
-    pub(super) source: Child,
-    pub(super) sink: FzfRowSink,
-    pub(super) error_file: PathBuf,
-    pub(super) header_file: PathBuf,
-    pub(super) said_file: PathBuf,
-    pub(super) stopping: Arc<AtomicBool>,
+pub(crate) struct Feed<S> {
+    pub(crate) source: Child,
+    pub(crate) sink: S,
+    pub(crate) error_file: PathBuf,
+    pub(crate) said_file: PathBuf,
+    pub(crate) stopping: Arc<AtomicBool>,
 }
 
-pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
+pub(crate) fn feed<S: RowSink>(feed: Feed<S>) -> Result<Vec<PickerRow>, PickerRunError> {
     let Feed {
         mut source,
         mut sink,
         error_file,
-        header_file,
         said_file,
         stopping,
     } = feed;
     let rows_out = source.stdout.take().expect("the picker's stdout is piped");
-    let (rows, bad_row) = deliver(rows_out, &mut sink, &header_file);
+    let bad_row = deliver(rows_out, &mut sink);
     if bad_row.is_some() {
         signal(source.id(), kill_process_group);
     }
@@ -44,31 +42,27 @@ pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
     if let Some(refusal) = &refusal {
         let _ = write_private_atomically(&error_file, refusal.to_string().as_bytes());
     }
-    drop(sink);
+    let rows = sink.finish();
     refusal.map_or(Ok(rows), Err)
 }
 
-fn deliver(
-    rows_out: impl io::Read,
-    sink: &mut impl RowSink,
-    header_file: &Path,
-) -> (Vec<PickerRow>, Option<RowError>) {
-    let mut rows = Vec::new();
+fn deliver(rows_out: impl io::Read, sink: &mut impl RowSink) -> Option<RowError> {
+    let mut taken = 0;
     for (index, line) in BufReader::new(rows_out).lines().enumerate() {
         if let Some(header) = line.as_deref().ok().and_then(parse_header) {
-            let _ = write_private_atomically(header_file, header.as_bytes());
+            sink.header(&header);
             continue;
         }
         let (row, line) = match read_row(line, index + 1) {
             Ok(read) => read,
-            Err(bad_row) => return (rows, Some(bad_row)),
+            Err(bad_row) => return Some(bad_row),
         };
-        if sink.take(rows.len(), &row, &line).is_err() {
+        if sink.take(taken, row, &line).is_err() {
             break;
         }
-        rows.push(row);
+        taken += 1;
     }
-    (rows, None)
+    None
 }
 
 fn read_row(line: io::Result<String>, number: usize) -> Result<(PickerRow, String), RowError> {
