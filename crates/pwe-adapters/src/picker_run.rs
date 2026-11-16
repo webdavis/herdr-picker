@@ -17,6 +17,7 @@ use crate::private::create_private;
 
 mod error;
 pub(crate) mod feed;
+mod row_sink;
 
 pub use error::PickerRunError;
 
@@ -60,8 +61,10 @@ pub fn run_picker(
         thread::spawn(move || {
             feed::feed(feed::Feed {
                 source,
-                rows_in,
-                cache: cache_file,
+                sink: row_sink::FzfRowSink {
+                    rows_in,
+                    cache: cache_file,
+                },
                 error_file,
                 header_file,
                 said_file,
