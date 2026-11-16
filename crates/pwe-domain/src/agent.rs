@@ -1,4 +1,3 @@
-// herdr's word for what an agent is doing, drawn with herdr's own glyphs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AgentStatus {
     Blocked,
@@ -39,7 +38,6 @@ impl AgentStatus {
         }
     }
 
-    // An agent that has finished its turn takes the next queued prompt.
     pub fn settled(self) -> bool {
         matches!(self, Self::Done | Self::Idle)
     }
@@ -62,12 +60,9 @@ pub struct Agent {
     pub title: String,
     pub cwd: String,
     pub status: AgentStatus,
-    // When the status hook last saw its status change, in seconds since the epoch.
     pub since: Option<u64>,
 }
 
-// Needs you, then just finished, then the panes visited most recently; the current tab's agents
-// go last, so the first row is always somewhere else to go.
 pub fn ordered(agents: &[Agent], recent_panes: &[&str], current_tab: Option<&str>) -> Vec<Agent> {
     let mut ranked: Vec<&Agent> = agents.iter().collect();
     ranked.sort_by_key(|agent| {
@@ -81,8 +76,6 @@ pub fn ordered(agents: &[Agent], recent_panes: &[&str], current_tab: Option<&str
     ranked.into_iter().cloned().collect()
 }
 
-// The status hook saw `changed` change now; an agent whose status is as it was keeps its clock,
-// and one that changed unseen has none.
 pub fn carry_since(agents: Vec<Agent>, before: &[Agent], changed: &str, now: u64) -> Vec<Agent> {
     agents
         .into_iter()
@@ -101,7 +94,6 @@ pub fn carry_since(agents: Vec<Agent>, before: &[Agent], changed: &str, now: u64
         .collect()
 }
 
-// How long ago, in the largest whole unit: 45s, 3m, 2h, 4d.
 pub fn age(seconds: u64) -> String {
     match seconds {
         0..60 => format!("{seconds}s"),

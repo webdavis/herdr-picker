@@ -1,6 +1,5 @@
 use std::net::Ipv4Addr;
 
-// One of this Mac's IPv4 networks, as ifconfig lists it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Network {
     pub(super) interface: String,
@@ -28,7 +27,6 @@ impl Network {
     }
 }
 
-// Every address ifconfig gives this Mac, so it is told apart from its neighbours.
 pub(super) fn own_addresses(ifconfig: &str) -> Vec<String> {
     ifconfig
         .lines()
@@ -43,7 +41,6 @@ pub(super) fn own_addresses(ifconfig: &str) -> Vec<String> {
         .collect()
 }
 
-// The IPv4 networks worth scanning: none smaller than a /30 or bigger than a /16.
 pub(super) fn networks(ifconfig: &str) -> Vec<Network> {
     let mut interface = "";
     let mut found = Vec::new();
@@ -76,7 +73,6 @@ pub(super) fn networks(ifconfig: &str) -> Vec<Network> {
     found
 }
 
-// `netstat -rn -f inet`: the default route's gateway.
 pub(super) fn gateway(routes: &str) -> String {
     routes
         .lines()

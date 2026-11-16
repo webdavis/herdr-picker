@@ -27,7 +27,6 @@ pub(super) fn setting_row(
     } else {
         redact(&entry.value)
     };
-    // Anything shown redacted would be typed back redacted or land on a command line.
     let hidden = shown != entry.value || name != entry.name;
     let label = match note.is_empty() {
         true => format!("{name} = {}", dim(&shown)),

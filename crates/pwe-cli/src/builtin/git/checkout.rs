@@ -12,8 +12,6 @@ mod target;
 
 use target::target;
 
-// The step before checking out a branch, tag or commit. With local changes it says how many,
-// which of them Git would refuse to carry across, and offers to stash them first.
 pub(super) fn checkout(
     kind: &str,
     name: &str,
@@ -34,7 +32,6 @@ pub(super) fn checkout(
         .cloned()
         .collect();
     if !untracked.is_empty() {
-        // An untracked file only matters when the other side tracks a file of that name.
         let incoming =
             names(&["ls-tree", "-r", "-z", "--name-only", &destination]).unwrap_or_default();
         blocking.extend(

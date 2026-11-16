@@ -2,7 +2,6 @@ use std::path::Path;
 
 const TEST_PARTS: [&str; 6] = ["test", "tests", "spec", "specs", "__tests__", "fixtures"];
 const CONFIG_SUFFIXES: [&str; 8] = ["toml", "yaml", "yml", "json", "ini", "cfg", "plist", "lock"];
-// Where a file sits in a project: its tests, docs, configuration or the source itself.
 pub(super) fn area(name: &str) -> &'static str {
     let path = Path::new(name);
     let parts: Vec<String> = name.split('/').map(str::to_lowercase).collect();

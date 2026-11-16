@@ -5,7 +5,6 @@ use super::command;
 use super::inputs::validate;
 use crate::builtin::page::{notice, words};
 
-// The ways to read one capture.
 pub(super) fn analysis(path: &str) -> Vec<PickerRow> {
     let tshark = |extra: &[&str]| words(&[&["tshark", "-n", "-r", path][..], extra].concat());
     let filter = format!("{} -Y <display-filter>", tshark(&[]));
@@ -30,7 +29,6 @@ pub(super) fn analysis(path: &str) -> Vec<PickerRow> {
     ]
 }
 
-// The display filter is typed into the step's search line.
 pub(super) fn filtered(path: &str, typed: &str) -> PickerRow {
     match validate("display filter", typed) {
         Ok(filter) => command(

@@ -6,7 +6,6 @@ struct WireHeader {
     header: String,
 }
 
-// A line a picker prints to say what its step is about; the header shows it under the title.
 pub fn parse_header(line: &str) -> Option<String> {
     serde_json::from_str::<WireHeader>(line)
         .ok()

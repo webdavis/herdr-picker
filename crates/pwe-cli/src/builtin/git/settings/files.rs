@@ -23,7 +23,6 @@ pub(super) fn short(path: &str) -> String {
     }
 }
 
-// Each file asked of chezmoi once, all at the same time, since each answer takes a moment.
 pub(super) fn chezmoi_sources(entries: &[Entry], cwd: &Path) -> BTreeMap<String, Option<String>> {
     let files: BTreeSet<String> = entries
         .iter()

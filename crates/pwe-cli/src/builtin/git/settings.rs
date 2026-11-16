@@ -26,7 +26,6 @@ pub(super) struct Entry {
     value: String,
 }
 
-// Every setting, where it comes from, which value wins, and changes to it behind a confirmation.
 pub(super) fn settings(
     places: &Places,
     rows: &mut RowWriter<impl Write>,
@@ -52,8 +51,6 @@ pub(super) fn settings(
             }
         })
         .collect();
-    // Git reads the files in order and a later value wins, except for a setting listed twice in
-    // one file, which holds several values at once (remote fetch rules, include paths).
     let mut seen: BTreeMap<String, Vec<&str>> = BTreeMap::new();
     let mut winner: BTreeMap<String, &str> = BTreeMap::new();
     for entry in &entries {
@@ -67,7 +64,6 @@ pub(super) fn settings(
         .filter(|(_, origins)| origins.len() != origins.iter().collect::<BTreeSet<_>>().len())
         .map(|(name, _)| name)
         .collect();
-    // Git names the repository's own file relative to its top folder.
     let base = Repo::at(&places.cwd).map_or_else(|_| places.cwd.clone(), |repo| repo.root);
     let managed = chezmoi_sources(&entries, &base);
     let listed = entries.iter().enumerate().map(|(index, entry)| {

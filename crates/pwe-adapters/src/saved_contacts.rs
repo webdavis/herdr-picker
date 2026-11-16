@@ -4,8 +4,6 @@ use std::path::{Path, PathBuf};
 
 use crate::private::write_private;
 
-// Reading the whole address book takes seconds, so the apple picker keeps a copy, marked with
-// when the address book last changed, and reads it while that mark still holds.
 pub fn save_contacts(file: &Path, changed: &str, people: &str) -> io::Result<()> {
     write_private(file, format!("{changed}\n{people}").as_bytes())
 }

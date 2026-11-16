@@ -9,7 +9,6 @@ const DOCKER_FIELDS: [&str; 9] = [
     "ID", "Name", "Names", "Image", "State", "Status", "Ports", "Service", "Project",
 ];
 
-// `docker ps` or `docker compose ps` as JSON lines or an array; containers in `seen` are skipped.
 pub(super) fn docker_rows(listed: &str, seen: &mut Vec<String>) -> Result<Vec<PickerRow>, String> {
     let items: Vec<Value> = match listed.trim_start().starts_with('[') {
         true => serde_json::from_str(listed).map_err(|why| why.to_string())?,

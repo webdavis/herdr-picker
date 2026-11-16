@@ -11,7 +11,6 @@ use crate::builtin::rows::key;
 const SKIPPED: [&str; 4] = ["node_modules", "target", ".build", ".git"];
 const SUFFIXES: [&str; 3] = ["pcap", "pcapng", "cap"];
 
-// Alt-. shows hidden captures and Ctrl-T sorts newest first, kept in the state; Alt-F picks the folder.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(super) struct Shown {
     pub(super) hidden: bool,
@@ -34,7 +33,6 @@ impl Shown {
     }
 }
 
-// The saved packet captures under this folder; Enter chooses how to read one.
 pub(super) fn captures(root: &Path, shown: Shown) -> Vec<PickerRow> {
     let mut found = Vec::new();
     collect(root, shown.hidden, &mut found);

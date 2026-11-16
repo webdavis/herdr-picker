@@ -8,7 +8,6 @@ use super::scan::{ScanFiles, scan_command};
 use crate::builtin::page::{notice, words};
 use crate::builtin::paint::{blue, dim};
 
-// sudo -k always asks for the password, so typing it never happens blind.
 fn run_scan(range: &str, files: &ScanFiles) -> String {
     let folder = files.xml.parent().unwrap_or(Path::new("."));
     let xml = files.xml.to_string_lossy();
@@ -22,7 +21,6 @@ fn run_scan(range: &str, files: &ScanFiles) -> String {
     )
 }
 
-// Ctrl-X's step: this Mac's networks, or the range typed. Alt-X's prepares the command instead.
 pub(super) fn scan_rows(
     networks: &[Network],
     typed: &str,

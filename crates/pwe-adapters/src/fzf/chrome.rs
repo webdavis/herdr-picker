@@ -27,13 +27,10 @@ pub fn list_lines(rows: &[PickerRow], view: &View) -> Vec<String> {
         .collect()
 }
 
-// What fzf prints in place of a key when the user picks another source in the chooser.
 pub const SWITCH_SOURCE: &str = "source";
 
-// What fzf prints in place of a key when Ctrl-Q saved the quickfix list for Neovim to open.
 pub const SAVE_QUICKFIX: &str = "quickfix";
 
-// What fzf prints in place of a key when Alt-O sends the marked rows on.
 pub const SEND_ROWS: &str = "send";
 
 pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
@@ -44,7 +41,6 @@ pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
         .collect()
 }
 
-// A live step's rows follow the query, so fzf searches only while its chooser is open.
 pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool, live: bool) -> String {
     let reload = format!("reload({})", helper.call("rows", ""));
     let mut actions: Vec<String> = match response {
@@ -52,7 +48,6 @@ pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool, live
         ViewResponse::OpenChooser => vec![reload, "clear-query".into(), "hide-preview".into()],
         ViewResponse::CloseChooser => vec![reload, "clear-query".into(), "show-preview".into()],
         ViewResponse::Accept => vec!["accept".into()],
-        // Esc closes fzf the way a row key does, so the run can go back a step instead of closing.
         ViewResponse::Back => vec![leave("esc")],
         ViewResponse::Switch(_) => vec![leave(SWITCH_SOURCE)],
         ViewResponse::Stay => Vec::new(),
@@ -68,7 +63,6 @@ pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool, live
     actions.join("+")
 }
 
-// fzf closes and prints the key's name after the query, ahead of the marked rows.
 pub fn leave(key: &str) -> String {
     format!("print({key})+accept")
 }
@@ -119,7 +113,6 @@ pub fn error_footer(error: &str, width: usize, theme: Theme) -> String {
         .join("\n")
 }
 
-// The pieces in order, as many to a line as fit the width.
 fn packed<'a>(pieces: impl Iterator<Item = &'a str>, separator: &str, width: usize) -> Vec<String> {
     let mut lines: Vec<String> = Vec::new();
     for piece in pieces {

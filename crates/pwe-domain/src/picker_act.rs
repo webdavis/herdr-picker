@@ -22,7 +22,6 @@ impl fmt::Display for ActRefusal {
     }
 }
 
-// What a key does to the marked rows, or to the highlighted one when none is marked.
 pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
     if let Some(pane) = NewPane::of(key)
         && rows.iter().all(|row| row.action(key).is_none())
@@ -84,7 +83,6 @@ pub fn act(rows: &[&PickerRow], key: &Key) -> Result<Action, ActRefusal> {
     }
 }
 
-// One step for every marked row, so it can act on all of them: their args in the order marked.
 fn merged_next(first: &PickerCall, actions: &[&Action]) -> Option<Action> {
     let mut args = Vec::new();
     for action in actions {

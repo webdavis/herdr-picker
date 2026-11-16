@@ -18,8 +18,6 @@ use area::area;
 use search::{Hit, names, search};
 use state::Switches;
 
-// Lines matching what is typed, in the repository's tracked or untracked files, or in every
-// file here outside one.
 pub(super) fn contents(
     asked: &Asked,
     places: &Places,
@@ -122,7 +120,6 @@ fn hit_row(
     row
 }
 
-// With nothing to list, one row says why and keeps the switches in reach.
 fn notice(text: &str, switches: &Switches, in_git: bool) -> PickerRow {
     PickerRow {
         label: dim(text),

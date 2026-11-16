@@ -65,7 +65,6 @@ pub(super) fn sessions(places: &Places) -> Vec<PickerRow> {
         .collect()
 }
 
-// Claude and Codex sessions started in the repository, newest first, each with its first prompt.
 pub(super) fn past_sessions(root: &Path, home: &Path) -> Vec<Session> {
     let project = claude_project(home, root);
     let prefix = project

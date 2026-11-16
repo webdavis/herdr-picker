@@ -1,5 +1,3 @@
-// What fzf does with a key nothing binds; binding every key a row may claim would otherwise take
-// these from typing and moving on rows that do not claim them.
 const UNBOUND: [(&str, &str); 15] = [
     ("ctrl-a", "beginning-of-line"),
     ("ctrl-b", "backward-char"),

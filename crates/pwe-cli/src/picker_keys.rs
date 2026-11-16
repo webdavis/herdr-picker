@@ -14,7 +14,6 @@ use pwe_protocol::SOCKET_PATH_VARIABLE;
 use crate::command::{CommandError, failed};
 use crate::picker_chrome::{QuotedHelper, rows_of};
 
-// fzf runs this for every key the picker binds; its output is the fzf actions that answer it.
 pub(crate) fn view_key(cache: &Path, event: &[&str], theme: Theme) -> Result<String, CommandError> {
     let answer = answer(cache, event, theme)?;
     let unclaimed = match event {
@@ -69,7 +68,6 @@ fn answer(cache: &Path, event: &[&str], theme: Theme) -> Result<String, CommandE
     ))
 }
 
-// fzf hands the marked rows' indexes as separate words, or the highlighted row's when none is.
 pub(crate) fn indices(fields: &[&str]) -> Vec<usize> {
     fields
         .iter()
@@ -78,8 +76,6 @@ pub(crate) fn indices(fields: &[&str]) -> Vec<usize> {
         .collect()
 }
 
-// A key that leaves closes fzf, and the run acts once it has the query and marked rows; copy and
-// stay is the one action done here, since fzf stays open for it.
 fn act_on(rows: &[PickerRow], marked: &[usize], key: &Key, theme: Theme) -> String {
     let marked: Vec<&PickerRow> = marked.iter().filter_map(|index| rows.get(*index)).collect();
     let refused = |reason: &str| change_footer(&error_footer(reason, usize::MAX, theme));

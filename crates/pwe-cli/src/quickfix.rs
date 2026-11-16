@@ -10,7 +10,6 @@ use crate::command::{CommandError, state_dir};
 use crate::picker_chrome::rows_of;
 use crate::picker_keys::indices;
 
-// Where Ctrl-Q saves the list, and the Neovim to load it into when the picker runs inside one.
 pub(crate) struct Quickfix {
     pub(crate) file: PathBuf,
     pub(crate) nvim: Option<String>,
@@ -29,8 +28,6 @@ pub(crate) fn quickfix_path() -> PathBuf {
     quickfix_file(&state_dir())
 }
 
-// Ctrl-Q in any picker: inside Neovim the list loads there and the picker stays; otherwise the
-// picker closes to open Neovim on it.
 pub(crate) fn save_marked(
     cache: &Path,
     fields: &[&str],

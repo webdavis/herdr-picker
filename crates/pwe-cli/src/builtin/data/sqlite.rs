@@ -35,7 +35,6 @@ struct Column {
     pk: u8,
 }
 
-// A database's tables, views and indexes, each a query to prepare or run, read-only throughout.
 pub(super) fn tables(path: &Path) -> Vec<PickerRow> {
     let database = path.to_string_lossy();
     let (items, columns) = match (

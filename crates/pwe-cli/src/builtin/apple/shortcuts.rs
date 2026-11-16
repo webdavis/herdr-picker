@@ -2,7 +2,6 @@ use pwe_domain::{Action, PickerRow, Preview};
 
 use crate::builtin::rows::key;
 
-// `shortcuts list --show-identifiers` prints `<name> (<identifier>)` a line each.
 pub(super) fn shortcut_rows(listed: &str) -> Vec<PickerRow> {
     listed
         .lines()

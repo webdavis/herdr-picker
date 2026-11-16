@@ -29,7 +29,6 @@ pub(super) fn colors(theme: Theme) -> String {
     .join(",")
 }
 
-// The palette holds 24-bit SGR escapes ending in `r;g;bm`; fzf wants the same color as `#rrggbb`.
 fn hex(sgr: &str) -> String {
     let mut channels: Vec<&str> = sgr.trim_end_matches('m').rsplit(';').take(3).collect();
     channels.reverse();

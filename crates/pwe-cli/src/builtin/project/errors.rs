@@ -12,7 +12,6 @@ use crate::command::CommandError;
 
 const CHECK_WORDS: [&str; 3] = ["lint", "check", "build"];
 
-// The saved checks' messages first, then the checks that can run again to save new ones.
 pub(super) fn errors(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
     let mut rows = Vec::new();
     for saved in read_captures(&saved_dir(places), "diagnostics") {

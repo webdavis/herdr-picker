@@ -43,7 +43,6 @@ impl SocketPanes {
     }
 }
 
-// A prompt goes to its agent when the agent can take it, and waits in the queue otherwise.
 pub fn send_prompt(
     panes: &mut SocketPanes,
     queue: &Path,
@@ -70,8 +69,6 @@ pub fn send_prompt(
     }
 }
 
-// The status hook: an agent that finished its turn takes its oldest queued prompt, once its input
-// line is empty; anything else leaves the queue as it was.
 pub fn drain_queue(
     panes: &mut SocketPanes,
     queue: &Path,
@@ -95,7 +92,6 @@ pub fn drain_queue(
     Ok(true)
 }
 
-// A picker's herdr call; a prompt the agent cannot take yet waits, and herdr says so.
 pub(super) fn carry_out(
     panes: &mut SocketPanes,
     queue: &Path,

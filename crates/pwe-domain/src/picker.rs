@@ -19,21 +19,15 @@ pub struct PickerDeclaration {
     pub description: String,
     pub command: PickerCommand,
     pub args: Vec<String>,
-    // The header's title in place of the name's.
     pub title: Option<String>,
-    // The first is the one the picker opens on; a built-in picker reads its own.
     pub sources: Vec<String>,
-    // The scripts its rows' next opens, by name.
     pub steps: BTreeMap<String, PickerStep>,
-    // A scripted picker's rows follow the query; a built-in picker decides that itself.
     pub live: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PickerCommand {
-    // The program, then its own arguments.
     Program(Vec<String>),
-    // One of pwe's own pickers, by name.
     Builtin(String),
 }
 

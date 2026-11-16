@@ -8,7 +8,6 @@ use crate::builtin::page::notice;
 use crate::builtin::paint::dim;
 
 const CATALOG: &str = include_str!("actions.toml");
-// Catalog entries that open another of this picker's sources; any other next is a step.
 const SOURCES: [(&str, &str); 3] = [
     ("devices", "devices"),
     ("captures", "captures"),
@@ -36,7 +35,6 @@ fn catalog() -> Vec<Entry> {
     toml::from_str::<Catalog>(CATALOG).map_or_else(|_| Vec::new(), |catalog| catalog.action)
 }
 
-// The network commands menu: Enter prepares a command, after asking for its blanks if it has any.
 pub(super) fn command_rows() -> Vec<PickerRow> {
     catalog()
         .into_iter()
@@ -94,7 +92,6 @@ pub(super) fn command_rows() -> Vec<PickerRow> {
         .collect()
 }
 
-// The step where a command's blanks are typed, in order and separated by spaces.
 pub(super) fn command_step(id: &str, typed: &str) -> Option<(String, PickerRow)> {
     let entry = catalog().into_iter().find(|entry| entry.id == id)?;
     let text = entry.command.as_deref()?;

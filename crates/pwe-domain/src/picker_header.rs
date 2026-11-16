@@ -1,6 +1,5 @@
 use crate::picker_view::{EVERY_GROUP, View};
 
-// Without sources, a picker's groups are what the chooser offers, so they read as its source.
 pub fn header(titles: &[String], view: &View, source: Option<&str>, groups: &[String]) -> String {
     let title = titles.join(" › ");
     let group = match view {

@@ -35,7 +35,6 @@ pub(super) struct PickerEntry {
     pub(super) bluebubbles: Option<BlueBubblesSettings>,
 }
 
-// A script only a row's next opens: it runs on no key, so it has no key, title or description.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct StepEntry {
@@ -50,8 +49,6 @@ fn on() -> bool {
     true
 }
 
-// The configured pickers, then each built-in one the config leaves alone, unless a configured
-// picker already runs on its key.
 pub(super) fn declared_pickers(
     entries: BTreeMap<String, PickerEntry>,
     pickers_directory: &Path,
@@ -86,7 +83,6 @@ pub(super) fn declared_pickers(
 }
 
 impl PickerEntry {
-    // A table named for a built-in picker that names no command changes that built-in picker.
     fn declared(
         self,
         name: String,

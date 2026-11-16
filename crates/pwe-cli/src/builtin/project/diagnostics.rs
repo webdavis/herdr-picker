@@ -5,8 +5,6 @@ use serde_json::Value;
 
 use crate::builtin::paint::{green, red, teal, yellow};
 
-// What a check printed, a row a line: Cargo's JSON messages and `path:line[:column]: message`
-// lines open where they point, and any other line is copied.
 pub(super) fn diagnostic_rows(output: &str, cwd: &Path) -> Vec<PickerRow> {
     output
         .lines()
@@ -74,8 +72,6 @@ fn edit(cwd: &Path, path: &str, line: u32) -> Action {
     }])
 }
 
-// The path, line and message of a `path:line:` or `path:line:column:` line; the path ends at the
-// first colon that a line number follows.
 fn location(line: &str) -> Option<(&str, u32, &str)> {
     line.match_indices(':').find_map(|(colon, _)| {
         let path = &line[..colon];

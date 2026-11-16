@@ -1,6 +1,5 @@
 use std::path::Path;
 
-// How a data file is written; each but SQLite is read into one JSON value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Format {
     Json,
@@ -33,7 +32,6 @@ impl Format {
         }
     }
 
-    // The program that prints the file as JSON, for a format read by neither serde_json nor toon-format.
     pub(super) fn reader(self, path: &Path) -> Option<Vec<String>> {
         let path = path.to_string_lossy().into_owned();
         let argv: &[&str] = match self {
@@ -49,7 +47,6 @@ impl Format {
     }
 }
 
-// A format a value is copied in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Output {
     Json,

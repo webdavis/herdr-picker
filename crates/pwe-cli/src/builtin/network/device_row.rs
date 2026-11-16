@@ -11,7 +11,6 @@ use crate::builtin::page::{own_program, words};
 use crate::builtin::paint::{dim, mauve};
 use crate::builtin::rows::key;
 
-// Enter pastes the device's address; the preview pings it and looks up its name when shown.
 pub(super) fn device_row(
     device: &Device,
     gateway: &str,
@@ -95,8 +94,6 @@ pub(super) fn device_row(
     }
 }
 
-// macOS routes a broadcast only to one network's broadcast address, so the packet goes to the
-// network the device is on, or to every one of this Mac's networks when that is unknown.
 fn wake_targets(ip: &str, networks: &[Network]) -> Vec<String> {
     let broadcasts = |holding: &dyn Fn(&Network) -> bool| -> Vec<String> {
         networks

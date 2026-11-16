@@ -16,8 +16,6 @@ use crate::builtin::rows::{RowWriter, in_home, key};
 use crate::builtin::{Places, written};
 use crate::command::CommandError;
 
-// Every repository with something to prune: this one, and the ones whose worktrees sit in
-// worktrunk's worktree folder; each is asked at the same time.
 pub(in super::super) fn repos(
     repo: &Repo,
     places: &Places,
@@ -93,7 +91,6 @@ fn configured_base(home: Option<&Path>) -> Option<PathBuf> {
     worktree_base(shown["user"]["config"]["worktree-path"].as_str()?, home)
 }
 
-// The fixed folder a worktree path template starts with; None for one beside each repository.
 pub(super) fn worktree_base(template: &str, home: Option<&Path>) -> Option<PathBuf> {
     let fixed = template.split("{{").next()?.trim_end_matches('/');
     match fixed.strip_prefix("~/") {
@@ -102,7 +99,6 @@ pub(super) fn worktree_base(template: &str, home: Option<&Path>) -> Option<PathB
     }
 }
 
-// Worktrees a few folders down: each has a .git file pointing at its repository.
 fn worktrees_in(base: &Path) -> Vec<PathBuf> {
     let mut found = Vec::new();
     let mut level = vec![base.to_path_buf()];

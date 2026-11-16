@@ -7,7 +7,6 @@ use pwe_domain::Place;
 use crate::agent_hook::{now, refresh};
 use crate::builtin::HerdrPlaces;
 
-// The status hook keeps the saved list current; past this, a closed agent may linger in it.
 const FRESH_FOR: Duration = Duration::from_secs(30);
 const ASK_CAP: Duration = Duration::from_secs(2);
 
@@ -19,8 +18,6 @@ pub(super) struct HerdrView {
     pub(super) now: u64,
 }
 
-// What herdr runs: the hook's saved list while it is fresh, herdr's answer otherwise; none
-// outside herdr.
 pub(super) fn herdr_view(
     places: &HerdrPlaces,
     fresh: bool,

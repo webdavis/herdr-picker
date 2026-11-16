@@ -3,8 +3,6 @@ use serde_json::{Map, Value};
 
 use crate::builtin::rows::key;
 
-// The switches a content search keeps between keystrokes, each written only when it is not
-// the default, so a step's state reads as what was changed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Switches {
     pub(super) regex: bool,
@@ -53,7 +51,6 @@ impl Switches {
         flipped.state()
     }
 
-    // Alt-X, Alt-., Alt-S and, in a repository, Alt-U: each shows the search again switched.
     pub(super) fn keys(&self, in_git: bool) -> Vec<(Key, Action)> {
         let mut flips = vec![
             (

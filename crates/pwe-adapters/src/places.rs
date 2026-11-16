@@ -3,8 +3,6 @@ use std::path::Path;
 
 use pwe_domain::{Place, remember};
 
-// One line per place, oldest first: seconds, workspace, tab, pane and folder, split by tabs.
-// shortcut: two focus hooks writing at once can lose one place; lock the file if `recent` misses them.
 pub fn record_place(path: &Path, place: Place, bound: usize) {
     if place.cwd.contains(['\t', '\n']) {
         return;

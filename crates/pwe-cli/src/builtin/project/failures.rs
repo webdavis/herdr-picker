@@ -8,7 +8,6 @@ use super::diagnostics::diagnostic_rows;
 use super::{notice, words};
 use crate::builtin::Places;
 
-// The saved test and check runs that failed, each followed by its messages, for handing to an agent.
 pub(in crate::builtin) fn failures(places: &Places) -> Vec<PickerRow> {
     let mut rows = Vec::new();
     for category in ["tests", "diagnostics"] {

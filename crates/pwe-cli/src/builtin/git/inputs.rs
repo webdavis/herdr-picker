@@ -10,8 +10,6 @@ use crate::builtin::rows::RowWriter;
 use crate::builtin::{Places, written};
 use crate::command::CommandError;
 
-// The steps where what is typed is the answer: a stash message, a branch's new name, a
-// setting's new value. Each shows one row for it, which asks before anything changes.
 pub(super) fn stash_files(
     names: &[&str],
     message: &str,

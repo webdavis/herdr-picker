@@ -3,7 +3,6 @@ use serde_json::{Map, Value};
 use super::naming::{display_name, is_loopback, primary_ip};
 use super::sightings::{Sighting, Source};
 
-// Everything the sources saw of one device.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub(super) struct Device {
     pub(super) ips: Vec<String>,
@@ -15,9 +14,7 @@ pub(super) struct Device {
     pub(super) host: String,
     pub(super) neighbour: String,
     pub(super) vendor: String,
-    // The UniFi gear it connects through: its name and address.
     pub(super) through: Option<(String, String)>,
-    // This Mac's computer name, when the device is the Mac in use.
     pub(super) this_mac: Option<String>,
 }
 
@@ -63,7 +60,6 @@ impl Devices {
         absorb(device, other, true);
     }
 
-    // Every address of this Mac is one device, whichever source reported it.
     pub(super) fn mark_this_mac(&mut self, own: &[String], computer_name: &str) {
         let is_mine = |device: &Device| {
             device
@@ -85,7 +81,6 @@ impl Devices {
         }
     }
 
-    // Each client learns the UniFi gear it is connected through.
     pub(super) fn link_uplinks(&mut self) {
         let gear: Vec<(String, (String, String))> = self
             .0
@@ -110,8 +105,6 @@ impl Devices {
     }
 }
 
-// Adds what `other` knows to `device`. A fresh sighting's host, neighbour state and vendor
-// replace older ones; merging this Mac's addresses keeps the device's own.
 fn absorb(device: &mut Device, other: Device, newer_wins: bool) {
     unique(&mut device.ips, other.ips);
     unique(&mut device.offers, other.offers);

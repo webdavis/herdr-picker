@@ -11,7 +11,6 @@ pub enum Entry {
     Folders,
 }
 
-// Which entries under an absolute root to find; a depth of 1 is the root's own entries.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Walk {
     pub root: PathBuf,
@@ -20,7 +19,6 @@ pub struct Walk {
     pub depth: Option<usize>,
 }
 
-// Stops at the first path the receiver refuses, so a list that closed stops the search.
 pub fn walk(
     walk: &Walk,
     fd: Option<&Path>,
@@ -42,7 +40,6 @@ fn with_fd(
         Entry::Files => "f",
         Entry::Folders => "d",
     };
-    // An absolute root makes fd print absolute paths, under the root as it was given.
     command.args(["--color=never", "--type", kind]);
     if walk.hidden {
         command.args(["--hidden", "--exclude", ".git"]);
@@ -60,7 +57,6 @@ fn with_fd(
     let paths = BufReader::new(child.stdout.take().expect("fd's stdout is piped"));
     let handed = paths.split(b'\n').try_for_each(|line| {
         let line = line?;
-        // fd ends a folder with a slash.
         let path = line.strip_suffix(b"/").filter(|path| !path.is_empty());
         found(Path::new(OsStr::from_bytes(path.unwrap_or(&line))))
     });

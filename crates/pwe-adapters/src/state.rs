@@ -1,7 +1,5 @@
 use std::path::{Path, PathBuf};
 
-// The folder herdr gives the plugin, worked out the way herdr does when it is not named, so a
-// shell key outside herdr reads what herdr's hooks wrote.
 pub fn plugin_state_dir(
     state_dir: Option<&str>,
     xdg_state_home: Option<&str>,

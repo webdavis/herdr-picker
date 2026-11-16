@@ -4,8 +4,6 @@ use std::path::Path;
 
 use serde_json::Value;
 
-// Reads a transcript only as far as its first prompt; `pick` sees each record and the context
-// gathered so far.
 pub(super) fn first_prompt(
     file: &Path,
     pick: fn(&Value, &mut String) -> Option<String>,
@@ -30,7 +28,6 @@ pub(super) fn claude_prompt(record: &Value, cwd: &mut String) -> Option<String> 
     typed(record["message"]["content"].as_str()?)
 }
 
-// Codex opens with the session's folder and id, then the files it was handed, then the prompt.
 pub(super) fn codex_prompt(record: &Value, meta: &mut String) -> Option<String> {
     let payload = &record["payload"];
     if record["type"] == "session_meta" {
@@ -47,7 +44,6 @@ pub(super) fn codex_prompt(record: &Value, meta: &mut String) -> Option<String> 
     texts.filter_map(typed).next()
 }
 
-// What the person typed, not what the tool wrapped around it.
 fn typed(text: &str) -> Option<String> {
     let text = text.trim();
     let wrapped = text.starts_with('<') || text.starts_with("# AGENTS.md instructions");

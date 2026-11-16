@@ -10,7 +10,6 @@ pub enum Theme {
     CatppuccinMocha,
 }
 
-// The text without its colors: an escape runs to its closing letter.
 pub fn unstyled(text: &str) -> String {
     let mut plain = String::new();
     let mut characters = text.chars();

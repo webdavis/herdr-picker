@@ -59,7 +59,6 @@ pub(crate) fn answer(
     }
 }
 
-// The step's own header line, when its picker printed one, sits under the title.
 fn picker_header(cache: &Path) -> Result<String, CommandError> {
     let state = read_view(cache);
     let title = header(
@@ -74,8 +73,6 @@ fn picker_header(cache: &Path) -> Result<String, CommandError> {
     })
 }
 
-// The chooser lists sources and groups, not rows, so typing there runs nothing; a failed run
-// keeps the rows it had and its error reaches the footer.
 fn live_rows(cache: &Path, query: &str) -> Result<String, CommandError> {
     if !matches!(read_view(cache).view, View::Chooser { .. }) {
         let _ = rerun_step(cache, query);
@@ -93,7 +90,6 @@ fn view_rows(cache: &Path) -> Result<String, CommandError> {
     Ok(lines.into_iter().map(|line| line + "\n").collect())
 }
 
-// fzf hands over its whole width; with the preview showing, the footer gets about half.
 fn picker_footer(
     cache: &Path,
     index: Option<&str>,
@@ -117,7 +113,6 @@ fn picker_help(cache: &Path, index: Option<&str>, theme: Theme) -> Result<String
     Ok(help_page(&picker_header(cache)?, &entries, theme))
 }
 
-// The highlighted row, which the chooser's entries are not.
 fn row_at(cache: &Path, index: Option<&str>) -> Result<Option<PickerRow>, CommandError> {
     if matches!(read_view(cache).view, View::Chooser { .. }) {
         return Ok(None);

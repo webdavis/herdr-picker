@@ -11,7 +11,6 @@ use crate::builtin::Places;
 use crate::builtin::paint::dim;
 use crate::builtin::rows::{folder_row, shown};
 
-// The nearest package.json's scripts with "test" in their name, each run by npm in its folder.
 pub(super) fn npm_scripts(cwd: &Path) -> Vec<PickerRow> {
     let Some(package) = nearest(cwd, &["package.json"]) else {
         return Vec::new();
@@ -37,7 +36,6 @@ pub(super) fn npm_scripts(cwd: &Path) -> Vec<PickerRow> {
         .collect()
 }
 
-// Each project in a folder below the picker's, outermost only, which Enter moves to.
 pub(super) fn nested_projects(files: &[PathBuf], places: &Places) -> Vec<PickerRow> {
     let mut projects: BTreeMap<&Path, Vec<&str>> = BTreeMap::new();
     for file in files {

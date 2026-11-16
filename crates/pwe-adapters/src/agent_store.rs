@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::private::{create_private, write_private};
 
-// What herdr runs, saved by the status hook so the agents picker opens without asking herdr.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct AgentSnapshot {
     pub agents: Vec<Agent>,
@@ -61,7 +60,6 @@ pub fn write_snapshot(path: &Path, snapshot: &AgentSnapshot) -> io::Result<()> {
     write_private(path, &serde_json::to_vec(&saved)?)
 }
 
-// The saved snapshot while it is younger than `fresh_for`; a missing, old or unreadable one is none.
 pub fn read_snapshot(path: &Path, fresh_for: Duration, now: SystemTime) -> Option<AgentSnapshot> {
     let written = fs::metadata(path).and_then(|meta| meta.modified()).ok()?;
     if now.duration_since(written).unwrap_or_default() > fresh_for {
@@ -86,8 +84,6 @@ pub fn read_snapshot(path: &Path, fresh_for: Duration, now: SystemTime) -> Optio
     })
 }
 
-// Held from reading the queue to sending from it, so two hooks never take the same prompt or write
-// back a list the other has changed; it lets go when dropped.
 pub fn lock_queue(path: &Path) -> io::Result<File> {
     let lock = create_private(&path.with_extension("lock"))?;
     lock.lock()?;

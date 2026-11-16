@@ -1,6 +1,5 @@
 use std::process::{Command, Stdio};
 
-// What the program prints; one that fails shows what it said on stderr too.
 pub fn command_preview(argv: &[String]) -> String {
     let Some((program, arguments)) = argv.split_first() else {
         return String::new();

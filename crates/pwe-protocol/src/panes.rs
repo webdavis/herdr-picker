@@ -57,7 +57,6 @@ pub fn enter_request(request_id: &str, pane_id: &str) -> String {
     request_line(request_id, "pane.send_keys", params)
 }
 
-// herdr splits only right or down; a pane left or above is split there, then swapped.
 pub fn open_request(request_id: &str, beside: &PaneInfo, pane: NewPane, folder: &str) -> String {
     let direction = match pane {
         NewPane::Left | NewPane::Right => "right",

@@ -6,8 +6,6 @@ use crate::builtin::page::{notice, words};
 
 const TIMINGS: &str = "DNS: %{time_namelookup}s\nConnect: %{time_connect}s\nTLS: %{time_appconnect}s\nFirst byte: %{time_starttransfer}s\nTotal: %{time_total}s\nStatus: %{http_code}\nRemote: %{remote_ip}\n";
 
-// The web checks source: the URL is typed into the search line, and no request runs until a
-// prepared command does.
 pub(super) fn web_rows(typed: &str, openssl: &str) -> Vec<PickerRow> {
     let typed = typed.trim();
     if typed.is_empty() {

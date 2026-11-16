@@ -21,7 +21,6 @@ const WORKSPACE_PICKER: Proportion = Proportion {
         rows: 30,
     },
 };
-// fzf splits a preview picker in half, so it gets most of the window rather than a list-sized box.
 const PREVIEW_PICKER: Proportion = Proportion {
     share_percent: 80,
     smallest: Size {

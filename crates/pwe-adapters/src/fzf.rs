@@ -19,7 +19,6 @@ pub enum Placement {
     Popup,
 }
 
-// How fzf calls back into pwe about one run: both parts already shell-quoted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Helper<'a> {
     pub program: &'a str,
@@ -38,7 +37,6 @@ pub struct Chrome<'a> {
     pub header: &'a str,
     pub description: &'a str,
     pub query: &'a str,
-    // The command matches what is typed, so fzf only shows its rows and asks again on each change.
     pub live: bool,
 }
 
@@ -48,7 +46,6 @@ const LAYOUT: [&str; 16] = [
     "--with-nth=2..",
     "--layout=reverse",
     "--info=inline-right",
-    // Only the match count: the defaults' --multi and toggle-sort would add "(0)" and "+S".
     "--info-command=echo $FZF_MATCH_COUNT",
     "--prompt= /",
     "--pointer= ",
@@ -78,7 +75,6 @@ pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec
     arguments.push(format!("--query={}", chrome.query));
     if chrome.live {
         arguments.push("--disabled".to_string());
-        // reload-sync holds Enter until the rows for the current query are in.
         arguments.push(format!(
             "--bind=change:reload-sync({})",
             helper.call("live", " {q}")
@@ -100,7 +96,6 @@ pub fn fzf_arguments(theme: Theme, chrome: &Chrome, placement: Placement) -> Vec
         "--bind=f1:preview({})",
         helper.call("help", " {1}")
     ));
-    // Quoted for the shell fzf runs the helper in: Alt-; would end the command.
     let row_keys = bindable_keys().map(|key| {
         let event = format!("key {} {{+1}}", shell_word(key.name()));
         (key.name().to_string(), event)

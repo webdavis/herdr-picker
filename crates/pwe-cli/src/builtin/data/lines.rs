@@ -12,7 +12,6 @@ const DEADLINE: Duration = Duration::from_secs(20);
 
 pub(super) enum Lines {
     ByPath(HashMap<String, u32>),
-    // A JSON Lines file: the value of record n is on line n + 1.
     ByRecord,
     Unknown,
 }
@@ -33,13 +32,11 @@ impl Lines {
     }
 }
 
-// The line each value starts on, so an editor can open the file there.
 pub(super) fn lines(origin: &Origin) -> Lines {
     match (origin, origin.format()) {
         (_, Some(Format::Lines)) => Lines::ByRecord,
         (Origin::File(path), Some(Format::Json | Format::Yaml)) => {
             let path = path.to_string_lossy();
-            // JSON is YAML too, and yq knows where each YAML value starts.
             let argv = [
                 "yq",
                 "-p",

@@ -5,7 +5,6 @@ use super::devices::Device;
 use crate::builtin::clock::{parse_iso, stamp};
 use crate::builtin::page::fields;
 
-// UniFi fields the page already shows, or that name another record by its id.
 const UNIFI_SHOWN: [&str; 18] = [
     "name",
     "ipAddress",
@@ -27,7 +26,6 @@ const UNIFI_SHOWN: [&str; 18] = [
     "interfaces",
 ];
 
-// UniFi's bookkeeping, each field named for what it is.
 pub(super) fn unifi_fields(device: &Device) -> String {
     let unifi = |field: &str| device.unifi.get(field);
     let guest = match unifi("access") {
@@ -69,7 +67,6 @@ pub(super) fn text(value: &Value) -> String {
     }
 }
 
-// UniFi's DEFAULT type is a placeholder for all other clients, so it says nothing worth a line.
 const CONNECTIONS: [(&str, &str); 4] = [
     ("WIRED", "Wired"),
     ("WIRELESS", "Wi-Fi"),

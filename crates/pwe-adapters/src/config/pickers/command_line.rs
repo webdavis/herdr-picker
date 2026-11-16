@@ -14,7 +14,6 @@ pub(super) enum CommandLine {
     Words(Vec<String>),
 }
 
-// A relative program is one of the scripts in the pickers directory; `name` names the refusal.
 pub(super) fn program_words(
     line: CommandLine,
     pickers_directory: &Path,

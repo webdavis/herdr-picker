@@ -19,7 +19,6 @@ pub(super) const MANIFESTS: [&str; 6] = [
     "pyproject.toml",
 ];
 
-// Where a project's saved checks live: one folder for the project the picker runs in.
 pub(super) fn saved_dir(places: &Places) -> PathBuf {
     let scope = nearest(&places.cwd, &MANIFESTS)
         .and_then(|manifest| manifest.parent().map(Path::to_path_buf))
@@ -29,7 +28,6 @@ pub(super) fn saved_dir(places: &Places) -> PathBuf {
         .join(scope.to_string_lossy().replace('/', "%"))
 }
 
-// A check or test listing that runs only when asked, its output saved for the picker to list.
 pub(super) fn capture_row(
     label: &str,
     command: &str,
@@ -53,7 +51,6 @@ pub(super) fn capture_row(
     command_row(label, format!("{program} {saving} {command}"), detail)
 }
 
-// pwe capture <output> <cwd> <category> <framework> -- <command>...
 pub(crate) fn save_check(arguments: &[&str]) -> Result<(), CommandError> {
     let [output, cwd, category, framework, "--", argv @ ..] = arguments else {
         return Err(CommandError::Usage);

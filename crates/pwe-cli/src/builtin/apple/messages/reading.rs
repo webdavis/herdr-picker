@@ -16,7 +16,6 @@ use crate::builtin::rows::RowWriter;
 use crate::builtin::{Places, written};
 use crate::command::{CommandError, picker_config_path};
 
-// The messages source: what to search, or why BlueBubbles cannot be asked.
 pub(in crate::builtin::apple) fn messages() -> Vec<PickerRow> {
     match connected() {
         Ok(_) => menu_rows(),
@@ -24,7 +23,6 @@ pub(in crate::builtin::apple) fn messages() -> Vec<PickerRow> {
     }
 }
 
-// The steps the messages menu opens; history, links and attachments go out a page at a time.
 pub(in crate::builtin::apple) fn messages_step(
     name: &str,
     arguments: &[&str],
@@ -76,7 +74,6 @@ pub(in crate::builtin::apple) fn messages_step(
     written(shown.and_then(|()| failure.map_or(Ok(()), |why| rows.row(&unavailable(&why)))))
 }
 
-// Why BlueBubbles cannot be asked.
 enum Unconnected {
     NotConfigured,
     Unavailable(String),

@@ -7,7 +7,6 @@ use crate::builtin::page::fields;
 use crate::builtin::paint::{dim, teal, yellow};
 use crate::builtin::rows::key;
 
-// `ps -axo pid=,ppid=,user=,comm=` beside `lsof -nP -i -FpcnT`: a row a process.
 pub(super) fn process_rows(ps: &str, lsof: &str) -> Vec<PickerRow> {
     let held = connections(lsof);
     ps.lines()
@@ -17,7 +16,6 @@ pub(super) fn process_rows(ps: &str, lsof: &str) -> Vec<PickerRow> {
             pid.bytes()
                 .all(|byte| byte.is_ascii_digit())
                 .then_some(())?;
-            // The program's path may hold spaces, so it is the rest of the line.
             let mut program = line.trim_start();
             for _ in 0..3 {
                 program = program.split_once(char::is_whitespace)?.1.trim_start();
@@ -70,8 +68,6 @@ fn process_row(
     }
 }
 
-// lsof's field output: a `p` line starts each process, an `n` line names a socket, and a
-// `TST=` line after it gives that socket's TCP state.
 fn connections(lsof: &str) -> HashMap<&str, Vec<String>> {
     let mut held: HashMap<&str, Vec<String>> = HashMap::new();
     let mut pid = None;

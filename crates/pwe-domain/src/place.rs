@@ -1,4 +1,3 @@
-// A pane herdr focused, where it was, and when, in seconds since the epoch.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Place {
     pub at: u64,
@@ -10,7 +9,6 @@ pub struct Place {
 
 pub const RECENT_PLACES: usize = 200;
 
-// Oldest first, each pane and folder once, at most `bound` of them.
 pub fn remember(mut places: Vec<Place>, focused: Place, bound: usize) -> Vec<Place> {
     places.retain(|place| (&place.pane_id, &place.cwd) != (&focused.pane_id, &focused.cwd));
     places.push(focused);

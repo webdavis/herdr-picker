@@ -12,7 +12,6 @@ use crate::builtin::rows::key;
 
 const DEADLINE: Duration = Duration::from_secs(10);
 
-// Alt-;'s menu: the value in each format, its secrets hidden unless copied with Alt-U.
 pub(super) fn copy_rows(value: &Value, place: &Place) -> Vec<PickerRow> {
     let shown = redacted(value, place.last_key());
     Output::ALL

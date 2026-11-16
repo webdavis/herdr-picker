@@ -20,7 +20,6 @@ use crate::builtin::program::{ran, run};
 
 const QUICK: Duration = Duration::from_secs(3);
 
-// Every source asked at once, then merged: UniFi, this Mac's neighbour tables, Bonjour and the last scan.
 pub(super) fn device_rows(
     unifi: Option<&UnifiSettings>,
     home: Option<&str>,
@@ -85,7 +84,6 @@ pub(super) fn device_rows(
     rows
 }
 
-// Each announced instance, found by browsing every service at once, then where it is reached.
 fn joined<T>(handle: thread::ScopedJoinHandle<'_, T>) -> T {
     handle.join().expect("a source thread")
 }

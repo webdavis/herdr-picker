@@ -22,7 +22,6 @@ use shortcuts::shortcut_rows;
 
 const PRIVACY: &str = "Check app access in Privacy & Security and dismiss pending app dialogs.";
 
-// Messages, Contacts and Shortcuts, which only a Mac has.
 pub(super) fn apple(
     source: &str,
     asked: &Asked,
@@ -61,7 +60,6 @@ pub(super) fn apple(
     written(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
-// The apple picker's steps, or None for a name that is not one of them.
 pub(super) fn apple_step(
     name: &str,
     arguments: &[&str],
@@ -83,7 +81,6 @@ pub(super) fn apple_step(
     Some(written(listed.iter().try_for_each(|row| rows.row(row))))
 }
 
-// A next to one of the apple picker's steps.
 fn step(name: &str, args: Vec<String>) -> Action {
     Action::Next(PickerCall {
         name: name.to_string(),

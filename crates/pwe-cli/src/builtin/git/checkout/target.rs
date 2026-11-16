@@ -1,8 +1,6 @@
 use super::super::Repo;
 use crate::command::{CommandError, failed};
 
-// A local branch is checked out by name, a remote one as a local branch tracking it (or the
-// local branch of that name when one exists), and a tag or commit as a detached HEAD.
 pub(super) fn target(
     repo: &Repo,
     kind: &str,

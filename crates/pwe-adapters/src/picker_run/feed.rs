@@ -18,13 +18,10 @@ pub(super) struct Feed {
     pub(super) cache: File,
     pub(super) error_file: PathBuf,
     pub(super) header_file: PathBuf,
-    // Where the command's stderr goes: a file, which no other process holding it open can block.
     pub(super) said_file: PathBuf,
     pub(super) stopping: Arc<AtomicBool>,
 }
 
-// A refusal leaves the finder open: its error file is written before the finder's input closes,
-// so the finder's load event can show it, and the run still ends in that refusal.
 pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
     let Feed {
         mut source,
@@ -68,7 +65,6 @@ fn deliver(
             Ok(read) => read,
             Err(bad_row) => return (rows, Some(bad_row)),
         };
-        // The cache line goes first: the finder may ask for a row's preview as soon as it shows it.
         let delivered = writeln!(cache, "{line}")
             .and_then(|()| writeln!(rows_in, "{}\t{}", rows.len(), row.label));
         if delivered.is_err() {

@@ -33,8 +33,6 @@ pub(crate) fn now() -> u64 {
         .map_or(0, |since| since.as_secs())
 }
 
-// The `pane.agent_status_changed` hook: save what herdr runs now, then hand an agent that just
-// finished its turn the prompt waiting for it.
 pub(crate) fn run(event: &str) {
     let (Some((pane_id, status)), Some(socket)) = (
         parse_status_change(event),
@@ -47,8 +45,6 @@ pub(crate) fn run(event: &str) {
     let _ = drain_queue(&mut panes, &queue_path(), &pane_id, status);
 }
 
-// herdr's agents now, each keeping the clock the saved list gave it unless `changed` is the one
-// whose status just changed.
 pub(crate) fn refresh(
     panes: &mut SocketPanes,
     saved: &Path,

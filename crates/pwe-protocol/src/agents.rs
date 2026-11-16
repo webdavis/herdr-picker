@@ -66,7 +66,6 @@ pub fn tabs_of(result: &Value) -> Result<Vec<WireTab>, ProtocolError> {
         .collect()
 }
 
-// The pane and status a `pane.agent_status_changed` hook was run for.
 pub fn parse_status_change(event_json: &str) -> Option<(String, AgentStatus)> {
     let event: Value = serde_json::from_str(event_json).ok()?;
     let data = event.get("data")?;

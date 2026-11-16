@@ -9,7 +9,6 @@ use super::Person;
 use crate::builtin::Places;
 use crate::builtin::automation::automation;
 
-// Everyone in Contacts: the saved copy while the address book is unchanged, else asked anew.
 pub(in crate::builtin::apple) fn people(places: &Places) -> Result<Vec<Person>, String> {
     let changed = places.home.as_deref().and_then(address_book_changed);
     let saved = changed
@@ -30,8 +29,6 @@ pub(in crate::builtin::apple) fn people(places: &Places) -> Result<Vec<Person>, 
         .map_err(|_| "Contacts answered with no list of people".to_string())
 }
 
-// When the address book's database files last changed. None when none can be seen, since then a
-// saved copy could never be known to be stale.
 pub(super) fn address_book_changed(home: &Path) -> Option<String> {
     let book = home.join("Library/Application Support/AddressBook");
     let listed = |folder: &Path| fs::read_dir(folder).into_iter().flatten().flatten();

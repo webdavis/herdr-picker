@@ -5,12 +5,10 @@ use serde_json::Value;
 
 use super::output;
 
-// One branch as worktrunk lists it: its status column, and the worktree holding it, if any.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Item {
     pub(super) branch: Option<String>,
     pub(super) subject: String,
-    // worktrunk's status, without the branch name its status line starts with.
     pub(super) status: String,
     pub(super) worktree: Option<Worktree>,
 }
@@ -22,7 +20,6 @@ pub(super) struct Worktree {
     pub(super) current: bool,
 }
 
-// Local branches and worktrees from one `wt list`, so the two never disagree; None without wt.
 pub(super) fn list(root: &Path) -> Option<Vec<Item>> {
     let listed = output(Command::new("wt").arg("-C").arg(root).args([
         "list",

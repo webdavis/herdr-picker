@@ -2,7 +2,6 @@ use super::{Frame, Menu, Offered, Row, SearchLine};
 use crate::field::TextField;
 use crate::fuzzy::{Match, Matcher};
 
-// What the menu shows: the offered workspaces, ranked against the search while there is one.
 impl<'a, M: Matcher, F: TextField> Menu<'a, M, F> {
     pub fn frame(&self) -> Frame<'a> {
         let rows = self

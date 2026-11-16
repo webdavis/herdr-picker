@@ -39,7 +39,6 @@ pub(crate) use tabs::tabs_tool;
 
 use rows::RowWriter;
 
-// What the step asked of its picker: the source to read, its state, and what is typed.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct Asked<'a> {
     pub(crate) source: Option<&'a str>,
@@ -47,7 +46,6 @@ pub(crate) struct Asked<'a> {
     pub(crate) query: &'a str,
 }
 
-// What the step asked is in the variables pwe set for the builtin's run.
 pub(crate) fn print_asked(name: &str, arguments: &[&str]) -> Result<(), CommandError> {
     let read = |variable| env::var(variable).ok();
     let (source, state) = (read(PICKER_SOURCE_VARIABLE), read(PICKER_STATE_VARIABLE));
@@ -120,7 +118,6 @@ pub(crate) fn print_rows(
     written(rows.finish())
 }
 
-// The finder closing ends the list early; that is no failure.
 fn written(result: io::Result<()>) -> Result<(), CommandError> {
     match result {
         Err(failure) if failure.kind() != io::ErrorKind::BrokenPipe => Err(failed(failure)),

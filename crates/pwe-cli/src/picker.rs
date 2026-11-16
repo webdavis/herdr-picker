@@ -30,7 +30,6 @@ pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), Command
     {
         let places = Places::here()?;
         let folder = builtin::bookmark_folder(env::var("HERDR_ACTIVE_PANE_CWD").ok(), &places.cwd);
-        // bash clears the prompt line for a key binding and draws it again below this note.
         eprintln!("{}", builtin::bookmark(&folder, &places)?);
         return Ok(());
     }
@@ -42,7 +41,6 @@ pub(crate) fn run(socket_path: Option<String>, name: &str) -> Result<(), Command
     handing::answer(socket.as_deref(), instruction)
 }
 
-// Each step is one finder run; next, confirm, reload and Esc start the next run.
 pub(crate) fn pick(
     name: &str,
     config: &Path,

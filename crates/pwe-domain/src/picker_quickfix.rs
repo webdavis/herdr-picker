@@ -1,7 +1,6 @@
 use crate::look::unstyled;
 use crate::picker_row::{Action, PickerRow};
 
-// One line of Neovim's quickfix list.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QuickfixEntry {
     pub path: String,
@@ -9,7 +8,6 @@ pub struct QuickfixEntry {
     pub text: String,
 }
 
-// A row's place is where its first edit action opens.
 pub fn quickfix_entries(rows: &[&PickerRow]) -> Vec<QuickfixEntry> {
     rows.iter()
         .filter_map(|row| {

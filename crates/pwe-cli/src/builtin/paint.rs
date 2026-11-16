@@ -1,4 +1,3 @@
-// The colors the fzf-pickers suite drew git rows in.
 const GREEN: &str = "\x1b[38;2;166;227;161m";
 const YELLOW: &str = "\x1b[38;2;249;226;175m";
 const BLUE: &str = "\x1b[38;2;137;180;250m";

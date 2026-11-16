@@ -1,7 +1,5 @@
 use pwe_domain::{View, ViewState};
 
-// Line one is the view's mode, group and source, tab-separated; line two the description; line
-// three the sources, tab-separated; each later line a title.
 pub fn encode_view_state(state: &ViewState) -> String {
     let (mode, group) = match &state.view {
         View::Streamed { group } => ("streamed", group),

@@ -6,7 +6,6 @@ use super::inputs::validate;
 
 const SHOWN: [&str; 4] = ["hostname", "user", "port", "proxyjump"];
 
-// A static Host alias of an SSH config, with the settings its block gives.
 #[derive(Debug, PartialEq, Eq)]
 pub(super) struct SshHost {
     pub(super) alias: String,
@@ -14,7 +13,6 @@ pub(super) struct SshHost {
     pub(super) settings: Vec<String>,
 }
 
-// The aliases of this config and the files it includes; patterns and Match blocks are skipped.
 pub(super) fn ssh_hosts(config: &Path, home: Option<&Path>) -> Vec<SshHost> {
     let base = config.parent().unwrap_or(Path::new("/"));
     let mut found = Found {
@@ -79,7 +77,6 @@ impl Found<'_> {
         }
     }
 
-    // A relative Include is read from the first config's folder, as ssh does for ~/.ssh.
     fn included(&self, pattern: &str) -> PathBuf {
         match (pattern.strip_prefix("~/"), self.home) {
             (Some(inside), Some(home)) => home.join(inside),
@@ -88,7 +85,6 @@ impl Found<'_> {
     }
 }
 
-// shortcut: words split on spaces with quotes dropped, no escapes; enough for host aliases.
 fn parsed(line: &str) -> Option<(String, Vec<String>)> {
     let mut words: Vec<String> = line
         .split_whitespace()
@@ -110,7 +106,6 @@ fn fixed(alias: &str) -> bool {
     !alias.contains(['*', '?', '!']) && validate("host", alias).is_ok()
 }
 
-// The files a pattern names; wildcards are honored in the last part only.
 fn expanded(pattern: &Path) -> Vec<PathBuf> {
     let name = pattern
         .file_name()

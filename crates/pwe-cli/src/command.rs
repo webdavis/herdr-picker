@@ -39,7 +39,6 @@ pub(crate) fn picker_config_path() -> PathBuf {
     env::var_os(PICKER_CONFIG_VARIABLE).map_or_else(config_path, PathBuf::from)
 }
 
-// herdr names the state folder to its hooks and popups; a shell key works it out the same way.
 pub(crate) fn state_dir() -> PathBuf {
     plugin_state_dir(
         env::var("HERDR_PLUGIN_STATE_DIR").ok().as_deref(),

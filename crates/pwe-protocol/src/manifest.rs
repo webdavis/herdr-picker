@@ -71,7 +71,6 @@ fn popup(id: &'static str, title: &'static str, subcommand: &str) -> Pane {
     }
 }
 
-// `bases` are the keys the launcher reads a second key after, such as ctrl-t; each gets an action.
 pub fn render_manifest(
     binary_version: &str,
     targets: &[JumpTarget],

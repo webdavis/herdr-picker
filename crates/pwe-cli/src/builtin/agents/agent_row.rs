@@ -34,7 +34,6 @@ pub(super) fn tab_label<'a>(view: &'a HerdrView, tab_id: &'a str) -> &'a str {
         .map_or(tab_id, |tab| tab.label.as_str())
 }
 
-// The title, then what a search should also find: the agent, where it is, its folder and branch.
 pub(super) fn agent_row(agent: &Agent, view: &HerdrView, home: Option<&Path>) -> PickerRow {
     let tab = tab_label(view, &agent.tab_id);
     let place = format!("{} › {tab}", workspace_label(view, &agent.workspace_id));

@@ -17,7 +17,6 @@ const SECTIONS: [(&str, &str); 3] = [
     ("unpinned", "Unpinned"),
 ];
 
-// Arc's open tabs, or Chrome's once Alt-B switched to it.
 pub(super) fn tabs(
     state: Option<&str>,
     rows: &mut RowWriter<impl Write>,
@@ -84,7 +83,6 @@ pub(super) fn tab_rows(tabs: &[Value], browser: &str, program: &str) -> Vec<Pick
         .collect()
 }
 
-// The host a URL names, without a leading www.
 fn site(url: &str) -> &str {
     let Some((_, rest)) = url.split_once("://") else {
         return "";
@@ -118,7 +116,6 @@ fn shown(browser: &str) -> &'static str {
     if browser == "chrome" { "Chrome" } else { "Arc" }
 }
 
-// Alt-B reads the other browser's tabs.
 fn switch(browser: &str) -> (Key, Action) {
     (
         key("alt-b").labelled(&format!("{} tabs", shown(other(browser)))),
@@ -126,7 +123,6 @@ fn switch(browser: &str) -> (Key, Action) {
     )
 }
 
-// pwe tabs focus <browser> <window> <tab> [space]
 pub(crate) fn tabs_tool(arguments: &[&str]) -> Result<(), CommandError> {
     let ["focus", browser, window, tab, space @ ..] = arguments else {
         return Err(CommandError::Usage);

@@ -3,7 +3,6 @@ use pwe_domain::{Action, PickerRow, Preview};
 use super::{Person, chosen, named, readable};
 use crate::builtin::paint::{blue, dim, green, mauve, peach};
 
-// Each of the contacts' fields, Enter copying its value.
 pub(in crate::builtin::apple) fn field_rows(
     people: &[Person],
     ids: &[&str],
@@ -32,7 +31,6 @@ pub(in crate::builtin::apple) fn field_rows(
         .collect()
 }
 
-// Each of the contacts' phone numbers, Enter calling it.
 pub(in crate::builtin::apple) fn call_rows(
     people: &[Person],
     ids: &[&str],

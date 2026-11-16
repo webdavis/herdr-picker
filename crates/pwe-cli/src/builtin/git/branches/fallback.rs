@@ -3,8 +3,6 @@ use super::super::{Repo, strings};
 use super::Ref;
 use crate::command::CommandError;
 
-// Without worktrunk, git says which worktree holds each branch, and its upstream stands in
-// for worktrunk's status.
 pub(super) fn from_git(repo: &Repo, refs: &[Ref]) -> Result<Vec<Item>, CommandError> {
     let mut trees: Vec<(Worktree, Option<String>)> = Vec::new();
     for record in strings(&repo.git(&["worktree", "list", "--porcelain", "-z"])?) {

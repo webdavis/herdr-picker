@@ -44,7 +44,6 @@ pub(super) fn suites(places: &Places) -> Result<Vec<PickerRow>, CommandError> {
     Ok(rows)
 }
 
-// The repository's files Git does not ignore, or every file under a folder outside one.
 fn files(root: &Path, places: &Places) -> Vec<PathBuf> {
     let mut listing = Command::new("git");
     listing.arg("-C").arg(root);
@@ -74,7 +73,6 @@ fn files(root: &Path, places: &Places) -> Vec<PathBuf> {
     found
 }
 
-// A script in a unit, integration or e2e folder runs whole; a .test.sh file's tests run one by one.
 fn bash_rows(path: &Path, root: &Path) -> Vec<PickerRow> {
     let shown = path.strip_prefix(root).unwrap_or(path).to_string_lossy();
     let full = path.to_string_lossy();
@@ -107,7 +105,6 @@ fn bash_rows(path: &Path, root: &Path) -> Vec<PickerRow> {
     }
 }
 
-// The name of a test function a line declares, as `test_name() {` or `function test_name () {`.
 fn bash_test(line: &str) -> Option<&str> {
     let line = line.trim_start();
     let line = match line.strip_prefix("function") {

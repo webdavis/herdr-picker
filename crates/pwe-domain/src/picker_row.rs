@@ -6,7 +6,6 @@ pub struct PickerRow {
     pub label: String,
     pub preview: Option<Preview>,
     pub enter: Action,
-    // The keys besides enter, each claimed at most once.
     pub keys: Vec<(Key, Action)>,
     pub group: Option<String>,
 }
@@ -27,9 +26,7 @@ impl PickerRow {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Preview {
     Text(String),
-    // Drawn only when the row is highlighted, so a long list never waits on its previews.
     Path(String),
-    // A program and its arguments, run only when the row is highlighted; its output is the preview.
     Command(Vec<String>),
 }
 
@@ -43,9 +40,7 @@ pub struct Location {
 pub struct PickerCall {
     pub name: String,
     pub args: Vec<String>,
-    // Handed to the picker's command as it was given; the command alone reads it.
     pub state: Option<String>,
-    // Typed into the step's search line when it opens.
     pub query: Option<String>,
 }
 
@@ -63,14 +58,11 @@ pub enum Action {
         question: String,
         action: Box<Action>,
     },
-    // Shows the same step again, its rows read from the named source.
     Source(String),
-    // Shows the same step again, its command handed this state in place of the one it had.
     State(String),
     Reload,
     Back,
     Nothing,
-    // A run, edit or cd row's own action, opened in a new pane rather than the one underneath.
     InPane {
         pane: NewPane,
         action: Box<Action>,
@@ -78,13 +70,11 @@ pub enum Action {
     Herdr(HerdrCall),
 }
 
-// What only herdr can do, done once the picker is gone, so a closing popup cannot undo it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HerdrCall {
     FocusPane(String),
     FocusTab(String),
     FocusWorkspace(String),
     CloseTab(String),
-    // Sent when the agent can take it, or queued until it can.
     Prompt { pane_id: String, text: String },
 }

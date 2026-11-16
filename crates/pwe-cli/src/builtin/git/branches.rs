@@ -17,7 +17,6 @@ use fallback::from_git;
 
 const REFS: &str = "--format=%(refname)%09%(refname:short)%09%(HEAD)%09%(upstream:short)%09%(upstream:track)%09%(subject)";
 
-// A branch, remote branch or tag as git lists it.
 pub(super) struct Ref {
     area: String,
     name: String,
@@ -26,8 +25,6 @@ pub(super) struct Ref {
     subject: String,
 }
 
-// Local branches, remote branches, tags and the other worktrees of this repository, or the
-// repositories with something to prune.
 pub(super) fn branches(
     source: &str,
     places: &Places,
@@ -38,14 +35,12 @@ pub(super) fn branches(
         return super::prune::repos(&repo, places, rows);
     }
     let root = repo.root.clone();
-    // worktrunk takes a moment, so git lists the refs meanwhile.
     let listing = thread::spawn(move || worktrunk::list(&root));
     let refs = refs(&repo)?;
     let items = match listing.join().ok().flatten() {
         Some(items) => items,
         None => from_git(&repo, &refs)?,
     };
-    // In git's order, as the branches picker always listed them.
     let mut listed: Vec<PickerRow> = refs
         .iter()
         .filter(|found| found.area == "heads")
@@ -95,7 +90,6 @@ fn refs(repo: &Repo) -> Result<Vec<Ref>, CommandError> {
         .collect())
 }
 
-// Ctrl-P's step: pull into the current branch, merging or rebasing.
 pub(super) fn pull(places: &Places, rows: &mut RowWriter<impl Write>) -> Result<(), CommandError> {
     let repo = Repo::at(&places.cwd)?;
     let name = String::from_utf8_lossy(&repo.git(&["branch", "--show-current"])?)

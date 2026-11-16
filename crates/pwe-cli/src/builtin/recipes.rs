@@ -12,7 +12,6 @@ use super::rows::{RowWriter, in_home, key};
 use super::{Places, written};
 use crate::command::{CommandError, failed};
 
-// One recipe as just dumps it, with the command that runs it from anywhere.
 pub(super) struct Recipe {
     pub(super) name: String,
     pub(super) command: String,
@@ -75,7 +74,6 @@ pub(super) fn recipes(cwd: &Path) -> Result<Vec<Recipe>, CommandError> {
         .collect()
 }
 
-// The module's public recipes, then each submodule's under its path.
 fn visit(module: &Value, found: &mut Vec<(String, Value)>) {
     let recipes = module["recipes"].as_object().into_iter().flatten();
     for recipe in recipes.map(|(_, recipe)| recipe) {
@@ -120,7 +118,6 @@ pub(super) fn recipe_row(recipe: &Recipe, width: usize, places: &Places) -> Pick
         .filter(|(_, value)| !value.is_empty())
         .map(|(field, value)| format!("{field:<10}  {value}"))
         .collect();
-    // Its arguments are typed after it at the prompt, so it is only prepared.
     let (enter, keys) = match recipe.required {
         true => (Action::Insert(format!("{} ", recipe.command)), Vec::new()),
         false => (

@@ -1,8 +1,6 @@
 use super::super::{Repo, strings};
 use crate::command::CommandError;
 
-// The states a file can be in, in the order the status picker lists them: what needs you
-// first, then what git status shows, then the quiet tracked files.
 pub(super) const STATES: [&str; 6] = [
     "conflicts",
     "staged",
@@ -14,9 +12,7 @@ pub(super) const STATES: [&str; 6] = [
 
 pub(super) struct File {
     pub(super) name: String,
-    // Never empty; the first is the one it is listed under.
     pub(super) states: Vec<&'static str>,
-    // A conflict's base, ours and theirs blobs.
     pub(super) stages: Option<[String; 3]>,
 }
 
@@ -42,8 +38,6 @@ pub(super) struct Porcelain {
 }
 
 impl Porcelain {
-    // One read-only git status: it takes no lock, so git running elsewhere in the repository
-    // at the same moment does not fail it.
     pub(super) fn read(repo: &Repo) -> Result<Self, CommandError> {
         let records = strings(&repo.git(&[
             "--no-optional-locks",

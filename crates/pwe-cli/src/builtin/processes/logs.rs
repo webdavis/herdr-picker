@@ -12,7 +12,6 @@ use crate::builtin::rows::key;
 
 const REPORTS: [&str; 4] = ["ips", "spin", "crash", "hang"];
 
-// The logs source: two ways in, each its own step.
 pub(super) fn log_kinds() -> Vec<PickerRow> {
     let next = |name: &str| {
         Action::Next(PickerCall {
@@ -43,7 +42,6 @@ pub(super) fn log_kinds() -> Vec<PickerRow> {
     ]
 }
 
-// One line of `log show --style ndjson`: Enter copies its message.
 pub(super) fn log_row(line: &str) -> Option<PickerRow> {
     let event: Value = serde_json::from_str(line).ok().filter(Value::is_object)?;
     let said = |field: &str| event[field].as_str().unwrap_or_default().to_string();
@@ -73,7 +71,6 @@ pub(super) fn log_row(line: &str) -> Option<PickerRow> {
     })
 }
 
-// The reports under these folders, newest first: Enter prepares opening one in Console.
 pub(super) fn crash_rows(folders: &[PathBuf], offset: i64) -> Vec<PickerRow> {
     let mut reports = Vec::new();
     for folder in folders {

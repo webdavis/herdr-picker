@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::private::write_private;
 
-// The fields Neovim's setqflist() reads.
 #[derive(Serialize, Deserialize)]
 struct Saved {
     filename: String,
@@ -41,7 +40,6 @@ pub fn read_quickfix(file: &Path) -> io::Result<Vec<QuickfixEntry>> {
         .collect())
 }
 
-// Loads the saved list into the Neovim listening on the socket.
 pub fn send_quickfix(socket: &str, file: &Path) -> io::Result<()> {
     let ran = Command::new("nvim")
         .args(["--server", socket, "--remote-expr", &load_expression(file)])
@@ -56,7 +54,6 @@ pub fn send_quickfix(socket: &str, file: &Path) -> io::Result<()> {
     }
 }
 
-// A shell command opening Neovim with the saved list loaded, at its numbered entry when given one.
 pub fn open_quickfix(file: &Path, entry: Option<usize>) -> String {
     let load = format!("call {}", load_expression(file));
     let at = entry.map(|number| format!("cc {number}"));

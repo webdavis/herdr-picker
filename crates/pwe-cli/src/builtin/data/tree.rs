@@ -8,7 +8,6 @@ use crate::builtin::git::plural;
 
 const SUMMARY_WIDTH: usize = 60;
 
-// A value where it sits, a string holding JSON or base64 text read in place as what it holds.
 pub(super) fn in_place(value: &Value, place: Place) -> (Place, Cow<'_, Value>) {
     match value.as_str().and_then(decoded) {
         Some((decodings, held)) => {
@@ -21,7 +20,6 @@ pub(super) fn in_place(value: &Value, place: Place) -> (Place, Cow<'_, Value>) {
     }
 }
 
-// Every value from this one down, each before the values inside it.
 pub(super) fn walk(value: &Value, place: Place, visit: &mut impl FnMut(&Place, &Value)) {
     let (place, value) = in_place(value, place);
     visit(&place, &value);
@@ -30,7 +28,6 @@ pub(super) fn walk(value: &Value, place: Place, visit: &mut impl FnMut(&Place, &
     }
 }
 
-// The values one level inside this one, each read in place.
 pub(super) fn children(value: &Value, place: &Place) -> Vec<(Place, Value)> {
     inside(value)
         .map(|(segment, child)| {
@@ -88,7 +85,6 @@ pub(super) fn container(value: &Value) -> bool {
     matches!(value, Value::Object(_) | Value::Array(_))
 }
 
-// A string as its text, line breaks and all; anything else as indented JSON.
 pub(super) fn text(value: &Value) -> String {
     match value {
         Value::String(text) => text.clone(),
@@ -96,7 +92,6 @@ pub(super) fn text(value: &Value) -> String {
     }
 }
 
-// The value in a few words on one line.
 pub(super) fn summary(value: &Value) -> String {
     let shown = match value {
         Value::Object(fields) => format!("{{{}}}", plural(fields.len(), "key")),

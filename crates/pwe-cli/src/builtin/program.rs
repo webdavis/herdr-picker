@@ -3,7 +3,6 @@ use std::process::{Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-// What a program printed by the time it ended, or by its deadline, when it is stopped.
 pub(super) struct Ran {
     pub(super) stdout: String,
     pub(super) stderr: String,
@@ -50,7 +49,6 @@ pub(super) fn ran(argv: &[&str], input: Option<&str>, timeout: Duration) -> Resu
     })
 }
 
-// What a program printed when it succeeded in time; why not otherwise.
 pub(super) fn run(argv: &[&str], timeout: Duration) -> Result<String, String> {
     let done = ran(argv, None, timeout)?;
     match done.succeeded {

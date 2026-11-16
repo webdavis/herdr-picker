@@ -12,7 +12,6 @@ impl fmt::Display for UnclosedQuote {
     }
 }
 
-// What turning an action into a shell command needs from the shell's surroundings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Shell<'a> {
     pub editor: &'a str,
@@ -20,8 +19,6 @@ pub struct Shell<'a> {
     pub opener: &'a str,
 }
 
-// Edit and open come back as commands to run, not run here: bash records them in its history,
-// and the picker may be a popup that closes before an editor it started would.
 pub fn instruction(action: &Action, shell: &Shell) -> Result<Option<String>, UnclosedQuote> {
     Ok(match action {
         Action::Insert(text) => Some(format!("insert\t{text}")),
@@ -49,7 +46,6 @@ fn edit_command(locations: &[Location], shell: &Shell) -> Result<String, Unclose
             paths.push(path);
         }
     }
-    // The editor would read a leading - as an option and + as a command.
     words.extend(
         paths
             .into_iter()

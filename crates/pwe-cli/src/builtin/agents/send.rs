@@ -14,7 +14,6 @@ pub(in crate::builtin) use answer::answer;
 #[cfg(test)]
 use answer::{answer_page, quick_answer_argv};
 
-// What Alt-O carries from step to step: the marked rows as text, and what was asked of them.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub(super) struct Sending {
     pub(super) text: String,
@@ -52,7 +51,6 @@ pub(super) fn sending(asked: &Asked) -> Sending {
         .unwrap_or_default()
 }
 
-// Where the rows can go: a running agent, the clipboard, or a quick question to Claude.
 pub(in crate::builtin) fn send_to(asked: &Asked, places: &Places) -> Vec<PickerRow> {
     let sending = sending(asked);
     let preview = || Some(Preview::Text(sending.text.clone()));
@@ -96,8 +94,6 @@ pub(in crate::builtin) fn send_to(asked: &Asked, places: &Places) -> Vec<PickerR
     rows
 }
 
-// What is typed is the question; customer data goes only to the Broccoli account, so a Broccoli
-// picker offers no other.
 pub(in crate::builtin) fn quick_answer(asked: &Asked) -> Vec<PickerRow> {
     let sending = sending(asked);
     let question = asked.query.trim();

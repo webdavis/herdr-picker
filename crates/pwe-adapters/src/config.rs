@@ -87,7 +87,6 @@ pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
     parsed(path, &content)
 }
 
-// The pickers need no config file: without one, the built-in pickers run on their own keys.
 pub fn read_picker_config(path: &Path) -> Result<PluginConfig, ConfigError> {
     match fs::exists(path) {
         Ok(false) => parsed(path, ""),

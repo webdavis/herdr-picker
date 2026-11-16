@@ -14,7 +14,6 @@ mod repos;
 
 pub(super) use repos::repos;
 
-// Alt-X's step: what `wt step prune` would remove in each repository, then whether to.
 pub(super) fn prune(roots: &[&str], rows: &mut RowWriter<impl Write>) -> Result<(), CommandError> {
     let listed = thread::scope(|scope| {
         let asking: Vec<_> = roots

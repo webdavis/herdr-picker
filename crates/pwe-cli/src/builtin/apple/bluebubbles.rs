@@ -14,7 +14,6 @@ use server::{Server, server};
 const UNAVAILABLE: &str = "BlueBubbles is unavailable or returned an invalid response. Check its server and picker configuration.";
 const PAGE: usize = 200;
 
-// A BlueBubbles server and its password, read from the Keychain for this run only.
 pub(super) struct BlueBubbles {
     server: Server,
     password: String,
@@ -37,7 +36,6 @@ impl BlueBubbles {
         }
     }
 
-    // Every record a query finds, a page at a time as the list is read.
     pub(super) fn query<'a>(
         &'a self,
         path: &'a str,
@@ -83,7 +81,6 @@ pub(super) fn curl_args(server: &Server, body: &Value) -> Vec<String> {
     .to_vec()
 }
 
-// BlueBubbles takes its password in the URL, so the URL goes to curl as config on stdin.
 pub(super) fn curl_config(server: &Server, path: &str, password: &str) -> String {
     let encoded: String = password
         .bytes()

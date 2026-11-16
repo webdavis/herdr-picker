@@ -20,7 +20,6 @@ pub(crate) fn popup_socket(socket_path: Option<String>) -> Option<PathBuf> {
         .map(PathBuf::from)
 }
 
-// herdr refuses when this plugin is not linked or another popup is open: run in place.
 pub(crate) fn pick(
     socket: &Path,
     name: &str,
