@@ -1,9 +1,10 @@
 use std::env;
 use std::io::{self, Read};
+use std::path::Path;
 
 use pwe_adapters::{RexSettings, read_picker_config};
 use pwe_domain::{key_passes_on, launcher_base};
-use pwe_protocol::{ProtocolError, float_request, parse_key_facts};
+use pwe_protocol::{ProtocolError, float_request, parse_key_facts, rex_lua};
 
 use crate::command::{CommandError, config_path, failed};
 
@@ -18,6 +19,16 @@ pub(crate) fn key(base: &str) -> Result<(), CommandError> {
         print!("{request}");
     }
     Ok(())
+}
+
+pub(crate) fn lua(config: &Path) -> Result<String, CommandError> {
+    let pwe = env::current_exe().map_err(failed)?;
+    lua_for(config, &pwe.to_string_lossy())
+}
+
+pub(crate) fn lua_for(config: &Path, pwe: &str) -> Result<String, CommandError> {
+    let pickers = read_picker_config(config).map_err(failed)?.pickers;
+    Ok(rex_lua(pwe, &pickers))
 }
 
 pub(crate) fn answer_key(
