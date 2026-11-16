@@ -6,6 +6,7 @@ pub enum Input {
     Key(String),
     RowsArrived(Vec<PickerRow>),
     RowsEnded,
+    PreviewArrived { row: usize, text: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,6 +28,10 @@ pub fn step<M: RowMatcher>(mut finder: Finder<M>, input: Input) -> (Finder<M>, V
         Input::RowsEnded => {
             finder.rows_ended = true;
             finder.respond(ViewKey::Loaded, None);
+            vec![Effect::Draw]
+        }
+        Input::PreviewArrived { row, text } => {
+            finder.preview = (finder.cursor == Some(row)).then_some((row, text));
             vec![Effect::Draw]
         }
     };
