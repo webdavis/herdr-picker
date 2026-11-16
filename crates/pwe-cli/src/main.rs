@@ -1,4 +1,5 @@
 mod agent_hook;
+mod agent_sessions;
 mod builtin;
 mod command;
 mod generate;
