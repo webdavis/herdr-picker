@@ -1,6 +1,8 @@
 mod event_fields;
 mod event_lines;
+mod event_reading;
 mod event_text;
+mod event_values;
 mod fields;
 mod libtest;
 mod libtest_failure;
@@ -14,6 +16,7 @@ mod runner_listing;
 mod test_error;
 
 pub use event_lines::EventLines;
+pub use event_reading::read_event_line;
 pub use event_text::event_text;
 pub use libtest::LibtestReader;
 pub use libtest_name::read_libtest_listing;

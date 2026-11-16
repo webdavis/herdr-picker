@@ -106,3 +106,34 @@ fn runs_past_the_retention_are_dropped_oldest_first() {
         ]
     );
 }
+
+#[test]
+fn the_run_written_last_is_listed_first() {
+    let state = TempState::new();
+    let mut later = RunFile::create(&state.runs(), "20261116T000000Z-ffff").unwrap();
+    let mut earlier = RunFile::create(&state.runs(), "20261116T000000Z-0000").unwrap();
+    later.append("first").unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(20));
+    earlier.append("second").unwrap();
+
+    assert_eq!(
+        stored_run_ids_newest_first(&state.runs()),
+        ["20261116T000000Z-0000", "20261116T000000Z-ffff"]
+    );
+}
+
+#[test]
+fn only_a_stored_run_id_is_read() {
+    let state = TempState::new();
+    let mut file = RunFile::create(&state.runs(), "20261116T000000Z-0001").unwrap();
+    file.append("kept").unwrap();
+    fs::write(state.0.join("outside.jsonl"), "secret").unwrap();
+
+    assert_eq!(
+        (
+            read_stored_run(&state.runs(), "20261116T000000Z-0001"),
+            read_stored_run(&state.runs(), "../../outside"),
+        ),
+        (Some("kept\n".to_string()), None)
+    );
+}

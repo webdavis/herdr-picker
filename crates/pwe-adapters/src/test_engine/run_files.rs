@@ -1,6 +1,7 @@
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use pwe_domain::test_engine::{Retention, StoredRun, runs_to_drop};
 
@@ -27,6 +28,27 @@ impl RunFile {
 pub fn run_folder(state_folder: &Path, repo_root: &Path) -> PathBuf {
     let repo_key = repo_root.to_string_lossy().replace('/', "%");
     state_folder.join("tests").join(repo_key)
+}
+
+pub fn stored_run_ids_newest_first(folder: &Path) -> Vec<String> {
+    let mut stored: Vec<(SystemTime, String)> = fs::read_dir(folder)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            let path = entry.ok()?.path();
+            let modified = path.metadata().ok()?.modified().ok()?;
+            Some((modified, stored_run(&path)?.run_id))
+        })
+        .collect();
+    stored.sort_by(|left, right| right.cmp(left));
+    stored.into_iter().map(|(_, run_id)| run_id).collect()
+}
+
+pub fn read_stored_run(folder: &Path, run_id: &str) -> Option<String> {
+    stored_run_ids_newest_first(folder)
+        .iter()
+        .find(|stored| *stored == run_id)
+        .and_then(|_| fs::read_to_string(run_file(folder, run_id)).ok())
 }
 
 pub fn drop_old_runs(folder: &Path, retention: &Retention) -> io::Result<()> {
