@@ -1,4 +1,4 @@
-use super::{TestId, UntrustedText, Verdict};
+use super::{Target, TestId, UntrustedText, Verdict};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TestStatus {
@@ -44,6 +44,16 @@ pub struct TestFinished {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RunStarted {
+    pub runner: String,
+    pub target: Target,
+    pub argv: Vec<String>,
+    pub cwd: String,
+    pub repo_root: String,
+    pub commit: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RunFinished {
     pub verdict: Verdict,
     pub tool_exit_code: Option<i32>,
@@ -52,6 +62,7 @@ pub struct RunFinished {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TestEvent {
+    RunStarted(RunStarted),
     BuildFailed {
         diagnostics: Vec<Diagnostic>,
     },
