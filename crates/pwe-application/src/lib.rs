@@ -6,6 +6,7 @@ mod pick;
 mod popup;
 mod step_finder;
 mod system_service;
+mod whereabouts;
 
 pub use agents::{
     AgentProgram, AgentReadError, OpenFile, OpenFiles, ProcessEnvironment, agent_sessions,
@@ -17,3 +18,4 @@ pub use pick::{InputSource, PickError, PickInput, Screen, pick};
 pub use popup::{PopupHost, open_picker};
 pub use step_finder::{StepFinder, StepOutcome, StepSetup};
 pub use system_service::{DaemonLaunch, SystemService, SystemServiceError};
+pub use whereabouts::{Whereabouts, WhereaboutsError};

@@ -27,10 +27,12 @@ mod popup_host;
 mod private;
 mod process;
 mod program;
+mod program_run;
 mod quickfix;
 mod response;
 mod rex_panes;
 mod rex_program;
+mod rex_whereabouts;
 mod saved_contacts;
 mod screen;
 mod socket;
@@ -83,6 +85,7 @@ pub use program::{bare_program, on_path};
 pub use quickfix::{open_quickfix, read_quickfix, save_quickfix, send_quickfix};
 pub use rex_panes::RexPanes;
 pub use rex_program::rex_program;
+pub use rex_whereabouts::RexWhereabouts;
 pub use saved_contacts::{contacts_file, save_contacts, saved_contacts};
 pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
@@ -97,6 +100,9 @@ pub use walk::{Entry, Walk, walk};
 #[cfg(test)]
 #[path = "tests/cli_command.rs"]
 mod cli_command;
+#[cfg(test)]
+#[path = "tests/fake_program.rs"]
+mod fake_program;
 #[cfg(test)]
 #[path = "tests/socket_server.rs"]
 mod socket_server;
