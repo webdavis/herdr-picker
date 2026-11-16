@@ -24,3 +24,9 @@ fn a_zone_offset_reads_as_seconds_east() {
     assert_eq!(offset("+0530"), Some(19_800));
     assert_eq!(offset("UTC"), None);
 }
+
+#[test]
+fn a_moment_shows_in_utc_to_the_millisecond_and_compactly() {
+    assert_eq!(utc_time(1_792_404_464_512), "2026-10-19T10:07:44.512Z");
+    assert_eq!(compact_utc_time(1_792_404_464_512), "20261019T100744Z");
+}

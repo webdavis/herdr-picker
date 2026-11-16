@@ -37,6 +37,32 @@ pub(super) fn stamp(epoch: i64, offset: i64) -> String {
     )
 }
 
+pub(crate) fn utc_time(epoch_ms: u64) -> String {
+    let [year, month, day, hour, minute, second, millisecond] = utc_fields(epoch_ms);
+    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}.{millisecond:03}Z")
+}
+
+pub(crate) fn compact_utc_time(epoch_ms: u64) -> String {
+    let [year, month, day, hour, minute, second, _] = utc_fields(epoch_ms);
+    format!("{year:04}{month:02}{day:02}T{hour:02}{minute:02}{second:02}Z")
+}
+
+fn utc_fields(epoch_ms: u64) -> [i64; 7] {
+    let seconds = i64::try_from(epoch_ms / 1000).unwrap_or(i64::MAX);
+    let (year, month, day) = civil_from_days(seconds.div_euclid(86_400));
+    let of_day = seconds.rem_euclid(86_400);
+    let millisecond = i64::try_from(epoch_ms % 1000).unwrap_or(0);
+    [
+        year,
+        month,
+        day,
+        of_day / 3600,
+        of_day % 3600 / 60,
+        of_day % 60,
+        millisecond,
+    ]
+}
+
 pub(super) fn parse_iso(text: &str) -> Option<i64> {
     let number = |range: std::ops::Range<usize>| text.get(range)?.parse::<i64>().ok();
     let days = days_from_civil(number(0..4)?, number(5..7)?, number(8..10)?);

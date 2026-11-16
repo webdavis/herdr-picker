@@ -122,6 +122,7 @@ fn the_usage_line_names_every_verb() {
         "preview <rows-file> <index>",
         "init bash",
         "test runners",
+        "test run --all",
     ] {
         assert!(USAGE.contains(verb), "the usage line omits {verb}: {USAGE}");
     }

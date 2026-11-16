@@ -13,7 +13,7 @@ mod apple;
 mod automation;
 mod bookmark;
 mod catalog;
-mod clock;
+pub(crate) mod clock;
 mod data;
 mod files;
 mod folders;
