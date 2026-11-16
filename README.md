@@ -26,7 +26,7 @@ rather than a file that can be committed once for everybody. It is built, genera
 instead. A Rust toolchain has to be on the machine.
 
 ```bash
-git clone https://github.com/webdavis/herdr-picker.git ~/.local/share/herdr-picker
+git clone https://github.com/webdavis/pwe.git ~/.local/share/herdr-picker
 cd ~/.local/share/herdr-picker
 cargo build --release --locked
 ```
