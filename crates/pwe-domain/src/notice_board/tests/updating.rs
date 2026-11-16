@@ -39,7 +39,11 @@ fn a_running_thing_changes_its_own_notice_in_place() {
     assert!(closed(&effects).is_empty());
     assert_eq!(
         relabelled(&effects),
-        vec![(float.float.clone(), "Tests failed: 3".to_string(), 6)]
+        vec![(
+            float.float.clone(),
+            "finished · tests: Tests failed: 3 · now".to_string(),
+            6
+        )]
     );
 }
 
@@ -65,7 +69,10 @@ fn an_updated_notice_that_had_left_the_screen_is_shown_again() {
 
     let effects = board.apply(NoticeInput::Raise(failed_tests()), 200);
 
-    assert_eq!(shown(&effects)[0].line, "Tests failed: 3");
+    assert_eq!(
+        shown(&effects)[0].line,
+        "finished · tests: Tests failed: 3 · now"
+    );
 }
 
 #[test]

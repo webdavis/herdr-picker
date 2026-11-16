@@ -30,6 +30,7 @@ pub enum NoticeInput {
     Unmute { source: String },
     Dismiss { id: String },
     Read { id: String },
+    Jump { id: Option<String> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,6 +51,11 @@ pub enum NoticeEffect {
         float: String,
     },
     SaveRow(Box<Notice>),
+    SendToMacos {
+        title: String,
+        text: String,
+    },
+    JumpTo(Pane),
     AskForSession {
         every_seconds: u64,
     },

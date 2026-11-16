@@ -3,7 +3,7 @@ use std::mem;
 use super::NoticeBoard;
 use super::float::{Float, lowest_free_slot};
 use super::input::{NoticeEffect, Raised, RexFocus};
-use super::line::notice_line;
+use super::line::{level_name, notice_line, said};
 use crate::notice::{Level, Notice};
 
 impl NoticeBoard {
@@ -38,6 +38,12 @@ impl NoticeBoard {
         {
             return Vec::new();
         }
+        if !matches!(self.focus, RexFocus::Front(_)) {
+            return vec![NoticeEffect::SendToMacos {
+                title: level_name(notice.level).to_string(),
+                text: said(notice),
+            }];
+        }
         if let Some(grouped) = self.join_group(notice, now) {
             return vec![grouped];
         }
@@ -45,7 +51,7 @@ impl NoticeBoard {
             notice.level,
             &notice.kind,
             vec![notice.id.clone()],
-            notice_line(notice),
+            notice_line(notice, now),
             now,
         )
     }

@@ -32,7 +32,7 @@ impl NoticeBoard {
         }
         vec![NoticeEffect::Relabel {
             float: float.id.clone(),
-            line: self.float_line(&float.members),
+            line: self.float_line(&float.members, now),
             seconds: float.until.saturating_sub(now),
         }]
     }
@@ -43,12 +43,12 @@ impl NoticeBoard {
         let float = &self.floats[index];
         NoticeEffect::Relabel {
             float: float.id.clone(),
-            line: self.float_line(&float.members),
+            line: self.float_line(&float.members, now),
             seconds,
         }
     }
 
-    fn float_line(&self, members: &[String]) -> String {
+    fn float_line(&self, members: &[String], now: u64) -> String {
         let notices: Vec<&Notice> = self
             .live
             .iter()
@@ -56,7 +56,7 @@ impl NoticeBoard {
             .collect();
         match notices.as_slice() {
             [] => String::new(),
-            [only] => notice_line(only),
+            [only] => notice_line(only, now),
             [first, ..] => group_line(notices.len(), &first.kind, first.level),
         }
     }
