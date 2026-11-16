@@ -64,3 +64,8 @@ _Avoid_: destination, output pane
 The program that holds the panes, herdr or Rex, which a handover reads the target pane from and
 types into.
 _Avoid_: backend, multiplexer
+
+**Float**:
+The Rex floating window, labelled `pwe`, that the launcher opens in over the pane underneath; it
+closes once the pick is handed over.
+_Avoid_: popup, overlay

@@ -12,11 +12,11 @@ pub enum JumpError {
 impl fmt::Display for JumpError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Unreachable(detail) => write!(f, "herdr unreachable: {detail}"),
-            Self::Transport(detail) => write!(f, "herdr transport failed: {detail}"),
-            Self::Malformed(detail) => write!(f, "unreadable herdr response: {detail}"),
+            Self::Unreachable(detail) => write!(f, "unreachable: {detail}"),
+            Self::Transport(detail) => write!(f, "transport failed: {detail}"),
+            Self::Malformed(detail) => write!(f, "unreadable response: {detail}"),
             Self::Server { code, message } => {
-                write!(f, "herdr refused the request: {code}: {message}")
+                write!(f, "the request was refused: {code}: {message}")
             }
             Self::BothPathsFailed { cli, socket } => {
                 write!(f, "{cli} (the socket was tried first: {socket})")

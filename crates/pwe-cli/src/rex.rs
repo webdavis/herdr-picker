@@ -8,6 +8,10 @@ use pwe_protocol::{ProtocolError, float_request, parse_key_facts, rex_lua};
 
 use crate::command::{CommandError, config_path, failed};
 
+mod launcher;
+
+pub(crate) use launcher::launcher;
+
 pub(crate) const UNDER: &str = "--under";
 
 pub(crate) fn key(base: &str) -> Result<(), CommandError> {
