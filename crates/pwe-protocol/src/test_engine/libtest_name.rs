@@ -1,23 +1,8 @@
 use pwe_domain::test_engine::TestId;
 
+use super::libtest_target::{TestTarget, TestTargets};
+
 const SHOULD_PANIC: &str = " - should panic";
-
-pub(super) enum TestTarget {
-    Unknown,
-    File(String),
-    DocTests,
-}
-
-pub(super) fn target_of(line: &str) -> Option<TestTarget> {
-    let line = line.trim();
-    if line.starts_with("Doc-tests ") {
-        return Some(TestTarget::DocTests);
-    }
-    let running = line.strip_prefix("Running ")?;
-    let running = running.strip_prefix("unittests ").unwrap_or(running);
-    let file = running.split(" (").next()?;
-    Some(TestTarget::File(file.to_string()))
-}
 
 pub(super) fn test_id(runner: &str, target: &TestTarget, name: &str) -> Option<TestId> {
     match target {
@@ -57,11 +42,16 @@ fn id_in(runner: &str, file: &str, path: &str, case: Option<String>) -> TestId {
     }
 }
 
-pub fn read_libtest_listing<'a>(runner: &str, lines: impl Iterator<Item = &'a str>) -> Vec<TestId> {
+pub fn read_libtest_listing<'a>(
+    runner: &str,
+    repo_root: &str,
+    lines: impl Iterator<Item = &'a str>,
+) -> Vec<TestId> {
+    let mut targets = TestTargets::new(repo_root);
     let mut target = TestTarget::Unknown;
     let mut ids = Vec::new();
     for line in lines {
-        if let Some(next) = target_of(line) {
+        if let Some(next) = targets.read(line) {
             target = next;
         } else if let Some(name) = line.strip_suffix(": test") {
             ids.extend(test_id(runner, &target, name));
