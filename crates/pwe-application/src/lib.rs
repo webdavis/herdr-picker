@@ -1,3 +1,4 @@
+mod agents;
 mod error;
 mod jump;
 mod mru;
@@ -5,6 +6,7 @@ mod pick;
 mod popup;
 mod system_service;
 
+pub use agents::{AgentProgram, AgentReadError, ProcessEnvironment};
 pub use error::JumpError;
 pub use jump::{WorkspaceDirectory, jump};
 pub use mru::{WorkspaceHistory, bounce, record};

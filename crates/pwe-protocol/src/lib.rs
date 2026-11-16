@@ -1,3 +1,4 @@
+mod agent_programs;
 mod agents;
 mod bash;
 mod daemon_line;
@@ -15,6 +16,7 @@ pub mod test_engine;
 mod view;
 mod wire;
 
+pub use agent_programs::{claude_code_sessions, variable_in_environ_file, variable_in_ps_listing};
 pub use agents::{
     WireTab, agent_list_request, agents_of, call_request, parse_status_change, tab_list_request,
     tabs_of,
