@@ -23,6 +23,7 @@ mod place;
 mod popup;
 mod send_queue;
 mod target;
+pub mod test_engine;
 
 pub use agent::{Agent, AgentStatus, age, carry_since, ordered};
 pub use chord::{Chord, Stroke};
