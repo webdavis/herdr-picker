@@ -21,6 +21,7 @@ pub enum RexFocus {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NoticeInput {
     Raise(Raised),
+    Resolve { key: String },
     OwnerMoved(RexFocus),
     TimePassed,
 }
@@ -31,6 +32,11 @@ pub enum NoticeEffect {
         float: String,
         slot: usize,
         level: Level,
+        line: String,
+        seconds: u64,
+    },
+    Relabel {
+        float: String,
         line: String,
         seconds: u64,
     },

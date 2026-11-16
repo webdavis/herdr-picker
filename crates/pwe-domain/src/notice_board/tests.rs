@@ -2,6 +2,7 @@ use super::*;
 use crate::notice::{Level, Pane};
 
 mod showing;
+mod updating;
 
 fn pane_in(rex_session: &str, tab: &str, block: &str) -> Pane {
     Pane {

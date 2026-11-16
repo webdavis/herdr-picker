@@ -5,6 +5,7 @@ pub(super) struct Float {
     pub(super) id: String,
     pub(super) slot: usize,
     pub(super) level: Level,
+    pub(super) members: Vec<String>,
     pub(super) shown_at: u64,
     pub(super) until: u64,
 }
