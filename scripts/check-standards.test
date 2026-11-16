@@ -1,0 +1,133 @@
+#!/bin/sh
+set -eu
+
+check_standards="$(cd "$(dirname "$0")" && pwd)/check-standards"
+fixtures=$(mktemp -d)
+trap 'trash "$fixtures" 2>/dev/null || find "$fixtures" -delete' EXIT
+failures=0
+
+new_tree() {
+  tree="$fixtures/$1"
+  mkdir -p "$tree/crates/sample/src"
+  git -C "$tree" init -q
+}
+
+write_file() {
+  mkdir -p "$(dirname "$tree/$1")"
+  cat > "$tree/$1"
+}
+
+repeat_line() {
+  awk -v count="$1" -v text="$2" 'BEGIN { for (i = 1; i <= count; i++) print text }'
+}
+
+run_check() {
+  git -C "$tree" add -A
+  set +e
+  output=$(cd "$tree" && "$check_standards" 2>&1 >/dev/null)
+  status=$?
+  set -e
+}
+
+pass_or_fail() {
+  if [ "$status" = "$2" ] && [ "$output" = "$3" ]; then
+    echo "ok   $1"
+  else
+    echo "FAIL $1: expected exit $2 and [$3], got exit $status and [$output]"
+    failures=$((failures + 1))
+  fi
+}
+
+new_tree clean
+write_file crates/sample/src/lib.rs <<'EOF'
+#![forbid(unsafe_code)]
+#[cfg(test)]
+mod tests;
+
+pub const HOME_PAGE: &str = "https://example.com/a//b";
+pub const ESCAPED: &str = "quote \" then // still a string";
+pub const RAW: &str = r#"raw "// still" a string"#;
+pub const QUOTE: char = '"';
+pub const BACKSLASH: char = '\\';
+pub const MULTILINE: &str = "first line
+// second line of the same string";
+
+pub fn first<'a>(words: &'a [&'a str]) -> &'a str {
+    words[0]
+}
+EOF
+write_file crates/sample/src/tests.rs <<'EOF'
+// A test file may carry a comment the standards check leaves to review.
+#[test]
+fn first_word() {}
+EOF
+repeat_line 150 'pub fn f() {}' | write_file crates/sample/src/at_limit.rs
+repeat_line 250 '#[test] fn t() {}' | write_file crates/sample/tests/at_limit.rs
+run_check
+pass_or_fail "a tree that meets every rule passes" 0 ""
+
+new_tree line_comment
+printf 'pub fn f() {}\n// a note\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "a line comment fails" 1 "crates/sample/src/lib.rs:2: comment in production code"
+
+new_tree doc_comments
+printf '//! crate docs\n/// item docs\npub fn f() {}\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "doc comments fail" 1 "crates/sample/src/lib.rs:1: comment in production code
+crates/sample/src/lib.rs:2: comment in production code"
+
+new_tree trailing_comment
+printf 'pub fn f() {} // a note\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "a comment after code fails" 1 "crates/sample/src/lib.rs:1: comment in production code"
+
+new_tree comment_after_string
+printf 'pub const URL: &str = "https://a // b"; // a note\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "a comment after a string holding // fails once" 1 "crates/sample/src/lib.rs:1: comment in production code"
+
+new_tree block_comment
+printf 'pub fn f() {}\n/* a note */\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "a block comment fails" 1 "crates/sample/src/lib.rs:2: comment in production code"
+
+new_tree long_production_file
+repeat_line 151 'pub fn f() {}' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "a production file over 150 lines fails" 1 "crates/sample/src/lib.rs:151: production file over 150 lines"
+
+new_tree long_test_file
+repeat_line 251 '#[test] fn t() {}' | write_file crates/sample/src/lib/tests.rs
+run_check
+pass_or_fail "a test file over 250 lines fails" 1 "crates/sample/src/lib/tests.rs:251: test file over 250 lines"
+
+new_tree inline_test_module
+printf 'pub fn f() {}\n\n#[cfg(test)]\nmod tests {\n    #[test]\n    fn t() {}\n}\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "an inline test module fails" 1 "crates/sample/src/lib.rs:4: inline test module in production code"
+
+new_tree inline_test_module_one_line
+printf '#[cfg(test)] pub mod tests { }\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "an inline test module on one line fails" 1 "crates/sample/src/lib.rs:1: inline test module in production code"
+
+new_tree unsafe_code
+printf 'pub fn f(p: *const u8) -> u8 {\n    unsafe { *p }\n}\n' | write_file crates/sample/src/lib.rs
+run_check
+pass_or_fail "unsafe in production code fails" 1 "crates/sample/src/lib.rs:2: unsafe in production code"
+
+new_tree untracked_file
+printf '// a note\n' | write_file crates/sample/src/lib.rs
+run_check
+git -C "$tree" rm -q --cached crates/sample/src/lib.rs
+set +e
+output=$(cd "$tree" && "$check_standards" 2>&1 >/dev/null)
+status=$?
+set -e
+pass_or_fail "a file git does not track is skipped" 0 ""
+
+if [ "$failures" -gt 0 ]; then
+  echo "$failures failed" >&2
+  exit 1
+fi
