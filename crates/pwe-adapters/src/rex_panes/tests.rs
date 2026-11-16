@@ -5,6 +5,8 @@ use pwe_protocol::PaneInfo;
 use super::*;
 use crate::cli_command::{RecordedCli, spawning};
 
+mod typing;
+
 const CLAUDE_BLOCKED: &str = r#"{"records":[{"state":"blocked","kind":"permission","app":"claude-code","effective_app":"claude-code","owner":{"pid":39910,"name":"claude"}}]}"#;
 const NO_RECORDS: &str = r#"{"records":[]}"#;
 
@@ -29,7 +31,7 @@ fn rex_answering(status: &str, process: &str) -> RecordedCli {
 }
 
 fn panes(fake: &RecordedCli) -> RexPanes {
-    RexPanes::at(PathBuf::from(&fake.binary))
+    RexPanes::at(PathBuf::from(&fake.binary), None)
 }
 
 fn read(status: &str, foreground: &str) -> PaneInfo {
