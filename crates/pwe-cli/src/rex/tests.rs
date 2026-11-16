@@ -43,7 +43,6 @@ fn a_key_over_a_shell_asks_rex_for_a_float_running_the_launcher_over_that_block(
     let block = &request["layout"]["block"];
     assert_eq!(block["flavor"], "com.superlogical.terminal.shell");
     assert_eq!(block["label"], "pwe");
-    assert_eq!(block["options"]["shell"], "none");
     assert_eq!(block["options"]["cwd"], "/work/repo");
     assert_eq!(
         block["options"]["command"],

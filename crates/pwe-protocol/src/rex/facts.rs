@@ -1,5 +1,7 @@
+use pwe_domain::Size;
 use serde_json::Value;
 
+use super::window::window_cells;
 use crate::ProtocolError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -9,6 +11,7 @@ pub struct KeyFacts {
     pub label: String,
     pub program: String,
     pub folder: String,
+    pub window: Size,
 }
 
 pub fn parse_key_facts(text: &str) -> Result<KeyFacts, ProtocolError> {
@@ -25,6 +28,7 @@ pub fn parse_key_facts(text: &str) -> Result<KeyFacts, ProtocolError> {
         label: label_of(&facts, &block).unwrap_or_default(),
         program: text_at(process, "/name").unwrap_or_default(),
         folder: text_at(process, "/cwd").unwrap_or_default(),
+        window: window_cells(&facts, &block),
         block,
     })
 }

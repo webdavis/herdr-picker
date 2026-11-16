@@ -1,6 +1,7 @@
 use super::*;
+use pwe_domain::Size;
 
-const SLEEP_IN_A_WHOLE_WINDOW: &str = include_str!("tests/sleep-in-a-whole-window.json");
+const SLEEP_IN_A_WHOLE_WINDOW: &str = include_str!("../fixtures/sleep-in-a-whole-window.json");
 
 #[test]
 fn a_real_key_press_reads_as_its_session_block_label_program_and_folder() {
@@ -14,6 +15,10 @@ fn a_real_key_press_reads_as_its_session_block_label_program_and_folder() {
             label: "shell".to_string(),
             program: "sleep".to_string(),
             folder: "/Users/ada/src/project".to_string(),
+            window: Size {
+                columns: 80,
+                rows: 24
+            },
         }
     );
 }
