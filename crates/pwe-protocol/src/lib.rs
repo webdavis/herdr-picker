@@ -8,6 +8,7 @@ mod panes;
 mod popup;
 mod rows;
 mod shell;
+pub mod test_engine;
 mod view;
 mod wire;
 
