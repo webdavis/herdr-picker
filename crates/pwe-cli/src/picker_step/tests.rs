@@ -3,14 +3,16 @@ use std::ffi::OsStr;
 use std::process::Command;
 
 use pwe_adapters::read_config;
-use pwe_domain::{Location, PickerCall, PickerRow};
+use pwe_domain::PickerCall;
 
 use pwe_protocol::{PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE};
 
 use super::*;
 
+mod chosen;
 mod scripted;
 mod send;
+mod sources;
 
 fn config(name: &str, body: &str) -> PluginConfig {
     let directory = env::temp_dir().join(format!("hwj-cli-step-{name}-{}", std::process::id()));
@@ -141,104 +143,6 @@ fn a_next_to_a_picker_the_config_lacks_is_refused() {
 }
 
 #[test]
-fn esc_goes_back_and_any_other_key_does_what_the_marked_rows_say() {
-    let row = |path: &str| PickerRow {
-        label: path.to_string(),
-        preview: None,
-        enter: Action::Edit(vec![Location {
-            path: path.to_string(),
-            line: None,
-        }]),
-        keys: Vec::new(),
-        group: None,
-    };
-    let picked = |key: &str| Picked {
-        query: String::new(),
-        key: key.to_string(),
-        rows: vec![row("a"), row("b")],
-    };
-
-    assert_eq!(
-        chosen_action(&picked("esc"), None, Path::new("/q.json"), "Files"),
-        Action::Back
-    );
-    assert_eq!(
-        chosen_action(&picked("ctrl-o"), None, Path::new("/q.json"), "Files"),
-        Action::Nothing
-    );
-    assert_eq!(
-        chosen_action(&picked("enter"), None, Path::new("/q.json"), "Files"),
-        Action::Edit(vec![
-            Location {
-                path: "a".to_string(),
-                line: None
-            },
-            Location {
-                path: "b".to_string(),
-                line: None
-            },
-        ])
-    );
-}
-
-#[test]
-fn leaving_to_save_the_quickfix_list_opens_neovim_with_it() {
-    let picked = Picked {
-        query: String::new(),
-        key: SAVE_QUICKFIX.to_string(),
-        rows: Vec::new(),
-    };
-
-    assert_eq!(
-        chosen_action(&picked, None, Path::new("/state/quickfix.json"), "Files"),
-        Action::Run(
-            "nvim -c 'call setqflist(json_decode(join(readfile('\\''/state/quickfix.json'\\''))))' -c copen"
-                .to_string()
-        )
-    );
-}
-
-fn source_of(step: &StepCommand) -> Option<String> {
-    step.command
-        .get_envs()
-        .find(|(variable, _)| *variable == OsStr::new(PICKER_SOURCE_VARIABLE))
-        .and_then(|(_, value)| value)
-        .map(|value| value.to_string_lossy().into_owned())
-}
-
-#[test]
-fn a_builtin_with_sources_reads_its_first_source_unless_another_was_chosen() {
-    let config = config("sources", "");
-
-    let first = step_command(&call("files", &[], None), None, &config, &[]).expect("a command");
-    let chosen =
-        step_command(&call("files", &[], None), Some("home"), &config, &[]).expect("a command");
-
-    assert_eq!(source_of(&first), Some("this folder".to_string()));
-    assert_eq!(first.source, Some("this folder".to_string()));
-    assert_eq!(
-        first.sources,
-        ["this folder", "hidden", "home", "whole disk", "recent"]
-    );
-    assert_eq!(source_of(&chosen), Some("home".to_string()));
-    assert_eq!(chosen.source, Some("home".to_string()));
-}
-
-#[test]
-fn a_source_picked_in_the_chooser_shows_the_step_again_from_that_source() {
-    let picked = Picked {
-        query: "hid".to_string(),
-        key: SWITCH_SOURCE.to_string(),
-        rows: Vec::new(),
-    };
-
-    assert_eq!(
-        chosen_action(&picked, Some("hidden"), Path::new("/q.json"), "Files"),
-        Action::Source("hidden".to_string())
-    );
-}
-
-#[test]
 fn a_step_builtin_the_config_never_names_runs_from_a_next_with_its_args() {
     let step = step_command(
         &call("rename-branch", &["/repo", "main"], None),
@@ -260,23 +164,6 @@ fn a_step_builtin_the_config_never_names_runs_from_a_next_with_its_args() {
     );
     assert!(step.sources.is_empty());
     assert!(step.live);
-}
-
-#[test]
-fn a_step_builtin_with_sources_reads_its_first_unless_another_was_chosen() {
-    let config = config("step-sources", "");
-    let file = call("data-file", &["/a.json"], None);
-
-    let first = step_command(&file, None, &config, &[]).expect("a command");
-    let chosen = step_command(&file, Some("levels"), &config, &[]).expect("a command");
-
-    assert_eq!(source_of(&first), Some("paths".to_string()));
-    assert_eq!(
-        first.sources,
-        ["paths", "zoom", "keys", "levels", "shape", "tables"]
-    );
-    assert_eq!(source_of(&chosen), Some("levels".to_string()));
-    assert_eq!(chosen.source, Some("levels".to_string()));
 }
 
 #[test]
