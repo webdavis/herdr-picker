@@ -10,6 +10,7 @@ use crate::notice_fakes::{OWNER_PANE, Recorders, SESSION, fake_parts, pane};
 
 mod answering;
 mod keys;
+mod pruning;
 
 const NOW: u64 = 1_790_000_100;
 const OTHER_PANE: &str = "block:00000000-0000-4000-8000-0000000000b2";
