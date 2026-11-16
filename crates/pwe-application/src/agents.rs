@@ -41,29 +41,46 @@ impl fmt::Display for AgentReadError {
     }
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct AgentSources {
+    pub reports: Vec<ProgramReport>,
+    pub panes: Vec<PaneStatus>,
+    pub refusals: Vec<AgentReadError>,
+}
+
+pub fn read_agent_sources(
+    programs: &mut [&mut dyn AgentProgram],
+    rex_panes: &mut [&mut dyn PaneStatuses],
+) -> AgentSources {
+    let mut sources = AgentSources::default();
+    for program in programs.iter_mut() {
+        match program.sessions() {
+            Ok(sessions) => sources.reports.extend(sessions),
+            Err(refusal) => sources.refusals.push(refusal),
+        }
+    }
+    for source in rex_panes.iter_mut() {
+        match source.pane_statuses() {
+            Ok(statuses) => sources.panes.extend(statuses),
+            Err(refusal) => sources.refusals.push(refusal),
+        }
+    }
+    sources
+}
+
 pub fn agent_sessions(
     programs: &mut [&mut dyn AgentProgram],
     rex_panes: &mut [&mut dyn PaneStatuses],
     now: u64,
 ) -> (Vec<AgentSession>, Vec<AgentReadError>) {
-    let mut reports = Vec::new();
-    let mut refusals = Vec::new();
-    for program in programs.iter_mut() {
-        match program.sessions() {
-            Ok(sessions) => reports.extend(sessions),
-            Err(refusal) => refusals.push(refusal),
-        }
-    }
-    let mut panes = Vec::new();
-    for source in rex_panes.iter_mut() {
-        match source.pane_statuses() {
-            Ok(statuses) => panes.extend(statuses),
-            Err(refusal) => refusals.push(refusal),
-        }
-    }
+    let sources = read_agent_sources(programs, rex_panes);
+    (joined_sessions(&sources, now), sources.refusals)
+}
+
+pub fn joined_sessions(sources: &AgentSources, now: u64) -> Vec<AgentSession> {
     let mut book = AgentBook::default();
-    book.update(&reports, &panes, now);
-    (book.newest_state_first(), refusals)
+    book.update(&sources.reports, &sources.panes, now);
+    book.newest_state_first()
 }
 
 #[cfg(test)]

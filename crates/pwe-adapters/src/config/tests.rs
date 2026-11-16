@@ -1,6 +1,7 @@
 use super::*;
 use pwe_domain::TargetError;
 
+mod agents;
 mod pickers;
 mod refusals;
 mod rex;

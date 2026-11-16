@@ -7,8 +7,10 @@ use pwe_protocol::{PaneInfo, rex_pane};
 use crate::response::jump_error;
 
 const NEVER_START_A_SERVER: &str = "--autostart=false";
+pub const REX_PANES_SOURCE: &str = "rex";
 
 mod host;
+mod shell;
 mod statuses;
 
 pub struct RexPanes {

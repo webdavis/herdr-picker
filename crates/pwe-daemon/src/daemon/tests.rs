@@ -6,7 +6,7 @@ use std::process;
 use std::thread::{self, JoinHandle};
 
 use pwe_adapters::{DaemonAskError, ask_daemon};
-use pwe_protocol::{DaemonRequest, DaemonStatus, Listens, parse_daemon_status};
+use pwe_protocol::{DaemonRequest, DaemonStatus, Listens, RexLink, parse_daemon_status};
 
 const STARTED_AT: u64 = 1_700_000_000;
 
@@ -76,6 +76,7 @@ fn status_answers_with_this_machine_only() {
             socket: folder.socket().to_string_lossy().into_owned(),
             listens: Listens::ThisMachineOnly,
             started_at: STARTED_AT,
+            rex: RexLink::Absent,
         }
     );
 }
@@ -152,4 +153,51 @@ fn the_loop_wakes_for_a_job_without_any_request() {
     stopped(&folder.socket(), serving);
 
     assert!(woke.is_ok(), "the job never ran");
+}
+
+fn fake_rex(folder: &TempFolder) -> PathBuf {
+    let binary = folder.0.join("rex");
+    let event = r#"{"type":"session_event","payload":{"session_id":"session:00000000-0000-7000-8000-00000000a001","event":{"type":"session_view_changed","payload":{"revision":1}}}}"#;
+    fs::write(
+        &binary,
+        format!("#!/bin/sh\nprintf '%s\\n' '{event}'\nexec sleep 30\n"),
+    )
+    .unwrap_or_else(|failure| panic!("{failure}"));
+    fs::set_permissions(&binary, fs::Permissions::from_mode(0o700))
+        .unwrap_or_else(|failure| panic!("{failure}"));
+    binary
+}
+
+#[test]
+fn status_says_rex_is_connected_once_its_events_flow() {
+    let folder = TempFolder::new("rex");
+    fs::create_dir_all(&folder.0).unwrap_or_else(|failure| panic!("{failure}"));
+    let mut daemon = Daemon::claim(&folder.socket(), STARTED_AT)
+        .unwrap_or_else(|refusal| panic!("the daemon did not start: {refusal}"));
+    daemon.follow_rex(Some(fake_rex(&folder)));
+    let serving = thread::spawn(move || daemon.serve());
+
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    let mut link = status_of(&folder.socket()).rex;
+    while link != RexLink::Connected && std::time::Instant::now() < deadline {
+        thread::sleep(std::time::Duration::from_millis(50));
+        link = status_of(&folder.socket()).rex;
+    }
+    stopped(&folder.socket(), serving);
+
+    assert_eq!(link, RexLink::Connected);
+}
+
+#[test]
+fn without_a_rex_program_status_says_rex_is_absent() {
+    let folder = TempFolder::new("absent");
+    let mut daemon = Daemon::claim(&folder.socket(), STARTED_AT)
+        .unwrap_or_else(|refusal| panic!("the daemon did not start: {refusal}"));
+    daemon.follow_rex(None);
+    let serving = thread::spawn(move || daemon.serve());
+
+    let link = status_of(&folder.socket()).rex;
+    stopped(&folder.socket(), serving);
+
+    assert_eq!(link, RexLink::Absent);
 }

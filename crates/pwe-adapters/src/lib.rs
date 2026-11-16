@@ -1,3 +1,4 @@
+mod agent_pane_file;
 mod agent_programs;
 mod agent_store;
 mod bookmarks;
@@ -32,6 +33,7 @@ mod program;
 mod program_run;
 mod quickfix;
 mod response;
+mod rex_event_stream;
 mod rex_notice_screen;
 mod rex_panes;
 mod rex_program;
@@ -44,6 +46,7 @@ mod system_service;
 pub mod test_engine;
 mod walk;
 
+pub use agent_pane_file::{read_agent_panes, save_agent_panes};
 pub use agent_programs::{
     ClaudeCodeSessions, CodexSessions, LsofOpenFiles, OmpSessions, SystemProcessEnvironment,
 };
@@ -54,12 +57,13 @@ pub use cli::CliWorkspaceDirectory;
 pub use clipboard::copy_to_clipboard;
 pub use command_preview::command_preview;
 pub use config::{
-    BlueBubblesSettings, ConfigError, PluginConfig, RexSettings, UnifiSettings, config_file,
-    read_config, read_picker_config,
+    AgentSettings, BlueBubblesSettings, ConfigError, PluginConfig, RexSettings, UnifiSettings,
+    config_file, read_config, read_picker_config,
 };
 pub use daemon_client::{DaemonAskError, ask_daemon};
 pub use daemon_files::{
-    daemon_log_file, daemon_socket_file, launch_agent_file, pwe_state_folder, systemd_unit_file,
+    agent_panes_file, daemon_log_file, daemon_socket_file, launch_agent_file, pwe_state_folder,
+    systemd_unit_file,
 };
 pub use fzf::{
     FzfStepFinder, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
@@ -89,8 +93,9 @@ pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
 pub use program::{bare_program, on_path};
 pub use quickfix::{open_quickfix, read_quickfix, save_quickfix, send_quickfix};
+pub use rex_event_stream::RexEventStream;
 pub use rex_notice_screen::RexNoticeScreen;
-pub use rex_panes::RexPanes;
+pub use rex_panes::{REX_PANES_SOURCE, RexPanes};
 pub use rex_program::rex_program;
 pub use rex_whereabouts::RexWhereabouts;
 pub use saved_contacts::{contacts_file, save_contacts, saved_contacts};

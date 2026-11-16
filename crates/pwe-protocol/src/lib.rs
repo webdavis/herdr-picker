@@ -1,3 +1,4 @@
+mod agent_panes;
 mod agent_programs;
 mod agents;
 mod bash;
@@ -20,9 +21,11 @@ pub mod test_engine;
 mod view;
 mod wire;
 
+pub use agent_panes::{NoResumeLine, agent_panes_json, parse_agent_panes, resume_line};
 pub use agent_programs::{
-    agent_sessions_json, claude_code_sessions, codex_session, omp_held_session_ids, omp_session,
-    open_files_in_lsof_listing, variable_in_environ_file, variable_in_ps_listing,
+    agent_sessions_json, agent_sessions_value, claude_code_sessions, codex_session,
+    omp_held_session_ids, omp_session, open_files_in_lsof_listing, variable_in_environ_file,
+    variable_in_ps_listing,
 };
 pub use agents::{
     WireTab, agent_list_request, agents_of, call_request, parse_status_change, tab_list_request,
@@ -33,7 +36,9 @@ pub use daemon_line::{
     DaemonError, DaemonErrorKind, DaemonRequest, daemon_reply_line, daemon_request_line,
     parse_daemon_reply, parse_daemon_request,
 };
-pub use daemon_status::{DaemonStatus, Listens, daemon_status_result, parse_daemon_status};
+pub use daemon_status::{
+    DaemonStatus, Listens, RexLink, daemon_status_result, parse_daemon_status,
+};
 pub use doctor_report::{doctor_report_json, doctor_report_words};
 pub use focused::{parse_context_pane, parse_focused_id, parse_focused_pane};
 pub use handover::{
@@ -52,10 +57,10 @@ pub use popup::{
     layout_request, popup_request, window_of,
 };
 pub use rex::{
-    KeyFacts, OpenedLayer, block_label_request, close_layer_request, float_request,
+    KeyFacts, OpenedLayer, PaneFront, block_label_request, close_layer_request, float_request,
     focused_block_in_view, notice_float_request, opened_block, opened_layer, parse_key_facts,
-    rex_lua, rex_pane, rex_pane_status, rex_session_ids, rex_status_record, rex_terminal_panes,
-    session_request, window_in_view,
+    rex_lua, rex_pane, rex_pane_front, rex_pane_status, rex_reported_state, rex_session_ids,
+    rex_status_record, rex_terminal_panes, session_request, window_in_view,
 };
 pub use rex_event::{
     ForegroundProcess, ProgramStatus, RexBlock, RexEvent, RexEventError, parse_rex_event,

@@ -58,6 +58,19 @@ impl TempHome {
         self
     }
 
+    pub fn with_no_rex_app(mut self) -> Self {
+        let config = self.folder.join(".config/pwe");
+        fs::create_dir_all(&config).unwrap_or_else(|failure| panic!("{failure}"));
+        fs::write(
+            config.join("config.toml"),
+            "[rex]\napp-name = \"Absent Terminal\"\n",
+        )
+        .unwrap_or_else(|failure| panic!("{failure}"));
+        self.path_variable
+            .get_or_insert_with(|| "/usr/bin:/bin".to_string());
+        self
+    }
+
     fn calls_file(&self) -> PathBuf {
         self.folder.join("system-calls")
     }

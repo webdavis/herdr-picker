@@ -1,48 +1,28 @@
-use std::fmt;
-use std::io::{self, BufRead, BufReader, Read, Write};
-use std::os::unix::net::{UnixListener, UnixStream};
+use std::io;
 use std::path::{Path, PathBuf};
 use std::process;
-use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::thread;
 use std::time::Duration;
 
-use pwe_protocol::{DaemonStatus, Listens};
+use pwe_adapters::RexEventStream;
+use pwe_application::AgentSources;
+use pwe_protocol::{DaemonStatus, Listens, RexLink};
 
+use crate::agents::{AgentSubscriber, AgentWatch};
+use crate::arrival::{Arrival, WAITING_ARRIVALS};
 use crate::clock::seconds_since_1970;
-use crate::core::{Answer, DaemonCore};
+use crate::companions::{AgentsToRead, Companions};
+use crate::core::DaemonCore;
+use crate::daemon_start_error::DaemonStartError;
+use crate::listener::listen;
+use crate::reopening::{ReopenRunner, Reopening};
 use crate::socket_claim::{ClaimRefusal, SocketClaim};
-
-const REQUEST_DEADLINE: Duration = Duration::from_secs(2);
-const LONGEST_REQUEST_BYTES: u64 = 64 * 1024;
 
 pub struct Daemon {
     claim: SocketClaim,
     core: DaemonCore,
-}
-
-#[derive(Debug)]
-pub enum DaemonStartError {
-    AlreadyRunning(PathBuf),
-    Io(io::Error),
-}
-
-impl fmt::Display for DaemonStartError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::AlreadyRunning(socket) => write!(
-                formatter,
-                "a pwe daemon is already running on {}",
-                socket.display()
-            ),
-            Self::Io(error) => write!(formatter, "the pwe daemon could not start: {error}"),
-        }
-    }
-}
-
-struct Request {
-    line: String,
-    answer_to: Sender<Answer>,
+    companions: Companions,
 }
 
 impl Daemon {
@@ -57,8 +37,13 @@ impl Daemon {
             socket: socket.to_string_lossy().into_owned(),
             listens: Listens::ThisMachineOnly,
             started_at,
+            rex: RexLink::Absent,
         });
-        Ok(Self { claim, core })
+        Ok(Self {
+            claim,
+            core,
+            companions: Companions::default(),
+        })
     }
 
     pub fn every(&mut self, name: &str, seconds: u64, job: impl FnMut(u64) + Send + 'static) {
@@ -66,12 +51,54 @@ impl Daemon {
             .every(name, seconds, seconds_since_1970(), Box::new(job));
     }
 
+    pub fn follow_rex(&mut self, rex_program: Option<PathBuf>) {
+        let link = rex_program
+            .as_ref()
+            .map_or(RexLink::Absent, |_| RexLink::Reconnecting);
+        self.core.rex_link(link);
+        self.companions.rex = rex_program.map(RexEventStream::at);
+    }
+
+    pub fn follow_agents(
+        &mut self,
+        read: impl FnMut() -> AgentSources + Send + 'static,
+        refresh_seconds: u64,
+        subscribers: Vec<Box<dyn AgentSubscriber>>,
+    ) {
+        let (asks, asked) = mpsc::sync_channel(1);
+        let ping = asks.clone();
+        self.every("agents", refresh_seconds, move |_| {
+            let _ = ping.try_send(());
+        });
+        let mut watch = AgentWatch::new(asks);
+        for subscriber in subscribers {
+            watch.subscribe(subscriber);
+        }
+        watch.ask_for_reading();
+        self.core.watch_agents(watch);
+        self.companions.agents = Some(AgentsToRead {
+            read: Box::new(read),
+            refresh_seconds,
+            asked,
+        });
+    }
+
+    pub fn reopen_after_rex_restarts(&mut self, records: PathBuf, rex_program: PathBuf) {
+        let mut runner = ReopenRunner::new(rex_program);
+        let reopen = Box::new(move |panes| runner.reopen(panes));
+        self.core
+            .reopen_after_rex_restarts(Reopening::new(records, reopen));
+    }
+
     pub fn serve(self) -> io::Result<()> {
         let listener = self.claim.listener.try_clone()?;
-        let (requests, received) = mpsc::channel();
-        let listening = thread::spawn(move || listen(&listener, &requests));
+        let (arrivals, received) = mpsc::sync_channel(WAITING_ARRIVALS);
+        let companions = self.companions.start(&arrivals);
+        let listening = thread::spawn(move || listen(&listener, &arrivals));
         let claim = self.claim;
         answer_until_stopped(self.core, &received, || claim.remove_socket());
+        drop(received);
+        companions.stop();
         listening
             .join()
             .map_err(|_| io::Error::other("the socket listener panicked"))
@@ -80,7 +107,7 @@ impl Daemon {
 
 fn answer_until_stopped(
     mut core: DaemonCore,
-    received: &Receiver<Request>,
+    received: &Receiver<Arrival>,
     close_to_new_requests: impl FnOnce(),
 ) {
     loop {
@@ -91,7 +118,15 @@ fn answer_until_stopped(
             None => received.recv().map_err(|_| RecvTimeoutError::Disconnected),
         };
         let request = match next {
-            Ok(request) => request,
+            Ok(Arrival::Request(request)) => request,
+            Ok(Arrival::Rex(news)) => {
+                core.hear_rex(news, seconds_since_1970());
+                continue;
+            }
+            Ok(Arrival::AgentsRead(sources)) => {
+                core.take_agent_reading(sources, seconds_since_1970());
+                continue;
+            }
             Err(RecvTimeoutError::Timeout) => continue,
             Err(RecvTimeoutError::Disconnected) => return,
         };
@@ -103,30 +138,6 @@ fn answer_until_stopped(
         }
         let _ = request.answer_to.send(answer);
     }
-}
-
-fn listen(listener: &UnixListener, requests: &Sender<Request>) {
-    for mut stream in listener.incoming().flatten() {
-        if let Ok(false) = exchange(&mut stream, requests) {
-            return;
-        }
-    }
-}
-
-fn exchange(stream: &mut UnixStream, requests: &Sender<Request>) -> io::Result<bool> {
-    stream.set_read_timeout(Some(REQUEST_DEADLINE))?;
-    stream.set_write_timeout(Some(REQUEST_DEADLINE))?;
-    let mut line = String::new();
-    BufReader::new(Read::by_ref(stream).take(LONGEST_REQUEST_BYTES)).read_line(&mut line)?;
-    let (answer_to, answered) = mpsc::channel();
-    requests
-        .send(Request { line, answer_to })
-        .map_err(|_| io::Error::other("the daemon stopped answering"))?;
-    let answer = answered
-        .recv()
-        .map_err(|_| io::Error::other("the daemon stopped answering"))?;
-    stream.write_all(answer.reply_line.as_bytes())?;
-    Ok(answer.keeps_serving)
 }
 
 #[cfg(test)]

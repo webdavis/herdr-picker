@@ -31,6 +31,7 @@ mod picker_trail;
 mod picker_view;
 mod place;
 mod popup;
+mod recorded_pane;
 mod rex_key;
 mod send_queue;
 mod target;
@@ -78,6 +79,7 @@ pub use picker_view::{
 };
 pub use place::{Place, RECENT_PLACES, remember};
 pub use popup::{Size, popup_size, preview_popup_size};
+pub use recorded_pane::{RecordedPane, recorded_panes};
 pub use rex_key::{FLOAT_LABEL, key_passes_on};
 pub use send_queue::{Queued, take_next};
 pub use target::{JumpTarget, TargetError, WorkspaceDeclaration, action_id, jump_targets};

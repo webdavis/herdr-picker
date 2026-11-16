@@ -35,7 +35,8 @@ fn surroundings(path_variable: OsString, home: &TempHome) -> Surroundings {
         codex_folder: home.0.join(".codex"),
         proc_folder: home.0.join("proc"),
         applications: home.0.join("Applications"),
-        rex_app_name: "Rex Beta".to_string(),
+        rex: pwe_adapters::RexSettings::default(),
+        agents: pwe_adapters::AgentSettings::default(),
     }
 }
 

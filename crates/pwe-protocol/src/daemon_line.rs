@@ -5,6 +5,7 @@ use serde_json::{Map, Value, json};
 pub enum DaemonRequest {
     Status,
     Stop,
+    Agents,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -14,6 +15,7 @@ pub enum DaemonErrorKind {
     BadField,
     BadLine,
     UnreadableReply,
+    NotReadYet,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -39,11 +41,12 @@ impl DaemonRequest {
         match self {
             Self::Status => "status",
             Self::Stop => "stop",
+            Self::Agents => "agents",
         }
     }
 
     fn named(word: &str) -> Option<Self> {
-        [Self::Status, Self::Stop]
+        [Self::Status, Self::Stop, Self::Agents]
             .into_iter()
             .find(|request| request.word() == word)
     }

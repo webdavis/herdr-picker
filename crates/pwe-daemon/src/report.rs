@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use pwe_adapters::{DaemonAskError, ask_daemon};
-use pwe_protocol::{DaemonRequest, DaemonStatus, parse_daemon_status};
+use pwe_protocol::{DaemonRequest, DaemonStatus, RexLink, parse_daemon_status};
 use serde_json::{Value, json};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -35,13 +35,18 @@ impl DaemonReport {
         if let Some(status) = &self.status {
             report["pid"] = json!(status.pid);
             report["started-at"] = json!(status.started_at);
+            report["rex"] = json!(status.rex);
         }
         report
     }
 
     pub fn plain_words(&self) -> String {
         let running = match &self.status {
-            Some(status) => format!("The pwe daemon is running as process {}.", status.pid),
+            Some(status) => format!(
+                "The pwe daemon is running as process {}. {}",
+                status.pid,
+                rex_words(status.rex)
+            ),
             None => "The pwe daemon is not running.".to_string(),
         };
         let enabled = if self.enabled {
@@ -53,6 +58,14 @@ impl DaemonReport {
             "{running}\n{enabled}\nIt listens on this machine only, at {}.\n",
             self.socket.display()
         )
+    }
+}
+
+fn rex_words(link: RexLink) -> &'static str {
+    match link {
+        RexLink::Connected => "It follows Rex's events.",
+        RexLink::Reconnecting => "It waits for Rex's events to open again.",
+        RexLink::Absent => "Rex is not on this machine.",
     }
 }
 

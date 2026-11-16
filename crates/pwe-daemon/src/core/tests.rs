@@ -1,6 +1,8 @@
 use super::*;
-use pwe_protocol::{DaemonErrorKind, Listens, parse_daemon_reply};
+use pwe_protocol::{DaemonErrorKind, Listens, RexLink, parse_daemon_reply};
 use std::sync::{Arc, Mutex};
+
+mod reopening;
 
 fn core() -> DaemonCore {
     DaemonCore::new(DaemonStatus {
@@ -9,6 +11,7 @@ fn core() -> DaemonCore {
         socket: "/run/pwe/daemon.sock".to_string(),
         listens: Listens::ThisMachineOnly,
         started_at: 1,
+        rex: RexLink::Absent,
     })
 }
 
@@ -68,4 +71,33 @@ fn a_job_runs_when_the_fake_clock_passes_its_time() {
 #[test]
 fn without_jobs_there_is_no_next_time() {
     assert_eq!(core().next_at(), None);
+}
+
+fn ask_for_agents(core: &DaemonCore) -> Result<Value, pwe_protocol::DaemonError> {
+    parse_daemon_reply(
+        &core
+            .answer(r#"{"pwe-daemon":1,"request":"agents"}"#)
+            .reply_line,
+    )
+}
+
+#[test]
+fn agents_are_refused_as_not_read_yet_until_the_first_reading() {
+    let mut core = core();
+    let (asks, _asked) = std::sync::mpsc::sync_channel(1);
+    core.watch_agents(AgentWatch::new(asks));
+
+    let before = ask_for_agents(&core).map_err(|refusal| refusal.kind);
+    core.take_agent_reading(AgentSources::default(), 100);
+
+    assert_eq!(before, Err(DaemonErrorKind::NotReadYet));
+    assert_eq!(ask_for_agents(&core), Ok(json!({ "agent-sessions": [] })));
+}
+
+#[test]
+fn a_daemon_that_does_not_watch_agents_refuses_the_request() {
+    assert_eq!(
+        ask_for_agents(&core()).map_err(|refusal| refusal.kind),
+        Err(DaemonErrorKind::NotReadYet)
+    );
 }

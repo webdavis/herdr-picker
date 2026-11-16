@@ -22,7 +22,11 @@ fn an_unknown_request_is_refused_by_name() {
 
 #[test]
 fn a_request_line_reads_back_as_the_same_request() {
-    for request in [DaemonRequest::Status, DaemonRequest::Stop] {
+    for request in [
+        DaemonRequest::Status,
+        DaemonRequest::Stop,
+        DaemonRequest::Agents,
+    ] {
         let line = daemon_request_line(request);
 
         assert!(

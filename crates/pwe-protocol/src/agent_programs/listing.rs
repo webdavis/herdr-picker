@@ -44,9 +44,17 @@ struct ListedWait<'a> {
 }
 
 pub fn agent_sessions_json(sessions: &[AgentSession]) -> serde_json::Result<String> {
-    serde_json::to_string(&Listing {
+    serde_json::to_string(&listing(sessions))
+}
+
+pub fn agent_sessions_value(sessions: &[AgentSession]) -> serde_json::Result<serde_json::Value> {
+    serde_json::to_value(listing(sessions))
+}
+
+fn listing(sessions: &[AgentSession]) -> Listing<'_> {
+    Listing {
         agent_sessions: sessions.iter().map(listed).collect(),
-    })
+    }
 }
 
 fn listed(session: &AgentSession) -> ListedSession<'_> {
