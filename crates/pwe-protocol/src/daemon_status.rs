@@ -9,6 +9,14 @@ pub enum Listens {
     ThisMachineOnly,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum RexLink {
+    Connected,
+    Reconnecting,
+    Absent,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct DaemonStatus {
@@ -17,6 +25,7 @@ pub struct DaemonStatus {
     pub socket: String,
     pub listens: Listens,
     pub started_at: u64,
+    pub rex: RexLink,
 }
 
 pub fn daemon_status_result(status: &DaemonStatus) -> Value {
@@ -26,6 +35,7 @@ pub fn daemon_status_result(status: &DaemonStatus) -> Value {
         "socket": status.socket,
         "listens": status.listens,
         "started-at": status.started_at,
+        "rex": status.rex,
     })
 }
 

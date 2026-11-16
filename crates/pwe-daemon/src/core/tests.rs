@@ -1,5 +1,5 @@
 use super::*;
-use pwe_protocol::{DaemonErrorKind, Listens, parse_daemon_reply};
+use pwe_protocol::{DaemonErrorKind, Listens, RexLink, parse_daemon_reply};
 use std::sync::{Arc, Mutex};
 
 fn core() -> DaemonCore {
@@ -9,6 +9,7 @@ fn core() -> DaemonCore {
         socket: "/run/pwe/daemon.sock".to_string(),
         listens: Listens::ThisMachineOnly,
         started_at: 1,
+        rex: RexLink::Absent,
     })
 }
 

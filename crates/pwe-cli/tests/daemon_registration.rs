@@ -18,7 +18,9 @@ fn user_id() -> String {
 #[cfg(target_os = "macos")]
 #[test]
 fn enable_writes_the_job_and_bootstraps_it_for_this_user() {
-    let home = TempHome::new("enable").with_fake_launchctl_and_systemctl();
+    let home = TempHome::new("enable")
+        .with_no_rex_app()
+        .with_fake_launchctl_and_systemctl();
 
     succeeded(home.pwe(&["daemon", "enable"]));
 
@@ -44,7 +46,9 @@ fn enable_writes_the_job_and_bootstraps_it_for_this_user() {
 #[cfg(target_os = "macos")]
 #[test]
 fn disable_boots_the_job_out_and_removes_it() {
-    let home = TempHome::new("disable").with_fake_launchctl_and_systemctl();
+    let home = TempHome::new("disable")
+        .with_no_rex_app()
+        .with_fake_launchctl_and_systemctl();
     succeeded(home.pwe(&["daemon", "enable"]));
 
     succeeded(home.pwe(&["daemon", "disable"]));
@@ -73,7 +77,9 @@ fn disable_boots_the_job_out_and_removes_it() {
 #[cfg(target_os = "linux")]
 #[test]
 fn enable_writes_the_unit_and_enables_it_for_this_user() {
-    let home = TempHome::new("enable").with_fake_launchctl_and_systemctl();
+    let home = TempHome::new("enable")
+        .with_no_rex_app()
+        .with_fake_launchctl_and_systemctl();
 
     succeeded(home.pwe(&["daemon", "enable"]));
 
@@ -99,7 +105,9 @@ fn enable_writes_the_unit_and_enables_it_for_this_user() {
 #[cfg(target_os = "linux")]
 #[test]
 fn disable_stops_the_unit_and_removes_it() {
-    let home = TempHome::new("disable").with_fake_launchctl_and_systemctl();
+    let home = TempHome::new("disable")
+        .with_no_rex_app()
+        .with_fake_launchctl_and_systemctl();
     succeeded(home.pwe(&["daemon", "enable"]));
 
     succeeded(home.pwe(&["daemon", "disable"]));
@@ -127,7 +135,7 @@ fn disable_stops_the_unit_and_removes_it() {
 
 #[test]
 fn a_missing_system_program_is_named() {
-    let home = TempHome::new("missing");
+    let home = TempHome::new("missing").with_no_rex_app();
     let empty_bin = home.folder.join("empty-bin");
     fs::create_dir_all(&empty_bin).unwrap_or_else(|failure| panic!("{failure}"));
 

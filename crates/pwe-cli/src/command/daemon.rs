@@ -12,6 +12,7 @@ use pwe_daemon::{
 };
 
 use super::{CommandError, failed, prints_json};
+use crate::agent_sessions::Surroundings;
 
 pub(super) fn execute(words: &[&str]) -> Option<Result<(), CommandError>> {
     Some(match words {
@@ -38,10 +39,9 @@ fn socket() -> PathBuf {
 }
 
 fn run() -> Result<(), CommandError> {
-    Daemon::claim(&socket(), seconds_since_1970())
-        .map_err(failed)?
-        .serve()
-        .map_err(failed)
+    let mut daemon = Daemon::claim(&socket(), seconds_since_1970()).map_err(failed)?;
+    daemon.follow_rex(Surroundings::of_this_process().rex_program());
+    daemon.serve().map_err(failed)
 }
 
 fn log() -> PathBuf {

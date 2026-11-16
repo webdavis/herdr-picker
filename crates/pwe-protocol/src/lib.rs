@@ -33,7 +33,9 @@ pub use daemon_line::{
     DaemonError, DaemonErrorKind, DaemonRequest, daemon_reply_line, daemon_request_line,
     parse_daemon_reply, parse_daemon_request,
 };
-pub use daemon_status::{DaemonStatus, Listens, daemon_status_result, parse_daemon_status};
+pub use daemon_status::{
+    DaemonStatus, Listens, RexLink, daemon_status_result, parse_daemon_status,
+};
 pub use doctor_report::{doctor_report_json, doctor_report_words};
 pub use focused::{parse_context_pane, parse_focused_id, parse_focused_pane};
 pub use handover::{

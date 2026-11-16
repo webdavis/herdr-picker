@@ -7,6 +7,7 @@ fn status() -> DaemonStatus {
         socket: "/run/user/501/pwe/daemon.sock".to_string(),
         listens: Listens::ThisMachineOnly,
         started_at: 1_700_000_000,
+        rex: RexLink::Reconnecting,
     }
 }
 
@@ -20,6 +21,7 @@ fn the_status_result_uses_kebab_case_words() {
             "socket": "/run/user/501/pwe/daemon.sock",
             "listens": "this-machine-only",
             "started-at": 1_700_000_000,
+            "rex": "reconnecting",
         })
     );
 }

@@ -22,7 +22,7 @@ pub(crate) struct Surroundings {
 }
 
 impl Surroundings {
-    fn of_this_process() -> Self {
+    pub(crate) fn of_this_process() -> Self {
         let home = env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
         Self {
             path_variable: env::var_os("PATH"),
@@ -36,6 +36,15 @@ impl Surroundings {
                 |config| config.rex.app_name,
             ),
         }
+    }
+
+    pub(crate) fn rex_program(&self) -> Option<PathBuf> {
+        rex_program(
+            self.path_variable.as_deref(),
+            &self.applications,
+            &self.rex_app_name,
+        )
+        .ok()
     }
 }
 
@@ -61,8 +70,8 @@ pub(crate) fn listing(
         LsofOpenFiles::on(path),
     );
     let mut codex = CodexSessions::on(&surroundings.codex_folder, LsofOpenFiles::on(path));
-    let mut rex = rex_program(path, &surroundings.applications, &surroundings.rex_app_name)
-        .ok()
+    let mut rex = surroundings
+        .rex_program()
         .map(|binary| RexPanes::at(binary, None));
     let mut rex_panes: Vec<&mut dyn PaneStatuses> = rex
         .iter_mut()

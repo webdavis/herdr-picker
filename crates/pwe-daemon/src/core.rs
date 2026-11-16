@@ -2,9 +2,12 @@ use std::collections::HashMap;
 
 use pwe_domain::Timers;
 use pwe_protocol::{
-    DaemonRequest, DaemonStatus, daemon_reply_line, daemon_status_result, parse_daemon_request,
+    DaemonRequest, DaemonStatus, RexLink, daemon_reply_line, daemon_status_result,
+    parse_daemon_request,
 };
 use serde_json::json;
+
+use crate::arrival::RexNews;
 
 pub(crate) type Job = Box<dyn FnMut(u64) + Send>;
 
@@ -44,6 +47,16 @@ impl DaemonCore {
 
     pub(crate) fn next_at(&self) -> Option<u64> {
         self.timers.next_at()
+    }
+
+    pub(crate) fn rex_link(&mut self, link: RexLink) {
+        self.status.rex = link;
+    }
+
+    pub(crate) fn hear_rex(&mut self, news: RexNews) {
+        if let RexNews::Linked(link) = news {
+            self.rex_link(link);
+        }
     }
 
     pub(crate) fn answer(&self, request_line: &str) -> Answer {
