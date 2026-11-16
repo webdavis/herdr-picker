@@ -47,7 +47,7 @@ pub use popup::{
     PICKER_RESULT_VARIABLE, PICKER_TARGET_VARIABLE, PopupPane, SOCKET_PATH_VARIABLE,
     layout_request, popup_request, window_of,
 };
-pub use rex::{KeyFacts, float_request, parse_key_facts, rex_lua};
+pub use rex::{KeyFacts, float_request, parse_key_facts, rex_lua, rex_pane};
 pub use rows::{
     PICKER_QUERY_VARIABLE, PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, RowError, encode_action,
     encode_header, encode_herdr_call, encode_row, parse_action, parse_header, parse_herdr_call,

@@ -23,16 +23,44 @@ fn quoted(value: &str) -> String {
 
 impl RecordedCli {
     pub(crate) fn answering(list: &str, action: &str) -> Self {
+        Self::recording(
+            "herdr",
+            &format!(
+                "case \"${{1-}} ${{2-}}\" in\n  'workspace list') printf '%s' {} ;;\n  'workspace focus'|'workspace create') printf '%s' {} ;;\n  *) exit 2 ;;\nesac\n",
+                quoted(list),
+                quoted(action)
+            ),
+        )
+    }
+
+    pub(crate) fn rex(answers: &[(&str, &str)]) -> Self {
+        let cases: String = answers
+            .iter()
+            .map(|(arguments, answer)| {
+                format!(
+                    "  {}) printf '%s' {} ;;\n",
+                    quoted(arguments),
+                    quoted(answer)
+                )
+            })
+            .collect();
+        Self::recording(
+            "rex",
+            &format!(
+                "case \"$*\" in\n{cases}  *) echo \"no answer for $*\" >&2; exit 2 ;;\nesac\n"
+            ),
+        )
+    }
+
+    fn recording(name: &str, answers: &str) -> Self {
         let number = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
         let directory =
             std::env::temp_dir().join(format!("hwj-cli-{}-{number}", std::process::id()));
         std::fs::create_dir(&directory).expect("create owned CLI directory");
-        let binary = directory.join("herdr");
+        let binary = directory.join(name);
         let script = format!(
-            "#!/bin/bash\nset -euo pipefail\ncd {}\ncount=0\nif [[ -f count ]]; then read -r count < count; fi\ncount=$((count + 1))\nprintf '%s\\n' \"$count\" > count\nprintf '%s\\0' \"$@\" > \"call-$count\"\ncase \"${{1-}} ${{2-}}\" in\n  'workspace list') printf '%s' {} ;;\n  'workspace focus'|'workspace create') printf '%s' {} ;;\n  *) exit 2 ;;\nesac\n",
+            "#!/bin/bash\nset -euo pipefail\ncd {}\ncount=0\nif [[ -f count ]]; then read -r count < count; fi\ncount=$((count + 1))\nprintf '%s\\n' \"$count\" > count\nprintf '%s\\0' \"$@\" > \"call-$count\"\n{answers}",
             quoted(&directory.to_string_lossy()),
-            quoted(list),
-            quoted(action)
         );
         std::fs::write(&binary, script).expect("write argument-recording executable");
         std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o700))
