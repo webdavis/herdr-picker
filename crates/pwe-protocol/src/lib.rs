@@ -1,5 +1,6 @@
 mod agents;
 mod bash;
+mod daemon_line;
 mod focused;
 mod handover;
 mod manifest;
@@ -17,6 +18,10 @@ pub use agents::{
     tabs_of,
 };
 pub use bash::bash_init;
+pub use daemon_line::{
+    DaemonError, DaemonErrorKind, DaemonRequest, daemon_reply_line, daemon_request_line,
+    parse_daemon_reply, parse_daemon_request,
+};
 pub use focused::{parse_context_pane, parse_focused_id, parse_focused_pane};
 pub use handover::{
     Delivery, Handover, Instruction, PaneKind, Refusal, Underneath, Verb, delivery, guard,
