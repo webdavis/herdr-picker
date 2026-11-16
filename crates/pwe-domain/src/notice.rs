@@ -57,6 +57,13 @@ impl Notice {
         self.read_at.is_none()
     }
 
+    pub fn last_changed_at(&self) -> u64 {
+        [self.resolved_at, self.read_at]
+            .into_iter()
+            .flatten()
+            .fold(self.updated_at, u64::max)
+    }
+
     pub(crate) fn is_about(&self, pane: &Pane) -> bool {
         self.pane.as_ref() == Some(pane)
     }
