@@ -60,3 +60,15 @@ fn a_job_of_zero_seconds_runs_each_second() {
     assert_eq!(timers.due(101), vec!["eager".to_string()]);
     assert_eq!(timers.next_at(), Some(102));
 }
+
+#[test]
+fn a_cancelled_job_is_never_due_again() {
+    let mut timers = Timers::default();
+    timers.every("ask", 2, 100);
+    timers.every("clock", 5, 100);
+
+    timers.cancel("ask");
+
+    assert_eq!(timers.due(104), Vec::<String>::new());
+    assert_eq!(timers.next_at(), Some(105));
+}

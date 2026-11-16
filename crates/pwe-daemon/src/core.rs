@@ -6,12 +6,15 @@ use pwe_protocol::{
 };
 use serde_json::json;
 
+use crate::notices::NoticeDesk;
+
 pub(crate) type Job = Box<dyn FnMut(u64) + Send>;
 
 pub(crate) struct DaemonCore {
     status: DaemonStatus,
     timers: Timers,
     jobs: HashMap<String, Job>,
+    notices: Option<NoticeDesk>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -26,6 +29,7 @@ impl DaemonCore {
             status,
             timers: Timers::default(),
             jobs: HashMap::new(),
+            notices: None,
         }
     }
 
@@ -34,7 +38,14 @@ impl DaemonCore {
         self.jobs.insert(name.to_string(), job);
     }
 
+    pub(crate) fn attach_notices(&mut self, desk: NoticeDesk) {
+        self.notices = Some(desk);
+    }
+
     pub(crate) fn run_due(&mut self, now: u64) {
+        if let Some(notices) = &mut self.notices {
+            notices.run_due(now);
+        }
         for name in self.timers.due(now) {
             if let Some(job) = self.jobs.get_mut(&name) {
                 job(now);
@@ -43,7 +54,8 @@ impl DaemonCore {
     }
 
     pub(crate) fn next_at(&self) -> Option<u64> {
-        self.timers.next_at()
+        let notices_at = self.notices.as_ref().and_then(NoticeDesk::next_at);
+        self.timers.next_at().into_iter().chain(notices_at).min()
     }
 
     pub(crate) fn answer(&self, request_line: &str) -> Answer {
