@@ -1,6 +1,7 @@
 use super::*;
 use crate::notice::{Level, Pane};
 
+mod grouping;
 mod showing;
 mod updating;
 
@@ -20,7 +21,7 @@ fn raised(key: &str, level: Level) -> Raised {
     Raised {
         key: key.to_string(),
         source: "tests".to_string(),
-        kind: "test-run".to_string(),
+        kind: key.to_string(),
         level,
         text: format!("{key} done"),
         pane: None,

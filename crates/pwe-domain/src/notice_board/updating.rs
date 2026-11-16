@@ -1,6 +1,5 @@
 use super::NoticeBoard;
 use super::input::{NoticeEffect, Raised};
-use super::line::notice_line;
 
 impl NoticeBoard {
     pub(super) fn update(&mut self, index: usize, raised: Raised, now: u64) -> Vec<NoticeEffect> {
@@ -15,11 +14,11 @@ impl NoticeBoard {
         let notice = notice.clone();
         let mut effects = vec![NoticeEffect::SaveRow(Box::new(notice.clone()))];
         match self.float_holding(&notice.id) {
-            Some(index) if self.floats[index].level == notice.level => {
+            Some(index) if self.floats[index].holds_like(&notice) => {
                 effects.push(self.refresh(index, now));
             }
             _ => {
-                effects.extend(self.withdraw(&notice.id));
+                effects.extend(self.withdraw(&notice.id, now));
                 effects.extend(self.present(&notice, now));
             }
         }
@@ -32,41 +31,8 @@ impl NoticeBoard {
         };
         let mut notice = self.live.remove(index);
         notice.resolved_at = Some(now);
-        let mut effects = self.withdraw(&notice.id);
+        let mut effects = self.withdraw(&notice.id, now);
         effects.insert(0, NoticeEffect::SaveRow(Box::new(notice)));
         effects
-    }
-
-    pub(super) fn float_holding(&self, id: &str) -> Option<usize> {
-        self.floats
-            .iter()
-            .position(|float| float.members.iter().any(|member| member == id))
-    }
-
-    pub(super) fn withdraw(&mut self, id: &str) -> Vec<NoticeEffect> {
-        let Some(index) = self.float_holding(id) else {
-            return Vec::new();
-        };
-        let float = self.floats.remove(index);
-        vec![NoticeEffect::Close { float: float.id }]
-    }
-
-    fn refresh(&mut self, index: usize, now: u64) -> NoticeEffect {
-        let seconds = self.settings.seconds_on_screen(self.floats[index].level);
-        self.floats[index].until = now + seconds;
-        let float = &self.floats[index];
-        NoticeEffect::Relabel {
-            float: float.id.clone(),
-            line: self.float_line(&float.members),
-            seconds,
-        }
-    }
-
-    fn float_line(&self, members: &[String]) -> String {
-        self.live
-            .iter()
-            .find(|notice| members.contains(&notice.id))
-            .map(notice_line)
-            .unwrap_or_default()
     }
 }

@@ -1,13 +1,20 @@
-use crate::notice::Level;
+use crate::notice::{Level, Notice};
 
 #[derive(Debug, Clone)]
 pub(super) struct Float {
     pub(super) id: String,
     pub(super) slot: usize,
     pub(super) level: Level,
+    pub(super) kind: String,
     pub(super) members: Vec<String>,
     pub(super) shown_at: u64,
     pub(super) until: u64,
+}
+
+impl Float {
+    pub(super) fn holds_like(&self, notice: &Notice) -> bool {
+        !self.members.is_empty() && self.level == notice.level && self.kind == notice.kind
+    }
 }
 
 pub(super) fn lowest_free_slot(floats: &[Float]) -> usize {

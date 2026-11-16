@@ -25,9 +25,9 @@ impl NoticeBoard {
             resolved_at: None,
             read_at: None,
         };
+        self.live.push(notice.clone());
         let mut effects = vec![NoticeEffect::SaveRow(Box::new(notice.clone()))];
         effects.extend(self.present(&notice, now));
-        self.live.push(notice);
         effects
     }
 
@@ -35,8 +35,12 @@ impl NoticeBoard {
         if notice.level == Level::Quiet || self.is_in_view(notice) {
             return Vec::new();
         }
+        if let Some(grouped) = self.join_group(notice, now) {
+            return vec![grouped];
+        }
         self.open_float(
             notice.level,
+            &notice.kind,
             vec![notice.id.clone()],
             notice_line(notice),
             now,
@@ -50,6 +54,7 @@ impl NoticeBoard {
     pub(super) fn open_float(
         &mut self,
         level: Level,
+        kind: &str,
         members: Vec<String>,
         line: String,
         now: u64,
@@ -69,6 +74,7 @@ impl NoticeBoard {
             id: format!("float-{}", self.next_number()),
             slot: lowest_free_slot(&self.floats),
             level,
+            kind: kind.to_string(),
             members,
             shown_at: now,
             until: now + seconds,
