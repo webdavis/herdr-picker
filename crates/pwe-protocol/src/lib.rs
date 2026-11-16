@@ -11,6 +11,7 @@ mod panes;
 mod popup;
 mod rex;
 mod rex_event;
+mod rex_whereabouts;
 mod rows;
 mod shell;
 mod system_job;
@@ -52,6 +53,7 @@ pub use rex::{KeyFacts, float_request, opened_block, parse_key_facts, rex_lua, r
 pub use rex_event::{
     ForegroundProcess, ProgramStatus, RexBlock, RexEvent, RexEventError, parse_rex_event,
 };
+pub use rex_whereabouts::parse_rex_whereabouts;
 pub use rows::{
     PICKER_QUERY_VARIABLE, PICKER_SOURCE_VARIABLE, PICKER_STATE_VARIABLE, RowError, encode_action,
     encode_header, encode_herdr_call, encode_row, parse_action, parse_header, parse_herdr_call,
