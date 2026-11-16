@@ -1,4 +1,5 @@
 mod agent;
+mod agent_session;
 mod backoff;
 mod chord;
 mod field;
@@ -32,6 +33,10 @@ pub mod test_engine;
 mod timers;
 
 pub use agent::{Agent, AgentStatus, age, carry_since, ordered};
+pub use agent_session::{
+    AgentBook, AgentChange, AgentSession, AgentState, PaneStatus, ProgramName, ProgramReport,
+    StateFrom, WaitingFor, WaitingKind,
+};
 pub use backoff::Backoff;
 pub use chord::{Chord, Stroke};
 pub use field::{Edit, ReadlineField, TextField};
