@@ -23,6 +23,10 @@ pub fn daemon_socket_file(
         .join("daemon.sock")
 }
 
+pub fn agent_panes_file(state_home: Option<&str>, home: Option<&str>) -> PathBuf {
+    pwe_state_folder(state_home, home).join("agent-panes.json")
+}
+
 pub fn daemon_log_file(state_home: Option<&str>, home: Option<&str>) -> PathBuf {
     pwe_state_folder(state_home, home).join("daemon.log")
 }

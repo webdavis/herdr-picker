@@ -1,7 +1,7 @@
 use std::sync::mpsc::SyncSender;
 
 use pwe_application::AgentSources;
-use pwe_domain::{AgentBook, AgentChange, PaneStatus, ProgramReport};
+use pwe_domain::{AgentBook, AgentChange, AgentSession, PaneStatus, ProgramReport};
 use pwe_protocol::{RexEvent, agent_sessions_value, rex_reported_state};
 use serde_json::Value;
 
@@ -69,6 +69,10 @@ impl AgentWatch {
             | RexEvent::ChildExited { .. } => self.ask_for_reading(),
             RexEvent::TabChanged { .. } | RexEvent::ViewChanged { .. } | RexEvent::Other => {}
         }
+    }
+
+    pub(crate) fn sessions(&self) -> &[AgentSession] {
+        self.book.sessions()
     }
 
     pub(crate) fn listing(&self) -> Option<Value> {

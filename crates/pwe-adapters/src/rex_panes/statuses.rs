@@ -4,10 +4,8 @@ use pwe_protocol::{
     ProtocolError, rex_pane_status, rex_session_ids, rex_status_record, rex_terminal_panes,
 };
 
-use super::RexPanes;
+use super::{REX_PANES_SOURCE, RexPanes};
 use crate::response::jump_error;
-
-const SOURCE: &str = "rex";
 
 impl PaneStatuses for RexPanes {
     fn pane_statuses(&mut self) -> Result<Vec<PaneStatus>, AgentReadError> {
@@ -35,7 +33,7 @@ impl RexPanes {
 
 fn rex_refused(failure: JumpError) -> AgentReadError {
     AgentReadError {
-        program: SOURCE.to_string(),
+        program: REX_PANES_SOURCE.to_string(),
         detail: failure.to_string(),
     }
 }

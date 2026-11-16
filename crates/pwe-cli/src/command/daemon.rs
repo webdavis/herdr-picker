@@ -2,7 +2,8 @@ use std::env;
 use std::path::PathBuf;
 
 use pwe_adapters::{
-    LaunchAgent, SystemdUser, daemon_log_file, launch_agent_file, systemd_unit_file,
+    LaunchAgent, SystemdUser, agent_panes_file, daemon_log_file, launch_agent_file,
+    systemd_unit_file,
 };
 use pwe_application::{DaemonLaunch, SystemService};
 use pwe_daemon::{
@@ -33,6 +34,16 @@ fn run() -> Result<(), CommandError> {
     let mut daemon = Daemon::claim(&daemon_socket(), seconds_since_1970()).map_err(failed)?;
     let surroundings = Surroundings::of_this_process();
     daemon.follow_rex(surroundings.rex_program());
+    if let (true, Some(rex_program)) = (
+        surroundings.agents.reopen_after_rex_restart,
+        surroundings.rex_program(),
+    ) {
+        let records = agent_panes_file(
+            variable("XDG_STATE_HOME").as_deref(),
+            variable("HOME").as_deref(),
+        );
+        daemon.reopen_after_rex_restarts(records, rex_program);
+    }
     let refresh_seconds = surroundings.agents.refresh_seconds.max(1);
     daemon.follow_agents(
         move || surroundings.read_agent_sources(),

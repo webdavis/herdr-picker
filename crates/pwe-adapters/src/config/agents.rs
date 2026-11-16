@@ -24,6 +24,7 @@ impl From<AgentProgramWord> for ProgramName {
 pub struct AgentSettings {
     programs: Vec<AgentProgramWord>,
     pub refresh_seconds: u64,
+    pub reopen_after_rex_restart: bool,
 }
 
 impl Default for AgentSettings {
@@ -35,6 +36,7 @@ impl Default for AgentSettings {
                 AgentProgramWord::Omp,
             ],
             refresh_seconds: 15,
+            reopen_after_rex_restart: false,
         }
     }
 }

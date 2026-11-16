@@ -8,6 +8,7 @@ mod daemon_start_error;
 mod lifecycle;
 mod listener;
 mod registration;
+mod reopening;
 mod report;
 mod rex_stream;
 mod socket_claim;

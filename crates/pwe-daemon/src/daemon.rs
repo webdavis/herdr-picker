@@ -16,6 +16,7 @@ use crate::companions::{AgentsToRead, Companions};
 use crate::core::DaemonCore;
 use crate::daemon_start_error::DaemonStartError;
 use crate::listener::listen;
+use crate::reopening::{ReopenRunner, Reopening};
 use crate::socket_claim::{ClaimRefusal, SocketClaim};
 
 pub struct Daemon {
@@ -80,6 +81,13 @@ impl Daemon {
             refresh_seconds,
             asked,
         });
+    }
+
+    pub fn reopen_after_rex_restarts(&mut self, records: PathBuf, rex_program: PathBuf) {
+        let mut runner = ReopenRunner::new(rex_program);
+        let reopen = Box::new(move |panes| runner.reopen(panes));
+        self.core
+            .reopen_after_rex_restarts(Reopening::new(records, reopen));
     }
 
     pub fn serve(self) -> io::Result<()> {

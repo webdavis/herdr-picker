@@ -2,6 +2,8 @@ use super::*;
 use pwe_protocol::{DaemonErrorKind, Listens, RexLink, parse_daemon_reply};
 use std::sync::{Arc, Mutex};
 
+mod reopening;
+
 fn core() -> DaemonCore {
     DaemonCore::new(DaemonStatus {
         running: true,

@@ -42,3 +42,13 @@ fn an_unknown_agent_program_is_refused() {
         "{refused:?}"
     );
 }
+
+#[test]
+fn reopening_agents_after_a_rex_restart_is_off_unless_turned_on() {
+    let default = agent_settings("reopen-default", "").expect("a config");
+    let turned_on = agent_settings("reopen-on", "[agents]\nreopen-after-rex-restart = true\n")
+        .expect("a config");
+
+    assert!(!default.reopen_after_rex_restart);
+    assert!(turned_on.reopen_after_rex_restart);
+}

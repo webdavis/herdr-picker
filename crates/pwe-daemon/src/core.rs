@@ -11,6 +11,8 @@ use serde_json::json;
 
 use crate::agents::AgentWatch;
 use crate::arrival::RexNews;
+use crate::reopening::Reopening;
+use pwe_adapters::REX_PANES_SOURCE;
 
 pub(crate) type Job = Box<dyn FnMut(u64) + Send>;
 
@@ -19,6 +21,7 @@ pub(crate) struct DaemonCore {
     timers: Timers,
     jobs: HashMap<String, Job>,
     agents: Option<AgentWatch>,
+    reopening: Option<Reopening>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -34,6 +37,7 @@ impl DaemonCore {
             timers: Timers::default(),
             jobs: HashMap::new(),
             agents: None,
+            reopening: None,
         }
     }
 
@@ -62,9 +66,18 @@ impl DaemonCore {
         self.agents = Some(watch);
     }
 
+    pub(crate) fn reopen_after_rex_restarts(&mut self, reopening: Reopening) {
+        self.reopening = Some(reopening);
+    }
+
     pub(crate) fn hear_rex(&mut self, news: RexNews, now: u64) {
         match news {
-            RexNews::Linked(link) => self.rex_link(link),
+            RexNews::Linked(link) => {
+                self.rex_link(link);
+                if let Some(reopening) = self.reopening.as_mut() {
+                    reopening.hear_link(link);
+                }
+            }
             RexNews::Event(event) => {
                 if let Some(agents) = self.agents.as_mut() {
                     agents.hear_event(&event, now);
@@ -74,8 +87,17 @@ impl DaemonCore {
     }
 
     pub(crate) fn take_agent_reading(&mut self, sources: AgentSources, now: u64) {
-        if let Some(agents) = self.agents.as_mut() {
-            agents.take_reading(sources, now);
+        let rex_answered = self.status.rex == RexLink::Connected
+            && sources
+                .refusals
+                .iter()
+                .all(|refusal| refusal.program != REX_PANES_SOURCE);
+        let Some(agents) = self.agents.as_mut() else {
+            return;
+        };
+        agents.take_reading(sources, now);
+        if let (true, Some(reopening)) = (rex_answered, self.reopening.as_mut()) {
+            reopening.record(agents.sessions());
         }
     }
 
