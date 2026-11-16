@@ -1,6 +1,5 @@
 use std::env;
 use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use pwe_adapters::{
     LaunchAgent, SystemdUser, daemon_log_file, daemon_socket_file, launch_agent_file,
@@ -8,8 +7,8 @@ use pwe_adapters::{
 };
 use pwe_application::{DaemonLaunch, SystemService};
 use pwe_daemon::{
-    Daemon, Started, Stopped, daemon_report, disable_daemon, enable_daemon, start_daemon,
-    stop_daemon,
+    Daemon, Started, Stopped, daemon_report, disable_daemon, enable_daemon, seconds_since_1970,
+    start_daemon, stop_daemon,
 };
 
 use super::{CommandError, failed};
@@ -39,15 +38,8 @@ fn socket() -> PathBuf {
     )
 }
 
-fn seconds_since_1970() -> Result<u64, CommandError> {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|elapsed| elapsed.as_secs())
-        .map_err(failed)
-}
-
 fn run() -> Result<(), CommandError> {
-    Daemon::claim(&socket(), seconds_since_1970()?)
+    Daemon::claim(&socket(), seconds_since_1970())
         .map_err(failed)?
         .serve()
         .map_err(failed)

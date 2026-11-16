@@ -211,6 +211,7 @@ version = "0.1.0"
 dependencies = [
  "pwe-adapters",
  "pwe-application",
+ "pwe-domain",
  "pwe-protocol",
  "serde_json",
 ]

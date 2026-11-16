@@ -136,3 +136,20 @@ fn stop_ends_the_daemon_and_removes_its_socket() {
         Err(DaemonAskError::NotRunning)
     ));
 }
+
+#[test]
+fn the_loop_wakes_for_a_job_without_any_request() {
+    let folder = TempFolder::new("clock");
+    let mut daemon = Daemon::claim(&folder.socket(), STARTED_AT)
+        .unwrap_or_else(|refusal| panic!("the daemon did not start: {refusal}"));
+    let (ran, told) = std::sync::mpsc::channel();
+    daemon.every("ping", 1, move |_| {
+        let _ = ran.send(());
+    });
+    let serving = thread::spawn(move || daemon.serve());
+
+    let woke = told.recv_timeout(std::time::Duration::from_secs(3));
+    stopped(&folder.socket(), serving);
+
+    assert!(woke.is_ok(), "the job never ran");
+}

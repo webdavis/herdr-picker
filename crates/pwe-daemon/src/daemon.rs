@@ -3,12 +3,13 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::process;
-use std::sync::mpsc::{self, Receiver, Sender};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
 use std::thread;
 use std::time::Duration;
 
 use pwe_protocol::{DaemonStatus, Listens};
 
+use crate::clock::seconds_since_1970;
 use crate::core::{Answer, DaemonCore};
 use crate::socket_claim::{ClaimRefusal, SocketClaim};
 
@@ -60,11 +61,17 @@ impl Daemon {
         Ok(Self { claim, core })
     }
 
+    pub fn every(&mut self, name: &str, seconds: u64, job: impl FnMut(u64) + Send + 'static) {
+        self.core
+            .every(name, seconds, seconds_since_1970(), Box::new(job));
+    }
+
     pub fn serve(self) -> io::Result<()> {
         let listener = self.claim.listener.try_clone()?;
         let (requests, received) = mpsc::channel();
         let listening = thread::spawn(move || listen(&listener, &requests));
-        answer_until_stopped(&self.core, &received, || self.claim.remove_socket());
+        let claim = self.claim;
+        answer_until_stopped(self.core, &received, || claim.remove_socket());
         listening
             .join()
             .map_err(|_| io::Error::other("the socket listener panicked"))
@@ -72,11 +79,22 @@ impl Daemon {
 }
 
 fn answer_until_stopped(
-    core: &DaemonCore,
+    mut core: DaemonCore,
     received: &Receiver<Request>,
     close_to_new_requests: impl FnOnce(),
 ) {
-    while let Ok(request) = received.recv() {
+    loop {
+        let now = seconds_since_1970();
+        core.run_due(now);
+        let next = match core.next_at() {
+            Some(at) => received.recv_timeout(Duration::from_secs(at.saturating_sub(now))),
+            None => received.recv().map_err(|_| RecvTimeoutError::Disconnected),
+        };
+        let request = match next {
+            Ok(request) => request,
+            Err(RecvTimeoutError::Timeout) => continue,
+            Err(RecvTimeoutError::Disconnected) => return,
+        };
         let answer = core.answer(&request.line);
         if !answer.keeps_serving {
             close_to_new_requests();
