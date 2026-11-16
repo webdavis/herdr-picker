@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/work/target/debug/build/probe/dfbb80330d08aa55/out/probe-dfbb80330d08aa55)
+tests::fails: test
+tests::passes: test
+tests::prints: test
+tests::skipped: test
+     Running tests/it.rs (/work/target/debug/build/probe/b64e494a42253eaa/out/it-b64e494a42253eaa)
+outside: test
+   Doc-tests probe

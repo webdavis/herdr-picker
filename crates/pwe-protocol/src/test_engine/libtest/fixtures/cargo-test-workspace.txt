@@ -1,0 +1,49 @@
+   Compiling probe v0.1.0 (/work/probe)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running unittests src/lib.rs (/work/target/debug/build/probe/dfbb80330d08aa55/out/probe-dfbb80330d08aa55)
+
+running 4 tests
+test tests::skipped ... ignored
+test tests::passes ... ok
+test tests::prints ... FAILED
+test tests::fails ... FAILED
+
+failures:
+
+---- tests::prints stdout ----
+hello
+
+thread 'tests::prints' (137546801) panicked at src/lib.rs:7:46:
+boom
+
+---- tests::fails stdout ----
+
+thread 'tests::fails' (137546799) panicked at src/lib.rs:5:26:
+assertion `left == right` failed: two is two
+  left: 2
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::fails
+    tests::prints
+
+test result: FAILED. 1 passed; 2 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+     Running tests/it.rs (/work/target/debug/build/probe/b64e494a42253eaa/out/it-b64e494a42253eaa)
+
+running 1 test
+test outside ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests probe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `--lib`
