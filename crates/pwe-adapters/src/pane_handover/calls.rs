@@ -6,7 +6,7 @@ use pwe_protocol::{
     self as protocol, Delivery, PaneKind, Refusal, agents_of, call_request, delivery, tabs_of,
 };
 
-use super::{HandoverError, SocketPanes};
+use super::{HandoverError, PaneHost, SocketPanes};
 use crate::agent_store::{AgentSnapshot, lock_queue, read_queue, write_queue};
 use crate::response::{jump_error, workspaces};
 

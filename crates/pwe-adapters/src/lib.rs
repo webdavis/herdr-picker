@@ -63,7 +63,9 @@ pub use inbox::{inbox_listing_json, prune_inbox_file, read_inbox, save_inbox_row
 pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step, save_step_command};
 pub use manifest::{ManifestError, write_manifest};
-pub use pane_handover::{HandoverError, Sent, SocketPanes, drain_queue, hand_over, send_prompt};
+pub use pane_handover::{
+    HandoverError, PaneHost, Sent, SocketPanes, drain_queue, hand_over, send_prompt,
+};
 pub use pane_result::{PaneWaitError, await_pane_result, write_pane_state};
 pub use path_preview::path_preview;
 pub use picker_files::{
