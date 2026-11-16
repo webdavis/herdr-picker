@@ -7,6 +7,10 @@ does = "Runs cargo test for every package, without stopping at the first failed 
 [detect]
 files = ["Cargo.toml"]
 
+[list]
+argv = ["cargo", "test", "--message-format", "json", "--", "--list", "--format", "terse"]
+parser = "libtest"
+
 [run]
 all = ["cargo", "test", "--no-fail-fast", "--message-format", "json"]
 ids = ["cargo", "test", "--no-fail-fast", "--message-format", "json", "--", "--exact", "{names...}"]

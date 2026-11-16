@@ -1,11 +1,9 @@
 use std::env;
 use std::path::Path;
 
-use pwe_adapters::test_engine::{
-    ChildProcess, RunFile, drop_old_runs, has_file, read_runner_files, repo_root, runner_folder,
-};
+use pwe_adapters::test_engine::{ChildProcess, RunFile, drop_old_runs, repo_root};
 use pwe_application::test_engine::{Clock, RunRequest, run_tests};
-use pwe_domain::test_engine::{Retention, matched_runners};
+use pwe_domain::test_engine::Retention;
 use pwe_protocol::test_engine::{TestError, result_reader};
 
 use super::event_printer::EventPrinter;
@@ -15,6 +13,7 @@ use super::output::{chosen_format, exit_with, refused};
 use super::run_again::resolved_target;
 use super::run_runner::{chosen_runner, run_refusal, unknown_parser};
 use super::run_target::{chosen_target, selection};
+use super::runners::folder_runners;
 use super::system_clock::{SystemClock, new_run_id};
 use crate::command::{CommandError, failed};
 
@@ -32,11 +31,7 @@ pub(super) fn run(words: &[&str]) -> Result<(), CommandError> {
         .and_then(|target| resolved_target(target, &runs))
         .map_err(refuse)?;
     let root_text = root.to_string_lossy().into_owned();
-    let files = read_runner_files(&runner_folder(
-        env::var("XDG_CONFIG_HOME").ok().as_deref(),
-        env::var("HOME").ok().as_deref(),
-    ));
-    let matched = matched_runners(&files.runners, |name| has_file(&root, name));
+    let (matched, _) = folder_runners(&root);
     let wanted = flags.runner.or(target.runner);
     let runner = chosen_runner(matched, wanted.as_deref(), &target.ran).map_err(refuse)?;
     let parser = &runner.spec.output.parser;
