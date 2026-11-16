@@ -1,7 +1,7 @@
-use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader, Write};
+use std::fs;
+use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::{Child, ChildStdin, ExitStatus};
+use std::process::{Child, ExitStatus};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -9,13 +9,13 @@ use pwe_domain::PickerRow;
 use pwe_protocol::{RowError, parse_header, parse_row};
 use rustix::process::kill_process_group;
 
+use super::row_sink::{FzfRowSink, RowSink};
 use super::{PickerRunError, signal};
 use crate::private::write_private_atomically;
 
 pub(super) struct Feed {
     pub(super) source: Child,
-    pub(super) rows_in: ChildStdin,
-    pub(super) cache: File,
+    pub(super) sink: FzfRowSink,
     pub(super) error_file: PathBuf,
     pub(super) header_file: PathBuf,
     pub(super) said_file: PathBuf,
@@ -25,15 +25,14 @@ pub(super) struct Feed {
 pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
     let Feed {
         mut source,
-        mut rows_in,
-        mut cache,
+        mut sink,
         error_file,
         header_file,
         said_file,
         stopping,
     } = feed;
     let rows_out = source.stdout.take().expect("the picker's stdout is piped");
-    let (rows, bad_row) = deliver(rows_out, &mut rows_in, &mut cache, &header_file);
+    let (rows, bad_row) = deliver(rows_out, &mut sink, &header_file);
     if bad_row.is_some() {
         signal(source.id(), kill_process_group);
     }
@@ -45,14 +44,13 @@ pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
     if let Some(refusal) = &refusal {
         let _ = write_private_atomically(&error_file, refusal.to_string().as_bytes());
     }
-    drop(rows_in);
+    drop(sink);
     refusal.map_or(Ok(rows), Err)
 }
 
 fn deliver(
     rows_out: impl io::Read,
-    rows_in: &mut ChildStdin,
-    cache: &mut File,
+    sink: &mut impl RowSink,
     header_file: &Path,
 ) -> (Vec<PickerRow>, Option<RowError>) {
     let mut rows = Vec::new();
@@ -65,9 +63,7 @@ fn deliver(
             Ok(read) => read,
             Err(bad_row) => return (rows, Some(bad_row)),
         };
-        let cached_before_shown = writeln!(cache, "{line}")
-            .and_then(|()| writeln!(rows_in, "{}\t{}", rows.len(), row.label));
-        if cached_before_shown.is_err() {
+        if sink.take(rows.len(), &row, &line).is_err() {
             break;
         }
         rows.push(row);
@@ -98,3 +94,6 @@ pub(crate) fn failure(
         said => format!("{reason}: {said}"),
     }))
 }
+
+#[cfg(test)]
+mod tests;
