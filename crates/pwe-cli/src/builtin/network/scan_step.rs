@@ -8,11 +8,15 @@ use super::scan::{ScanFiles, scan_command};
 use crate::builtin::page::{notice, words};
 use crate::builtin::paint::{blue, dim};
 
+fn asking_for_the_password_every_time(command: &str) -> String {
+    command.replacen("sudo nmap", "sudo -k nmap", 1)
+}
+
 fn run_scan(range: &str, files: &ScanFiles) -> String {
     let folder = files.xml.parent().unwrap_or(Path::new("."));
     let xml = files.xml.to_string_lossy();
     let report = files.report.to_string_lossy();
-    let nmap = scan_command(range).replacen("sudo nmap", "sudo -k nmap", 1);
+    let nmap = asking_for_the_password_every_time(&scan_command(range));
     format!(
         "mkdir -p {} && {nmap} -oX {} -oN {}",
         words(&[&folder.to_string_lossy()]),

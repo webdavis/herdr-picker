@@ -11,6 +11,8 @@ pub enum Entry {
     Folders,
 }
 
+const FD_FOLDER_SUFFIX: &[u8] = b"/";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Walk {
     pub root: PathBuf,
@@ -57,7 +59,9 @@ fn with_fd(
     let paths = BufReader::new(child.stdout.take().expect("fd's stdout is piped"));
     let handed = paths.split(b'\n').try_for_each(|line| {
         let line = line?;
-        let path = line.strip_suffix(b"/").filter(|path| !path.is_empty());
+        let path = line
+            .strip_suffix(FD_FOLDER_SUFFIX)
+            .filter(|path| !path.is_empty());
         found(Path::new(OsStr::from_bytes(path.unwrap_or(&line))))
     });
     if handed.is_err() {

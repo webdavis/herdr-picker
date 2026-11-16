@@ -7,7 +7,7 @@ use pwe_domain::{Agent, AgentStatus, Queued, Workspace};
 use pwe_protocol::WireTab;
 use serde::{Deserialize, Serialize};
 
-use crate::private::{create_private, write_private};
+use crate::private::{create_private, write_private_atomically};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct AgentSnapshot {
@@ -57,7 +57,7 @@ pub fn write_snapshot(path: &Path, snapshot: &AgentSnapshot) -> io::Result<()> {
             })
             .collect(),
     };
-    write_private(path, &serde_json::to_vec(&saved)?)
+    write_private_atomically(path, &serde_json::to_vec(&saved)?)
 }
 
 pub fn read_snapshot(path: &Path, fresh_for: Duration, now: SystemTime) -> Option<AgentSnapshot> {
@@ -97,7 +97,7 @@ pub fn write_queue(path: &Path, queue: &[Queued]) -> io::Result<()> {
             text: queued.text.clone(),
         })
         .collect();
-    write_private(path, &serde_json::to_vec(&saved)?)
+    write_private_atomically(path, &serde_json::to_vec(&saved)?)
 }
 
 pub fn read_queue(path: &Path) -> Vec<Queued> {

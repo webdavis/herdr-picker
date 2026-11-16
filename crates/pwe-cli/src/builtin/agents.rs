@@ -4,7 +4,7 @@ use pwe_domain::{Action, PickerRow};
 
 use super::page::notice;
 use super::rows::{RowWriter, key};
-use super::{Asked, Places, written};
+use super::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod agent_row;
@@ -19,7 +19,7 @@ mod start;
 use herdr_view::herdr_view;
 pub(crate) use send::send_call;
 
-const FRESH: &str = r#"{"fresh":true}"#;
+const ASK_HERDR_AGAIN: &str = r#"{"fresh":true}"#;
 
 pub(super) fn agents(
     name: &str,
@@ -33,7 +33,7 @@ pub(super) fn agents(
         ("answer", _) => send::answer(asked),
         (_, source) => sources(source, asked, places),
     };
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn sources(source: &str, asked: &Asked, places: &Places) -> Vec<PickerRow> {
@@ -53,7 +53,7 @@ fn sources(source: &str, asked: &Asked, places: &Places) -> Vec<PickerRow> {
     };
     let refresh = (
         key("ctrl-r").labelled("ask herdr again"),
-        Action::State(FRESH.to_string()),
+        Action::State(ASK_HERDR_AGAIN.to_string()),
     );
     listed
         .into_iter()

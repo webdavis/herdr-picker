@@ -3,8 +3,8 @@ use std::io::Write;
 use pwe_domain::{Action, PickerCall, PickerRow, Preview};
 
 use super::paint::dim;
+use crate::builtin::finder_closing_is_no_failure;
 use crate::builtin::rows::RowWriter;
-use crate::builtin::written;
 use crate::command::CommandError;
 
 pub(super) fn next(
@@ -48,9 +48,9 @@ pub(super) fn ask(
     choices: Vec<Choice>,
     rows: &mut RowWriter<impl Write>,
 ) -> Result<(), CommandError> {
-    written(rows.header(question))?;
+    finder_closing_is_no_failure(rows.header(question))?;
     let cancel = choice("Cancel", "nothing changes", Action::Back);
-    written(
+    finder_closing_is_no_failure(
         std::iter::once(cancel)
             .chain(choices)
             .try_for_each(|choice| {

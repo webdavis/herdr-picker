@@ -5,7 +5,7 @@ use serde_json::Value;
 use super::devices::Device;
 use super::sightings::Source;
 
-const SOURCES: [Source; 4] = [
+const NAME_SOURCES_MOST_TRUSTED_FIRST: [Source; 4] = [
     Source::UniFi,
     Source::ThisMac,
     Source::Bonjour,
@@ -16,7 +16,7 @@ const UNIFI_ROLES: [(&str, &str); 3] = [
     ("accessPoint", "access point"),
     ("switching", "switch"),
 ];
-const ROUTER_MODELS: [&str; 5] = ["UDR", "UDM", "UXG", "UCG", "USG"];
+const ROUTER_MODEL_PREFIXES: [&str; 5] = ["UDR", "UDM", "UXG", "UCG", "USG"];
 
 pub(super) fn is_loopback(ip: &str) -> bool {
     ip.parse::<IpAddr>().is_ok_and(|ip| ip.is_loopback())
@@ -32,7 +32,7 @@ pub(super) fn display_name(device: &Device) -> String {
     if let Some(name) = device.this_mac.as_ref().filter(|name| !name.is_empty()) {
         return name.clone();
     }
-    let named = SOURCES
+    let named = NAME_SOURCES_MOST_TRUSTED_FIRST
         .iter()
         .find_map(|source| device.names.iter().find(|(seen, _)| seen == source));
     match named {
@@ -66,7 +66,10 @@ pub(super) fn role(device: &Device) -> String {
         .and_then(Value::as_str)
         .unwrap_or_default()
         .to_uppercase();
-    if ROUTER_MODELS.iter().any(|router| model.starts_with(router)) {
+    if ROUTER_MODEL_PREFIXES
+        .iter()
+        .any(|router| model.starts_with(router))
+    {
         features.push("gateway");
     }
     let roles: Vec<&str> = UNIFI_ROLES

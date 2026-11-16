@@ -38,8 +38,8 @@ fn recent_places_come_back_newest_first_from_the_lines_written() {
     let state = TempState::new("order");
 
     assert_eq!(recent_places(&state.path()), Vec::new());
-    record_place(&state.path(), place("w1:p1", "/a", 10), 5);
-    record_place(&state.path(), place("w1:p2", "/b b", 20), 5);
+    record_place_without_a_lock(&state.path(), place("w1:p1", "/a", 10), 5);
+    record_place_without_a_lock(&state.path(), place("w1:p2", "/b b", 20), 5);
 
     assert_eq!(
         fs::read_to_string(state.path()).expect("the log"),
@@ -56,7 +56,7 @@ fn the_log_keeps_only_the_newest_places_up_to_its_bound() {
     let state = TempState::new("bound");
 
     for at in 1..=4 {
-        record_place(&state.path(), place(&format!("w1:p{at}"), "/a", at), 3);
+        record_place_without_a_lock(&state.path(), place(&format!("w1:p{at}"), "/a", at), 3);
     }
 
     assert_eq!(
@@ -74,7 +74,7 @@ fn a_folder_that_would_break_a_line_is_not_logged_and_a_broken_line_is_skipped()
     fs::create_dir_all(&state.0).expect("the state folder");
     fs::write(state.path(), "garbage\n5\tw1\tw1:t1\tw1:p1\t/a\n").expect("a log");
 
-    record_place(&state.path(), place("w1:p2", "/new\nline", 6), 5);
+    record_place_without_a_lock(&state.path(), place("w1:p2", "/new\nline", 6), 5);
 
     assert_eq!(recent_places(&state.path()), vec![place("w1:p1", "/a", 5)]);
 }

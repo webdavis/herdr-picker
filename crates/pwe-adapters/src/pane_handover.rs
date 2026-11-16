@@ -97,7 +97,8 @@ pub fn hand_over(
     match handover(&instruction, &underneath)? {
         Handover::Herdr(call) => calls::carry_out(panes, queue, &call),
         Handover::Type { text, submit } => {
-            if submit || kind != PaneKind::Shell {
+            let insert_lands_after_any_shell_draft = !submit && kind == PaneKind::Shell;
+            if !insert_lands_after_any_shell_draft {
                 guard(&kind, &pane.status, &panes.screen(target)?)?;
             }
             Ok(panes.type_text(target, &text, submit)?)

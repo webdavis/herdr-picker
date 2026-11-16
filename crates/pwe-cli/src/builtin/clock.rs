@@ -28,7 +28,7 @@ fn offset(zone: &str) -> Option<i64> {
 
 pub(super) fn stamp(epoch: i64, offset: i64) -> String {
     let local = epoch + offset;
-    let (year, month, day) = civil(local.div_euclid(86_400));
+    let (year, month, day) = civil_from_days(local.div_euclid(86_400));
     let minute = local.rem_euclid(86_400) / 60;
     format!(
         "{year:04}-{month:02}-{day:02} {:02}:{:02}",
@@ -39,7 +39,7 @@ pub(super) fn stamp(epoch: i64, offset: i64) -> String {
 
 pub(super) fn parse_iso(text: &str) -> Option<i64> {
     let number = |range: std::ops::Range<usize>| text.get(range)?.parse::<i64>().ok();
-    let days = days(number(0..4)?, number(5..7)?, number(8..10)?);
+    let days = days_from_civil(number(0..4)?, number(5..7)?, number(8..10)?);
     let seconds = number(11..13)? * 3600 + number(14..16)? * 60 + number(17..19)?;
     let zone = text[19..].trim_start_matches(|c: char| c == '.' || c.is_ascii_digit());
     let east = match zone {
@@ -49,7 +49,7 @@ pub(super) fn parse_iso(text: &str) -> Option<i64> {
     Some(days * 86_400 + seconds - east)
 }
 
-fn days(year: i64, month: i64, day: i64) -> i64 {
+fn days_from_civil(year: i64, month: i64, day: i64) -> i64 {
     let year = if month <= 2 { year - 1 } else { year };
     let era = year.div_euclid(400);
     let of_era = year - era * 400;
@@ -58,7 +58,7 @@ fn days(year: i64, month: i64, day: i64) -> i64 {
     era * 146_097 + of_cycle - 719_468
 }
 
-fn civil(days: i64) -> (i64, i64, i64) {
+fn civil_from_days(days: i64) -> (i64, i64, i64) {
     let shifted = days + 719_468;
     let era = shifted.div_euclid(146_097);
     let of_era = shifted - era * 146_097;

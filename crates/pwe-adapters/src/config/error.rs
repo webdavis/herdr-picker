@@ -25,7 +25,7 @@ pub enum ConfigError {
     Misplaced {
         path: PathBuf,
         table: String,
-        owner: &'static str,
+        reading_picker: &'static str,
     },
 }
 
@@ -42,9 +42,14 @@ impl fmt::Display for ConfigError {
             ),
             Self::Invalid { path, cause } => (path, cause.to_string()),
             Self::InvalidPicker { path, cause } => (path, cause.to_string()),
-            Self::Misplaced { path, table, owner } => {
-                (path, format!("{table} belongs under [pickers.{owner}]"))
-            }
+            Self::Misplaced {
+                path,
+                table,
+                reading_picker,
+            } => (
+                path,
+                format!("{table} belongs under [pickers.{reading_picker}]"),
+            ),
         };
         write!(
             formatter,

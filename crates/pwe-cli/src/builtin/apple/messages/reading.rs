@@ -13,7 +13,7 @@ use crate::builtin::apple::bluebubbles::BlueBubbles;
 use crate::builtin::clock::{local_offset, now};
 use crate::builtin::page::notice;
 use crate::builtin::rows::RowWriter;
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, picker_config_path};
 
 pub(in crate::builtin::apple) fn messages() -> Vec<PickerRow> {
@@ -31,7 +31,7 @@ pub(in crate::builtin::apple) fn messages_step(
 ) -> Result<(), CommandError> {
     let api = match connected() {
         Ok(api) => api,
-        Err(unconnected) => return written(rows.row(&unconnected.row())),
+        Err(unconnected) => return finder_closing_is_no_failure(rows.row(&unconnected.row())),
     };
     if name == "chats" {
         let body = json!({"with": ["participants", "lastMessage"], "sort": "lastmessage"});
@@ -44,7 +44,7 @@ pub(in crate::builtin::apple) fn messages_step(
             }
         }
         listed.splice(0..0, chat_rows(&chats, arguments));
-        return written(listed.iter().try_for_each(|row| rows.row(row)));
+        return finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)));
     }
     let chat = arguments.first().copied();
     let mut body = json!({"with": ["chats", "chats.participants", "attachments"], "sort": "DESC",
@@ -71,7 +71,9 @@ pub(in crate::builtin::apple) fn messages_step(
             listed.iter().try_for_each(|row| rows.row(row))
         })
     };
-    written(shown.and_then(|()| failure.map_or(Ok(()), |why| rows.row(&unavailable(&why)))))
+    finder_closing_is_no_failure(
+        shown.and_then(|()| failure.map_or(Ok(()), |why| rows.row(&unavailable(&why)))),
+    )
 }
 
 enum Unconnected {

@@ -13,7 +13,7 @@ use super::super::steps::next;
 use super::super::{Repo, output, plural};
 use super::dry_run;
 use crate::builtin::rows::{RowWriter, in_home, key};
-use crate::builtin::{Places, written};
+use crate::builtin::{Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 pub(in super::super) fn repos(
@@ -51,9 +51,9 @@ pub(in super::super) fn repos(
         .map(|(root, items)| repo_row(&root, &items, places))
         .collect();
     if listed.is_empty() {
-        written(rows.header("No repository has anything to prune."))?;
+        finder_closing_is_no_failure(rows.header("No repository has anything to prune."))?;
     }
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn repo_row(root: &Path, items: &[Value], places: &Places) -> PickerRow {

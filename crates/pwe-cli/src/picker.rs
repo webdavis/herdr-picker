@@ -3,7 +3,7 @@ use std::{env, fs, process};
 
 use pwe_adapters::{
     Placement, bare_program, command_preview, copy_to_clipboard, path_preview, picker_rows_file,
-    read_picker_config, remove_stale_runs,
+    read_picker_config, remove_runs_whose_process_is_gone,
 };
 use pwe_domain::{Action, PickerCall, PickerCommand, Preview, Trail, Turn};
 use pwe_protocol::{Shell, bash_init, instruction, parse_row};
@@ -47,7 +47,7 @@ pub(crate) fn pick(
     placement: Placement,
 ) -> Result<Option<String>, CommandError> {
     let config = read_picker_config(config).map_err(failed)?;
-    remove_stale_runs(&state_dir());
+    remove_runs_whose_process_is_gone(&state_dir());
     let cache = picker_rows_file(&state_dir(), process::id());
     let quoted = QuotedHelper::for_run(&cache)?;
     let mut trail = Trail::new(PickerCall {

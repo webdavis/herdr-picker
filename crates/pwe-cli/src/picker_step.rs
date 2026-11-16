@@ -39,7 +39,7 @@ impl Run<'_> {
             &trail.names(),
         )?;
         let titles = trail.titles(|name| picker_title(name, self.config));
-        let from = titles.first().cloned().unwrap_or_default();
+        let first_picker_title = titles.first().cloned().unwrap_or_default();
         let first_view = View::Streamed {
             group: step.spot.group.clone(),
         };
@@ -74,10 +74,15 @@ impl Run<'_> {
         };
         let picked = picked.map_err(|failure| failed(format!("picker {name}: {failure}")))?;
         Ok(picked.map(|picked| {
-            let action = chosen_action(&picked, left.source.as_deref(), self.quickfix, &from);
-            let switched = picked.key == SWITCH_SOURCE;
+            let action = chosen_action(
+                &picked,
+                left.source.as_deref(),
+                self.quickfix,
+                &first_picker_title,
+            );
+            let query_filtered_the_chooser = picked.key == SWITCH_SOURCE;
             let spot = Spot {
-                query: if switched {
+                query: if query_filtered_the_chooser {
                     String::new()
                 } else {
                     picked.query
@@ -94,10 +99,15 @@ impl Run<'_> {
     }
 }
 
-fn chosen_action(picked: &Picked, source: Option<&str>, quickfix: &Path, from: &str) -> Action {
+fn chosen_action(
+    picked: &Picked,
+    source: Option<&str>,
+    quickfix: &Path,
+    first_picker_title: &str,
+) -> Action {
     match picked.key.as_str() {
         "esc" => return Action::Back,
-        SEND_ROWS => return Action::Next(send_call(&picked.rows, from)),
+        SEND_ROWS => return Action::Next(send_call(&picked.rows, first_picker_title)),
         SAVE_QUICKFIX => return Action::Run(open_quickfix(quickfix, None)),
         SWITCH_SOURCE => {
             return source.map_or(Action::Nothing, |source| Action::Source(source.to_string()));

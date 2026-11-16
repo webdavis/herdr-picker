@@ -5,7 +5,7 @@ use std::process::{Command, Stdio};
 
 use serde::{Deserialize, Serialize};
 
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Capture {
@@ -42,7 +42,7 @@ pub fn run_capture(
         stdout: String::from_utf8_lossy(&ran.stdout).into_owned(),
         stderr: String::from_utf8_lossy(&ran.stderr).into_owned(),
     };
-    write_private(output, &serde_json::to_vec(&capture)?)?;
+    write_private_atomically(output, &serde_json::to_vec(&capture)?)?;
     Ok(capture)
 }
 

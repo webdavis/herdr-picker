@@ -3,7 +3,7 @@ use std::path::Path;
 
 use pwe_domain::{Place, remember};
 
-pub fn record_place(path: &Path, place: Place, bound: usize) {
+pub fn record_place_without_a_lock(path: &Path, place: Place, bound: usize) {
     if place.cwd.contains(['\t', '\n']) {
         return;
     }

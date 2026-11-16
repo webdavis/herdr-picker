@@ -1,4 +1,4 @@
-use pwe_adapters::{AgentSnapshot, record_place, write_snapshot};
+use pwe_adapters::{AgentSnapshot, record_place_without_a_lock, write_snapshot};
 use pwe_domain::{Action, Agent, AgentStatus, HerdrCall, Key, Place, Preview, Workspace};
 use pwe_protocol::WireTab;
 use serde_json::json;
@@ -202,17 +202,17 @@ fn recent_lists_the_places_still_open_newest_first_and_enter_goes_back_there() {
         pane_id: pane.to_string(),
         cwd: cwd.to_string(),
     };
-    record_place(
+    record_place_without_a_lock(
         &places.herdr.places,
         place(1, "w1:t1", "w1:p1", "/repo"),
         10,
     );
-    record_place(
+    record_place_without_a_lock(
         &places.herdr.places,
         place(2, "w1:t9", "w1:p9", "/gone"),
         10,
     );
-    record_place(&places.herdr.places, place(3, "w1:t3", "w1:p5", "/tmp"), 10);
+    record_place_without_a_lock(&places.herdr.places, place(3, "w1:t3", "w1:p5", "/tmp"), 10);
 
     let recent = agents("recent", &places);
 

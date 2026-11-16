@@ -44,11 +44,14 @@ impl Found<'_> {
             return;
         }
         let mut block = self.hosts.len()..self.hosts.len();
-        for (keyword, values) in text.lines().filter_map(parsed) {
+        for (keyword, values) in text
+            .lines()
+            .filter_map(words_split_on_spaces_without_escapes)
+        {
             match keyword.as_str() {
                 "include" => {
                     for pattern in &values {
-                        expanded(&self.included(pattern))
+                        expanded_with_wildcards_in_the_last_part_only(&self.included(pattern))
                             .iter()
                             .for_each(|included| self.read(included));
                     }
@@ -85,7 +88,7 @@ impl Found<'_> {
     }
 }
 
-fn parsed(line: &str) -> Option<(String, Vec<String>)> {
+fn words_split_on_spaces_without_escapes(line: &str) -> Option<(String, Vec<String>)> {
     let mut words: Vec<String> = line
         .split_whitespace()
         .take_while(|word| !word.starts_with('#'))
@@ -106,7 +109,7 @@ fn fixed(alias: &str) -> bool {
     !alias.contains(['*', '?', '!']) && validate("host", alias).is_ok()
 }
 
-fn expanded(pattern: &Path) -> Vec<PathBuf> {
+fn expanded_with_wildcards_in_the_last_part_only(pattern: &Path) -> Vec<PathBuf> {
     let name = pattern
         .file_name()
         .map(|name| name.to_string_lossy().into_owned());

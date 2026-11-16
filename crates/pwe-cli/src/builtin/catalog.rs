@@ -6,7 +6,7 @@ use pwe_domain::{Action, Picker, PickerCall, PickerCommand, PickerRow, Preview};
 
 use super::paint::dim;
 use super::rows::RowWriter;
-use super::{Places, written};
+use super::{Places, finder_closing_is_no_failure};
 use crate::command::{CommandError, failed, picker_config_path};
 use table::{Binding, table_bindings};
 
@@ -26,7 +26,7 @@ pub(super) fn catalog(
         .as_ref()
         .and_then(|home| fs::read_to_string(home.join(CHORD_TABLE)).ok())
         .unwrap_or_default();
-    written(
+    finder_closing_is_no_failure(
         catalog_rows(source, &pickers, &table)
             .iter()
             .try_for_each(|row| rows.row(row)),
@@ -102,7 +102,7 @@ fn picker_rows(pickers: &[Picker]) -> Vec<PickerRow> {
 
 fn start(picker: &Picker) -> Action {
     match &picker.command {
-        PickerCommand::Builtin(name) if name == "bookmark" || name == "pickers" => Action::Nothing,
+        PickerCommand::Builtin(name) if runs_no_finder_or_is_already_open(name) => Action::Nothing,
         _ => Action::Next(PickerCall {
             name: picker.name.clone(),
             args: Vec::new(),
@@ -123,3 +123,7 @@ mod table;
 
 #[cfg(test)]
 mod tests;
+
+fn runs_no_finder_or_is_already_open(builtin: &str) -> bool {
+    builtin == "bookmark" || builtin == "pickers"
+}

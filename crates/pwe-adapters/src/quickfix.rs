@@ -7,29 +7,29 @@ use pwe_domain::QuickfixEntry;
 use pwe_protocol::shell_word;
 use serde::{Deserialize, Serialize};
 
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 #[derive(Serialize, Deserialize)]
-struct Saved {
+struct SetqflistEntry {
     filename: String,
     lnum: u32,
     text: String,
 }
 
 pub fn save_quickfix(file: &Path, entries: &[QuickfixEntry]) -> io::Result<()> {
-    let saved: Vec<Saved> = entries
+    let saved: Vec<SetqflistEntry> = entries
         .iter()
-        .map(|entry| Saved {
+        .map(|entry| SetqflistEntry {
             filename: entry.path.clone(),
             lnum: entry.line,
             text: entry.text.clone(),
         })
         .collect();
-    write_private(file, &serde_json::to_vec(&saved)?)
+    write_private_atomically(file, &serde_json::to_vec(&saved)?)
 }
 
 pub fn read_quickfix(file: &Path) -> io::Result<Vec<QuickfixEntry>> {
-    let saved: Vec<Saved> = serde_json::from_str(&fs::read_to_string(file)?)?;
+    let saved: Vec<SetqflistEntry> = serde_json::from_str(&fs::read_to_string(file)?)?;
     Ok(saved
         .into_iter()
         .map(|saved| QuickfixEntry {

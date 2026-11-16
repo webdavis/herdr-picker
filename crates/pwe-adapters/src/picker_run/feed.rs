@@ -10,7 +10,7 @@ use pwe_protocol::{RowError, parse_header, parse_row};
 use rustix::process::kill_process_group;
 
 use super::{PickerRunError, signal};
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 pub(super) struct Feed {
     pub(super) source: Child,
@@ -43,7 +43,7 @@ pub(super) fn feed(feed: Feed) -> Result<Vec<PickerRow>, PickerRunError> {
         .map(PickerRunError::BadRow)
         .or_else(|| failure(status, &stopping, &said));
     if let Some(refusal) = &refusal {
-        let _ = write_private(&error_file, refusal.to_string().as_bytes());
+        let _ = write_private_atomically(&error_file, refusal.to_string().as_bytes());
     }
     drop(rows_in);
     refusal.map_or(Ok(rows), Err)
@@ -58,16 +58,16 @@ fn deliver(
     let mut rows = Vec::new();
     for (index, line) in BufReader::new(rows_out).lines().enumerate() {
         if let Some(header) = line.as_deref().ok().and_then(parse_header) {
-            let _ = write_private(header_file, header.as_bytes());
+            let _ = write_private_atomically(header_file, header.as_bytes());
             continue;
         }
         let (row, line) = match read_row(line, index + 1) {
             Ok(read) => read,
             Err(bad_row) => return (rows, Some(bad_row)),
         };
-        let delivered = writeln!(cache, "{line}")
+        let cached_before_shown = writeln!(cache, "{line}")
             .and_then(|()| writeln!(rows_in, "{}\t{}", rows.len(), row.label));
-        if delivered.is_err() {
+        if cached_before_shown.is_err() {
             break;
         }
         rows.push(row);

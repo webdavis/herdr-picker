@@ -95,3 +95,22 @@ fn a_program_running_in_the_shell_is_never_mistaken_for_its_prompt() {
         );
     }
 }
+
+#[test]
+fn a_placeholder_in_an_agents_input_line_reads_as_a_draft() {
+    assert_eq!(
+        guard(&PaneKind::Claude, "done", "❯ Try \"fix lint errors\"\n"),
+        Err(Refusal::Draft("Try \"fix lint errors\"".to_string()))
+    );
+}
+
+#[test]
+fn a_prompt_with_plain_words_before_its_character_reads_as_unseen() {
+    for screen in ["bash-5.2$ ", "~/repo on main ❯ "] {
+        assert_eq!(
+            guard(&PaneKind::Shell, "unknown", screen),
+            Err(Refusal::InputUnseen),
+            "{screen}"
+        );
+    }
+}

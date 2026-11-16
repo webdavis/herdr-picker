@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::agent_row::{status_glyph, tab_label, workspace_label};
 use super::herdr_view::herdr_view;
-use super::start::BROCCOLI;
+use super::start::BROCCOLI_CLAUTH_PROFILE;
 use crate::builtin::page::notice;
 use crate::builtin::paint::dim;
 use crate::builtin::{Asked, Places};
@@ -101,8 +101,8 @@ pub(in crate::builtin) fn quick_answer(asked: &Asked) -> Vec<PickerRow> {
         return vec![notice("Type your question", &sending.text)];
     }
     let accounts: &[&str] = match sending.from.to_lowercase().contains("broccoli") {
-        true => &[BROCCOLI],
-        false => &["personal", BROCCOLI],
+        true => &[BROCCOLI_CLAUTH_PROFILE],
+        false => &["personal", BROCCOLI_CLAUTH_PROFILE],
     };
     accounts
         .iter()

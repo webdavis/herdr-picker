@@ -6,7 +6,7 @@ use pwe_domain::{Action, PickerRow, Preview};
 use super::paint::{blue, dim, yellow};
 use super::{Repo, strings};
 use crate::builtin::rows::{RowWriter, file_row, key};
-use crate::builtin::{Asked, Places, written};
+use crate::builtin::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod area;
@@ -35,7 +35,9 @@ pub(super) fn contents(
         (Some(_), false) => "the tracked files",
         (Some(_), true) => "the untracked files",
     };
-    let mut say = |text: String| written(rows.row(&notice(&text, &switches, repo.is_some())));
+    let mut say = |text: String| {
+        finder_closing_is_no_failure(rows.row(&notice(&text, &switches, repo.is_some())))
+    };
     if asked.query.is_empty() {
         return say(format!("Type to search {files}"));
     }
@@ -73,7 +75,7 @@ pub(super) fn contents(
             )
         })
         .collect();
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn hit_row(

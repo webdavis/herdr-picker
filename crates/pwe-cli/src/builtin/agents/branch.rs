@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub(super) fn branch(cwd: &Path) -> Option<(String, bool)> {
+pub(super) fn branch_from_git_files(cwd: &Path) -> Option<(String, bool)> {
     let dot_git = cwd
         .ancestors()
         .map(|folder| folder.join(".git"))

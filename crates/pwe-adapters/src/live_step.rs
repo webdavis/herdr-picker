@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::picker_files::{picker_command_file, picker_error_file, picker_header_file};
 use crate::picker_run::{PickerRunError, feed::failure};
-use crate::private::write_private;
+use crate::private::write_private_atomically;
 
 #[derive(Serialize, Deserialize)]
 struct SavedCommand {
@@ -28,7 +28,7 @@ pub fn save_step_command(cache: &Path, command: &Command) -> io::Result<()> {
             .map(|(name, value)| (text(name), value.map(text)))
             .collect(),
     };
-    write_private(&picker_command_file(cache), &serde_json::to_vec(&saved)?)
+    write_private_atomically(&picker_command_file(cache), &serde_json::to_vec(&saved)?)
 }
 
 pub fn is_live_step(cache: &Path) -> bool {
@@ -37,7 +37,7 @@ pub fn is_live_step(cache: &Path) -> bool {
 
 pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
     let refused = |refusal: PickerRunError| {
-        let _ = write_private(&picker_error_file(cache), refusal.to_string().as_bytes());
+        let _ = write_private_atomically(&picker_error_file(cache), refusal.to_string().as_bytes());
         Err(refusal)
     };
     let mut command = match saved_command(cache) {
@@ -63,7 +63,7 @@ pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
     let mut rows = String::new();
     for (index, line) in String::from_utf8_lossy(&ran.stdout).lines().enumerate() {
         if let Some(header) = parse_header(line) {
-            let _ = write_private(&picker_header_file(cache), header.as_bytes());
+            let _ = write_private_atomically(&picker_header_file(cache), header.as_bytes());
         } else if let Err(bad_row) = parse_row(line, index + 1) {
             return refused(PickerRunError::BadRow(bad_row));
         } else {
@@ -72,7 +72,7 @@ pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
         }
     }
     let _ = fs::remove_file(picker_error_file(cache));
-    write_private(cache, rows.as_bytes()).or_else(|failure| {
+    write_private_atomically(cache, rows.as_bytes()).or_else(|failure| {
         refused(PickerRunError::CannotCache {
             path: cache.to_owned(),
             reason: failure.to_string(),

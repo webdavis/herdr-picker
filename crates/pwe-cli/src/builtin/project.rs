@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use super::git::Repo;
 use super::page::{command_row, notice, words};
 use super::rows::RowWriter;
-use super::{Places, written};
+use super::{Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod capture;
@@ -32,7 +32,7 @@ pub(super) fn tests(
         "quickfix" => saved::saved(places),
         _ => suites::suites(places)?,
     };
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 fn root(cwd: &Path) -> PathBuf {

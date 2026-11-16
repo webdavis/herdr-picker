@@ -5,7 +5,7 @@ use super::devices::Device;
 use crate::builtin::clock::{parse_iso, stamp};
 use crate::builtin::page::fields;
 
-const UNIFI_SHOWN: [&str; 18] = [
+const UNIFI_FIELDS_SHOWN_OR_NAMING_IDS: [&str; 18] = [
     "name",
     "ipAddress",
     "macAddress",
@@ -53,7 +53,7 @@ pub(super) fn unifi_fields(device: &Device) -> String {
             || value == ""
             || value.as_array().is_some_and(Vec::is_empty)
             || value.as_object().is_some_and(|map| map.is_empty());
-        if !UNIFI_SHOWN.contains(&field.as_str()) && !empty {
+        if !UNIFI_FIELDS_SHOWN_OR_NAMING_IDS.contains(&field.as_str()) && !empty {
             rows.push((field.as_str(), text(value)));
         }
     }
@@ -67,7 +67,7 @@ pub(super) fn text(value: &Value) -> String {
     }
 }
 
-const CONNECTIONS: [(&str, &str); 4] = [
+const CONNECTION_TYPES_WITHOUT_THE_DEFAULT_PLACEHOLDER: [(&str, &str); 4] = [
     ("WIRED", "Wired"),
     ("WIRELESS", "Wi-Fi"),
     ("VPN", "VPN"),
@@ -87,7 +87,7 @@ pub(super) fn since(stamped: &str, clock: Clock) -> String {
 }
 
 pub(super) fn connection(kind: &str) -> Option<&'static str> {
-    CONNECTIONS
+    CONNECTION_TYPES_WITHOUT_THE_DEFAULT_PLACEHOLDER
         .iter()
         .find(|(code, _)| *code == kind)
         .map(|(_, shown)| *shown)

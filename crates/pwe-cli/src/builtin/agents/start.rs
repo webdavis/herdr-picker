@@ -6,13 +6,21 @@ use crate::builtin::Places;
 use crate::builtin::page::words;
 use crate::builtin::paint::dim;
 
-pub(super) const PERSONAL: &str = "main";
-pub(super) const BROCCOLI: &str = "broccoli";
+pub(super) const PERSONAL_CLAUTH_PROFILE: &str = "main";
+pub(super) const BROCCOLI_CLAUTH_PROFILE: &str = "broccoli";
 
 pub(super) fn start(places: &Places) -> Vec<PickerRow> {
     let mut tools: Vec<(&str, &str, String)> = vec![
-        ("Claude", "personal", format!("clauth start {PERSONAL}")),
-        ("Claude", "broccoli", format!("clauth start {BROCCOLI}")),
+        (
+            "Claude",
+            "personal",
+            format!("clauth start {PERSONAL_CLAUTH_PROFILE}"),
+        ),
+        (
+            "Claude",
+            "broccoli",
+            format!("clauth start {BROCCOLI_CLAUTH_PROFILE}"),
+        ),
         ("Codex", "personal", "codex".to_string()),
         ("Hermes", "default", "hermes".to_string()),
     ];

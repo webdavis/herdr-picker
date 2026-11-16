@@ -7,7 +7,7 @@ use super::clock::local_offset;
 use super::page::notice;
 use super::program::run;
 use super::rows::RowWriter;
-use super::{Asked, Places, written};
+use super::{Asked, Places, finder_closing_is_no_failure};
 use crate::command::CommandError;
 
 mod bluebubbles;
@@ -57,7 +57,7 @@ pub(super) fn apple(
         ),
         (true, _) => messages(),
     };
-    written(listed.iter().try_for_each(|row| rows.row(row)))
+    finder_closing_is_no_failure(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
 pub(super) fn apple_step(
@@ -78,7 +78,9 @@ pub(super) fn apple_step(
         |why| vec![notice("Contacts unavailable", &format!("{why}\n{PRIVACY}"))],
         |people| fields(&people, arguments, local_offset()),
     );
-    Some(written(listed.iter().try_for_each(|row| rows.row(row))))
+    Some(finder_closing_is_no_failure(
+        listed.iter().try_for_each(|row| rows.row(row)),
+    ))
 }
 
 fn step(name: &str, args: Vec<String>) -> Action {
