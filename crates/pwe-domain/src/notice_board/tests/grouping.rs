@@ -92,5 +92,8 @@ fn a_resolved_notice_leaves_its_group_and_the_line_counts_the_rest() {
     );
 
     assert!(closed(&effects).is_empty());
-    assert_eq!(relabelled(&effects), vec![(float, "one asks".to_string())]);
+    assert_eq!(
+        relabelled(&effects),
+        vec![(float, "needs you · tests: one asks · 2s ago".to_string())]
+    );
 }

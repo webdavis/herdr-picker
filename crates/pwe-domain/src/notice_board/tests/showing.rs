@@ -86,7 +86,7 @@ fn each_notice_on_screen_takes_the_next_free_slot_in_the_corner() {
     let third = &shown(&board.apply(raise("third", Level::Finished), 107))[0];
 
     assert_eq!((first.slot, second.slot, third.slot), (0, 1, 0));
-    assert_eq!(third.line, "third done");
+    assert_eq!(third.line, "finished · tests: third done · now");
 }
 
 #[test]

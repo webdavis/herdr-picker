@@ -1,6 +1,7 @@
 mod float;
 mod grouping;
 mod input;
+mod jumping;
 mod line;
 mod moving;
 mod quieting;
@@ -52,6 +53,7 @@ impl NoticeBoard {
             NoticeInput::Mute { source, until } => self.mute(source, until, now),
             NoticeInput::Unmute { source } => self.unmute(&source),
             NoticeInput::Dismiss { id } | NoticeInput::Read { id } => self.mark_read(&id, now),
+            NoticeInput::Jump { id } => self.jump(id.as_deref(), now),
         };
         effects.extend(self.follow_waiting());
         effects
