@@ -10,6 +10,7 @@ pub enum PickerRunError {
     BadRow(RowError),
     CommandFailed(String),
     FinderFailed(String),
+    TerminalFailed(String),
 }
 
 impl fmt::Display for PickerRunError {
@@ -30,6 +31,7 @@ impl fmt::Display for PickerRunError {
                 write!(formatter, "the picker command stopped with {status}")
             }
             Self::FinderFailed(reason) => write!(formatter, "the finder failed: {reason}"),
+            Self::TerminalFailed(reason) => write!(formatter, "the terminal failed: {reason}"),
         }
     }
 }

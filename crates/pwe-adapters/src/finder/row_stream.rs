@@ -41,8 +41,11 @@ impl RowStream {
             stopping: Arc::clone(&stopping),
         };
         let feeder = thread::spawn(move || {
-            let _ = feed(feeding);
-            let _ = inputs.send(Input::RowsEnded);
+            let ended = match feed(feeding) {
+                Ok(_) => Input::RowsEnded,
+                Err(failure) => Input::RowsFailed(failure.to_string()),
+            };
+            let _ = inputs.send(ended);
         });
         Ok(Self {
             source_pid,
@@ -73,7 +76,9 @@ impl RowSink for InputSink {
             .map_err(|_| io::ErrorKind::BrokenPipe.into())
     }
 
-    fn header(&mut self, _: &str) {}
+    fn header(&mut self, header: &str) {
+        let _ = self.inputs.send(Input::HeaderArrived(header.to_string()));
+    }
 
     fn finish(self) -> Vec<PickerRow> {
         Vec::new()

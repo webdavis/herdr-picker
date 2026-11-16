@@ -38,6 +38,8 @@ impl<M: RowMatcher> Finder<M> {
             "shift-tab" => Some(self.drawn(|finder| finder.mark_and_move(-1))),
             "down" | "ctrl-n" => Some(self.drawn(|finder| finder.move_cursor(1))),
             "up" | "ctrl-p" => Some(self.drawn(|finder| finder.move_cursor(-1))),
+            "page-down" => Some(self.drawn(|finder| finder.move_pages(1))),
+            "page-up" => Some(self.drawn(|finder| finder.move_pages(-1))),
             "f1" => Some(self.drawn(|finder| finder.help_shown = true)),
             _ => None,
         }
