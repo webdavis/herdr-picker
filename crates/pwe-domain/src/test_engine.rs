@@ -11,7 +11,8 @@ mod untrusted_text;
 mod verdict;
 
 pub use event::{
-    Diagnostic, Failure, RunFinished, RunStarted, Stream, TestEvent, TestFinished, TestStatus,
+    Diagnostic, Failure, RunFinished, RunStarted, Severity, Stream, TestEvent, TestFinished,
+    TestStatus,
 };
 pub use invocation::{Invocation, InvocationError, Selection, invocation};
 pub use rerun::failed_ids;

@@ -14,13 +14,22 @@ pub enum Stream {
     Stderr,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Severity {
+    Error,
+    Warning,
+    Note,
+    Help,
+    Other,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Diagnostic {
     pub file: String,
     pub line: u32,
     pub column: u32,
-    pub severity: String,
-    pub message: String,
+    pub severity: Severity,
+    pub message: UntrustedText,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

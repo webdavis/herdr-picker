@@ -1,6 +1,6 @@
 use pwe_domain::test_engine::{
-    Counts, Diagnostic, Failure, RunFinished, RunStarted, RunStatus, Stream, Target, TestEvent,
-    TestFinished, TestId, TestStatus, UntrustedText, Verdict,
+    Counts, Diagnostic, Failure, RunFinished, RunStarted, RunStatus, Severity, Stream, Target,
+    TestEvent, TestFinished, TestId, TestStatus, UntrustedText, Verdict,
 };
 
 use super::*;
@@ -76,8 +76,8 @@ fn every_other_stored_event_reads_back_as_it_was_written() {
                 file: "src/lib.rs".to_string(),
                 line: 3,
                 column: 9,
-                severity: "error".to_string(),
-                message: "mismatched types".to_string(),
+                severity: Severity::Error,
+                message: UntrustedText::new("mismatched types"),
             }],
         },
         TestEvent::TestStarted {

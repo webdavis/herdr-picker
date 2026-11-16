@@ -5,6 +5,7 @@ use pwe_domain::test_engine::{
 use serde_json::{Map, Value};
 
 use super::fields::Fields;
+use super::severity_words::severity_name;
 
 pub(super) fn event_fields(event: &TestEvent) -> (&'static str, Map<String, Value>) {
     let (name, fields) = match event {
@@ -74,8 +75,8 @@ fn diagnostic(diagnostic: &Diagnostic) -> Fields {
         .put("file", diagnostic.file.clone())
         .put("line", diagnostic.line)
         .put("column", diagnostic.column)
-        .put("severity", diagnostic.severity.clone())
-        .put("message", diagnostic.message.clone())
+        .put("severity", severity_name(diagnostic.severity))
+        .put_untrusted(&[("message", Some(&diagnostic.message))])
 }
 
 fn test_finished(finished: &TestFinished) -> Fields {

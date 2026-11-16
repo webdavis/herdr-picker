@@ -1,5 +1,7 @@
 use super::*;
-use crate::test_engine::{Diagnostic, TestEvent, TestFinished, TestId, TestStatus};
+use crate::test_engine::{
+    Diagnostic, Severity, TestEvent, TestFinished, TestId, TestStatus, UntrustedText,
+};
 
 fn finished(name: &str, status: TestStatus) -> TestEvent {
     TestEvent::TestFinished(TestFinished {
@@ -57,8 +59,8 @@ fn a_failed_build_errors_the_run_and_exits_3() {
             file: "src/lib.rs".to_string(),
             line: 3,
             column: 5,
-            severity: "error".to_string(),
-            message: "expected `;`".to_string(),
+            severity: Severity::Error,
+            message: UntrustedText::new("expected `;`"),
         }],
     }];
 

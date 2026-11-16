@@ -6,6 +6,7 @@ use serde_json::Value;
 
 use super::event_fields::{run_status_name, stream_name, test_status_name};
 use super::event_values::{Object, read_target};
+use super::severity_words::severity_of;
 
 pub fn read_event_line(line: &str) -> Option<TestEvent> {
     let value: Value = serde_json::from_str(line).ok()?;
@@ -55,8 +56,8 @@ fn diagnostic(found: Object) -> Option<Diagnostic> {
         file: found.text("file")?,
         line: found.number("line")?,
         column: found.number("column")?,
-        severity: found.text("severity")?,
-        message: found.text("message")?,
+        severity: severity_of(found.word("severity")?),
+        message: found.untrusted("message")?,
     })
 }
 
