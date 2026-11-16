@@ -118,18 +118,18 @@ fn config_file_prefers_the_directory_herdr_hands_the_plugin() {
 }
 
 #[test]
-fn config_file_falls_back_to_the_documented_path_under_xdg_then_home() {
+fn config_file_falls_back_to_pwes_own_folder_under_xdg_then_home() {
+    assert_eq!(
+        config_file(None, None, Some("/h")),
+        PathBuf::from("/h/.config/pwe/config.toml")
+    );
     assert_eq!(
         config_file(None, Some("/home/me/xdg"), Some("/home/me")),
-        PathBuf::from("/home/me/xdg/herdr/plugins/config/herdr-picker/config.toml")
+        PathBuf::from("/home/me/xdg/pwe/config.toml")
     );
     assert_eq!(
-        config_file(Some(""), None, Some("/home/me")),
-        PathBuf::from("/home/me/.config/herdr/plugins/config/herdr-picker/config.toml")
-    );
-    assert_eq!(
-        config_file(None, Some(""), Some("/home/me")),
-        PathBuf::from("/home/me/.config/herdr/plugins/config/herdr-picker/config.toml")
+        config_file(Some(""), Some(""), Some("/home/me")),
+        PathBuf::from("/home/me/.config/pwe/config.toml")
     );
 }
 

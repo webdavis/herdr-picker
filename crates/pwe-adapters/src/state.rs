@@ -9,7 +9,7 @@ pub fn plugin_state_dir(
     set(state_dir).unwrap_or_else(|| {
         set(xdg_state_home)
             .unwrap_or_else(|| PathBuf::from(home.unwrap_or_default()).join(".local/state"))
-            .join("herdr/plugins/herdr-picker")
+            .join("pwe")
     })
 }
 pub fn mru_file(state: &Path) -> PathBuf {

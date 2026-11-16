@@ -31,7 +31,8 @@ cd ~/.local/share/herdr-picker
 cargo build --release --locked
 ```
 
-Declare your workspaces in `~/.config/herdr/plugins/config/herdr-picker/config.toml`. The
+Declare your workspaces in `~/.config/pwe/config.toml` (`$XDG_CONFIG_HOME/pwe/config.toml` when
+`XDG_CONFIG_HOME` is set; herdr's `HERDR_PLUGIN_CONFIG_DIR` wins when herdr sets it). The
 key is the label herdr shows, which is case sensitive, and the value is either the working
 directory on its own or a table naming that directory and the key the pick popup selects it with:
 
@@ -318,9 +319,8 @@ the shell keys inside herdr too, and say so in the footer outside it.
 The `record` hook also runs on every pane focus and keeps the last 200 places, each pane and folder
 once, in `places` in the plugin's state folder, for a picker of recent places.
 
-The plugin's state folder is the one herdr names in `HERDR_PLUGIN_STATE_DIR`. A shell key, which
-runs outside herdr, works it out the way herdr does: `$XDG_STATE_HOME/herdr/plugins/herdr-picker`,
-or `~/.local/state/herdr/plugins/herdr-picker` without `XDG_STATE_HOME`.
+The state folder is the one herdr names in `HERDR_PLUGIN_STATE_DIR`. Without it, pwe uses
+`$XDG_STATE_HOME/pwe`, or `~/.local/state/pwe` without `XDG_STATE_HOME`.
 
 ## Your own pickers
 
