@@ -7,6 +7,7 @@ mod handing;
 mod inbox;
 mod last_workspace;
 mod launch;
+mod notice;
 mod path;
 mod pick;
 mod picker;
