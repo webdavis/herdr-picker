@@ -47,7 +47,8 @@ impl BlueBubbles {
             body["limit"] = PAGE.into();
             let args = curl_args(&self.server, &body);
             let argv: Vec<&str> = args.iter().map(String::as_str).collect();
-            let config = curl_config(&self.server, path, &self.password);
+            let config =
+                url_carrying_the_password_as_curl_config(&self.server, path, &self.password);
             answer(&ran(&argv, Some(&config), Duration::from_secs(25))?)
         })
     }
@@ -81,7 +82,11 @@ pub(super) fn curl_args(server: &Server, body: &Value) -> Vec<String> {
     .to_vec()
 }
 
-pub(super) fn curl_config(server: &Server, path: &str, password: &str) -> String {
+pub(super) fn url_carrying_the_password_as_curl_config(
+    server: &Server,
+    path: &str,
+    password: &str,
+) -> String {
     let encoded: String = password
         .bytes()
         .map(|byte| match byte {

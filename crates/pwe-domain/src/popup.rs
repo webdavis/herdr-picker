@@ -21,7 +21,7 @@ const WORKSPACE_PICKER: Proportion = Proportion {
         rows: 30,
     },
 };
-const PREVIEW_PICKER: Proportion = Proportion {
+const PICKER_BESIDE_A_HALF_WIDTH_PREVIEW: Proportion = Proportion {
     share_percent: 80,
     smallest: Size {
         columns: 60,
@@ -46,7 +46,7 @@ pub fn popup_size(window: Size, content_columns: usize) -> Size {
 }
 
 pub fn preview_popup_size(window: Size) -> Size {
-    PREVIEW_PICKER.of(window)
+    PICKER_BESIDE_A_HALF_WIDTH_PREVIEW.of(window)
 }
 
 impl Proportion {

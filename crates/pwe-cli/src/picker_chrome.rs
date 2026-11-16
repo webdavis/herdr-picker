@@ -96,13 +96,14 @@ fn picker_footer(
     columns: Option<usize>,
     theme: Theme,
 ) -> Result<String, CommandError> {
-    let width = columns.map_or(FOOTER_WIDTH, |columns| (columns / 2).saturating_sub(6));
+    let width_beside_the_half_wide_preview =
+        columns.map_or(FOOTER_WIDTH, |columns| (columns / 2).saturating_sub(6));
     let hint = row_at(cache, index)?.map(|row| footer_hint(&row));
     Ok(step_footer(
         hint.as_deref().unwrap_or_default(),
         &read_view(cache).description,
         &read_run_error(cache).unwrap_or_default(),
-        width.max(FOOTER_WIDTH),
+        width_beside_the_half_wide_preview.max(FOOTER_WIDTH),
         theme,
     ))
 }
