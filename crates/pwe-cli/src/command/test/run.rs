@@ -1,10 +1,13 @@
 use std::env;
+use std::path::Path;
 
+use pwe_adapters::pwe_state_folder;
 use pwe_adapters::test_engine::{
-    ChildProcess, has_file, read_runner_files, repo_root, runner_folder,
+    ChildProcess, RunFile, drop_old_runs, has_file, read_runner_files, repo_root, run_folder,
+    runner_folder,
 };
 use pwe_application::test_engine::{Clock, RunRequest, run_tests};
-use pwe_domain::test_engine::matched_runners;
+use pwe_domain::test_engine::{Retention, matched_runners};
 use pwe_protocol::test_engine::{TestError, result_reader};
 
 use super::event_printer::EventPrinter;
@@ -42,7 +45,15 @@ pub(super) fn run(words: &[&str]) -> Result<(), CommandError> {
         commit: None,
     };
     let clock = SystemClock;
-    let mut printer = EventPrinter::new(format, &new_run_id(clock.now_ms()));
+    let run_id = new_run_id(clock.now_ms());
+    let runs = run_folder(
+        &pwe_state_folder(
+            env::var("XDG_STATE_HOME").ok().as_deref(),
+            env::var("HOME").ok().as_deref(),
+        ),
+        &root,
+    );
+    let mut printer = EventPrinter::new(format, &run_id, kept_run(&runs, &run_id));
     let verdict = run_tests(
         &request,
         reader.as_mut(),
@@ -52,9 +63,18 @@ pub(super) fn run(words: &[&str]) -> Result<(), CommandError> {
     )
     .map_err(|refusal| refuse(run_refusal(&runner, refusal)))?;
     printer.finish();
+    let _ = drop_old_runs(&runs, &Retention::default());
     match u8::try_from(verdict.exit_code) {
         Ok(0) => Ok(()),
         Ok(code) => Err(CommandError::Exit(code)),
         Err(_) => Err(CommandError::Exit(1)),
     }
+}
+
+fn kept_run(runs: &Path, run_id: &str) -> Option<RunFile> {
+    RunFile::create(runs, run_id)
+        .inspect_err(|failure| {
+            eprintln!("pwe: this run is not kept in the test history: {failure}");
+        })
+        .ok()
 }

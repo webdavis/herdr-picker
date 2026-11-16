@@ -1,3 +1,4 @@
+use pwe_adapters::test_engine::RunFile;
 use pwe_application::test_engine::{Clock, EventSink};
 use pwe_domain::test_engine::TestEvent;
 use pwe_protocol::test_engine::{EventLines, event_text};
@@ -11,14 +12,26 @@ pub(super) struct EventPrinter {
     format: Format,
     lines: EventLines,
     collected: Vec<Value>,
+    kept: Option<RunFile>,
 }
 
 impl EventPrinter {
-    pub(super) fn new(format: Format, run_id: &str) -> Self {
+    pub(super) fn new(format: Format, run_id: &str, kept: Option<RunFile>) -> Self {
         EventPrinter {
             format,
             lines: EventLines::new(run_id),
             collected: Vec::new(),
+            kept,
+        }
+    }
+
+    fn keep(&mut self, line: &str) {
+        let Some(file) = &mut self.kept else {
+            return;
+        };
+        if let Err(failure) = file.append(line) {
+            eprintln!("pwe: this run is no longer kept in the test history: {failure}");
+            self.kept = None;
         }
     }
 
@@ -36,6 +49,7 @@ impl EventPrinter {
 impl EventSink for EventPrinter {
     fn emit(&mut self, event: &TestEvent) {
         let line = self.lines.line(&utc_time(SystemClock.now_ms()), event);
+        self.keep(&line);
         match self.format {
             Format::Jsonl => print_out(&format!("{line}\n")),
             Format::Text => print_out(&event_text(event)),

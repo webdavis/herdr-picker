@@ -1,7 +1,9 @@
 mod child_process;
 mod project_folder;
+mod run_files;
 mod runner_files;
 
 pub use child_process::ChildProcess;
 pub use project_folder::{has_file, repo_root};
+pub use run_files::{RunFile, drop_old_runs, run_folder};
 pub use runner_files::{RunnerFiles, read_runner_files, runner_folder};
