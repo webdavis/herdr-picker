@@ -63,7 +63,7 @@ fn the_password_reaches_curl_on_stdin_and_never_in_its_arguments() {
         ]
     );
     assert_eq!(
-        curl_config(&remote, "/chat/query", "p&ss wörd\""),
+        url_carrying_the_password_as_curl_config(&remote, "/chat/query", "p&ss wörd\""),
         "url = \"https://messages.example.net/api/v1/chat/query?password=p%26ss%20w%C3%B6rd%22\"\n"
     );
 }

@@ -17,8 +17,7 @@ pub(in crate::builtin::apple) fn people(places: &Places) -> Result<Vec<Person>, 
     let listed = match saved {
         Some(saved) => saved,
         None => {
-            let asked = automation(&json!({"action": "contacts"}), Duration::from_secs(60))?;
-            let listed = asked.to_string();
+            let listed = ask_contacts_for_everyone_which_takes_seconds()?;
             if let Some(changed) = &changed {
                 let _ = save_contacts(&places.contacts, changed, &listed);
             }
@@ -27,6 +26,11 @@ pub(in crate::builtin::apple) fn people(places: &Places) -> Result<Vec<Person>, 
     };
     serde_json::from_str(&listed)
         .map_err(|_| "Contacts answered with no list of people".to_string())
+}
+
+fn ask_contacts_for_everyone_which_takes_seconds() -> Result<String, String> {
+    let asked = automation(&json!({"action": "contacts"}), Duration::from_secs(60))?;
+    Ok(asked.to_string())
 }
 
 pub(super) fn address_book_changed(home: &Path) -> Option<String> {

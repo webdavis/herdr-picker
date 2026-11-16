@@ -42,3 +42,15 @@ fn wildcards_match_whole_names() {
     assert!(!matches("*.conf", "pi.conf.bak"));
     assert!(matches("*", "anything"));
 }
+
+#[test]
+fn patterns_and_match_blocks_give_no_hosts() {
+    let tree = Tree::new("ssh-config-patterns", &[]);
+    fs::write(
+        tree.0.join("config"),
+        "Host *.example.com !skip\n  User nobody\nMatch host x\n  User lost\n",
+    )
+    .expect("a config");
+
+    assert!(ssh_hosts(&tree.0.join("config"), None).is_empty());
+}

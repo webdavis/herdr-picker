@@ -137,3 +137,14 @@ fn the_launcher_popup_carries_its_base_and_the_pane_under_it_and_opens_in_that_p
         })
     );
 }
+
+#[test]
+fn the_config_path_travels_under_pwes_own_variable_because_herdr_overwrites_its_plugin_config_dir()
+{
+    let pane = PopupPane::configured_picker("files", "/c.toml", "/r", None);
+
+    let request = parsed(&popup_request("req_2", "herdr-picker", SIZE, &pane));
+
+    assert_eq!(request["params"]["env"]["PWE_CONFIG"], "/c.toml");
+    assert!(request["params"]["env"]["HERDR_PLUGIN_CONFIG_DIR"].is_null());
+}
