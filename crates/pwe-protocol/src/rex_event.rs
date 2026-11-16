@@ -4,6 +4,7 @@ use std::fmt;
 
 use serde_json::Value;
 
+pub(crate) use reading::program_status;
 use reading::session_event;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

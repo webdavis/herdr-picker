@@ -44,7 +44,7 @@ pub fn opened_block(answer: &str) -> Result<String, ProtocolError> {
         .ok_or_else(|| ProtocolError::Malformed(format!("Rex named no new block in {answer}")))
 }
 
-fn parsed(text: &str, method: &str) -> Result<Value, ProtocolError> {
+pub(super) fn parsed(text: &str, method: &str) -> Result<Value, ProtocolError> {
     serde_json::from_str(text)
         .map_err(|failure| ProtocolError::Malformed(format!("Rex {method} answer: {failure}")))
 }

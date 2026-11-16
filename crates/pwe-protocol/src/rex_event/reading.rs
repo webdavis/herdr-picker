@@ -58,7 +58,7 @@ fn pid(value: &Value) -> Option<u32> {
     value.get("pid")?.as_u64()?.try_into().ok()
 }
 
-fn program_status(record: &Value) -> Option<ProgramStatus> {
+pub(crate) fn program_status(record: &Value) -> Option<ProgramStatus> {
     Some(ProgramStatus {
         state: text(record, "state")?,
         kind: text(record, "kind"),

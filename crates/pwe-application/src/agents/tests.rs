@@ -29,7 +29,7 @@ fn every_program_is_read_and_the_newest_state_comes_first() {
     let mut first = Listing(Ok(vec![report("older", 10)]));
     let mut second = Listing(Ok(vec![report("newer", 20)]));
 
-    let (sessions, refusals) = agent_sessions(&mut [&mut first, &mut second], 30);
+    let (sessions, refusals) = agent_sessions(&mut [&mut first, &mut second], &mut [], 30);
 
     let order: Vec<&str> = sessions.iter().map(|s| s.session_id.as_str()).collect();
     assert_eq!(order, ["newer", "older"]);
@@ -45,7 +45,7 @@ fn a_program_that_fails_leaves_the_others_listed() {
     let mut failing = Listing(Err(refusal.clone()));
     let mut working = Listing(Ok(vec![report("one", 10)]));
 
-    let (sessions, refusals) = agent_sessions(&mut [&mut failing, &mut working], 30);
+    let (sessions, refusals) = agent_sessions(&mut [&mut failing, &mut working], &mut [], 30);
 
     assert_eq!(sessions.len(), 1);
     assert_eq!(refusals, vec![refusal]);
