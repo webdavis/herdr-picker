@@ -112,3 +112,5 @@ fn a_typed_space_joins_the_query() {
 
     assert_eq!(found_by(finder, "enter").query, "o t");
 }
+
+mod surroundings;

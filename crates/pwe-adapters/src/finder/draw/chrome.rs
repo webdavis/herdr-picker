@@ -12,14 +12,23 @@ pub(super) fn prompt<M: RowMatcher>(finder: &Finder<M>) -> (String, String) {
     )
 }
 
+pub(super) fn cursor_column<M: RowMatcher>(finder: &Finder<M>) -> u16 {
+    let column = PROMPT.chars().count() + finder.query_cursor();
+    u16::try_from(column).unwrap_or(u16::MAX)
+}
+
 pub(super) fn title<M: RowMatcher>(finder: &Finder<M>) -> String {
     let state = finder.view();
-    header(
+    let title = header(
         &state.titles,
         &state.view,
         state.source.as_deref(),
         &groups(finder.rows()),
-    )
+    );
+    match finder.header_line() {
+        Some(line) => format!("{title}\n{line}"),
+        None => title,
+    }
 }
 
 pub(super) fn footer<M: RowMatcher>(finder: &Finder<M>, width: usize, theme: Theme) -> String {
@@ -28,7 +37,8 @@ pub(super) fn footer<M: RowMatcher>(finder: &Finder<M>, width: usize, theme: The
         Some(Remark::Refused(text)) => error_footer(text, width, theme),
         None => {
             let hint = finder.current_row().map(footer_hint).unwrap_or_default();
-            step_footer(&hint, &finder.view().description, "", width, theme)
+            let error = finder.run_error().unwrap_or_default();
+            step_footer(&hint, &finder.view().description, error, width, theme)
         }
     }
 }

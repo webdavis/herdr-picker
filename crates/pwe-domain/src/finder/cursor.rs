@@ -14,6 +14,11 @@ impl<M: RowMatcher> Finder<M> {
         self.cursor = Some(self.ranked[place]);
     }
 
+    pub(super) fn move_pages(&mut self, pages: isize) {
+        let page = isize::try_from(self.list_height).unwrap_or(isize::MAX);
+        self.move_cursor(page.saturating_mul(pages));
+    }
+
     pub(super) fn mark_and_move(&mut self, by: isize) {
         let Some(row) = self.cursor.filter(|_| !self.in_chooser()) else {
             return;

@@ -16,6 +16,10 @@ pub struct Finder<M> {
     pub(super) remark: Option<Remark>,
     pub(super) help_shown: bool,
     pub(super) preview: Option<(usize, String)>,
+    pub(super) header_line: Option<String>,
+    pub(super) run_error: Option<String>,
+    pub(super) list_height: usize,
+    pub(super) preview_width: usize,
 }
 
 impl<M: RowMatcher> Finder<M> {
@@ -40,11 +44,22 @@ impl<M: RowMatcher> Finder<M> {
             remark: None,
             help_shown: false,
             preview: None,
+            header_line: None,
+            run_error: None,
+            list_height: 0,
+            preview_width: 0,
         }
     }
 
     pub fn with_view(self, state: ViewState) -> Self {
         Self { state, ..self }
+    }
+
+    pub fn with_query(mut self, query: &str) -> Self {
+        query
+            .chars()
+            .for_each(|typed| self.query.apply(Edit::Insert(typed)));
+        self
     }
 
     pub fn listed(&self) -> Vec<&str> {
@@ -53,26 +68,6 @@ impl<M: RowMatcher> Finder<M> {
             .iter()
             .map(|&candidate| candidates[candidate].as_str())
             .collect()
-    }
-
-    pub fn rows_ended(&self) -> bool {
-        self.rows_ended
-    }
-
-    pub fn query(&self) -> String {
-        self.query.text()
-    }
-
-    pub fn remark(&self) -> Option<&Remark> {
-        self.remark.as_ref()
-    }
-
-    pub fn help_shown(&self) -> bool {
-        self.help_shown
-    }
-
-    pub fn view(&self) -> &ViewState {
-        &self.state
     }
 
     pub fn in_chooser(&self) -> bool {

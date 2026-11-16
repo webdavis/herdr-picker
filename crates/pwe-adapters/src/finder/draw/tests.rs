@@ -195,3 +195,5 @@ fn copied_replaces_the_footer_and_a_refusal_is_red() {
     assert_eq!(lines(&buffer)[4], "No file locations in│");
     assert_eq!(buffer[(0, 4)].fg, Color::Rgb(243, 139, 168));
 }
+
+mod surroundings;

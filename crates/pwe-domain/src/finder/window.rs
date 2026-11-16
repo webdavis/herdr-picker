@@ -1,5 +1,5 @@
-use super::{Finder, RowMatcher};
-use crate::{PickerRow, TextField};
+use super::{Finder, Remark, RowMatcher};
+use crate::{PickerRow, TextField, ViewState};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ListLine<'a> {
@@ -39,6 +39,38 @@ impl<M: RowMatcher> Finder<M> {
             marked: !chooser && self.marks.contains(&candidate),
             current: self.cursor == Some(candidate),
         }
+    }
+
+    pub fn rows_ended(&self) -> bool {
+        self.rows_ended
+    }
+
+    pub fn query(&self) -> String {
+        self.query.text()
+    }
+
+    pub fn remark(&self) -> Option<&Remark> {
+        self.remark.as_ref()
+    }
+
+    pub fn help_shown(&self) -> bool {
+        self.help_shown
+    }
+
+    pub fn view(&self) -> &ViewState {
+        &self.state
+    }
+
+    pub fn query_cursor(&self) -> usize {
+        self.query.cursor()
+    }
+
+    pub fn header_line(&self) -> Option<&str> {
+        self.header_line.as_deref()
+    }
+
+    pub fn run_error(&self) -> Option<&str> {
+        self.run_error.as_deref()
     }
 
     pub fn rows(&self) -> &[PickerRow] {
