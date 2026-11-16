@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use pwe_adapters::{
     SAVE_QUICKFIX, change_footer, error_footer, leave, quickfix_file, save_quickfix, send_quickfix,
 };
+use pwe_domain::finder::NO_FILE_LOCATIONS;
 use pwe_domain::{PickerRow, Theme, quickfix_entries};
 
 use crate::command::{CommandError, state_dir};
@@ -42,7 +43,7 @@ pub(crate) fn save_marked(
     let refused = |reason: &str| change_footer(&error_footer(reason, usize::MAX, theme));
     let entries = quickfix_entries(&marked);
     if entries.is_empty() {
-        return Ok(refused("No file locations in the selection."));
+        return Ok(refused(NO_FILE_LOCATIONS));
     }
     if let Err(failure) = save_quickfix(&quickfix.file, &entries) {
         return Ok(refused(&format!(

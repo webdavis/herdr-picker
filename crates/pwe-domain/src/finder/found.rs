@@ -15,3 +15,9 @@ pub struct Found<Row = usize> {
     pub ending: Ending,
     pub rows: Vec<Row>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Remark {
+    Done(String),
+    Refused(String),
+}

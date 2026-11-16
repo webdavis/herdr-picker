@@ -1,24 +1,32 @@
-const FZF_DEFAULT_ACTIONS_OF_UNBOUND_KEYS: [(&str, &str); 15] = [
-    ("ctrl-a", "beginning-of-line"),
-    ("ctrl-b", "backward-char"),
-    ("ctrl-d", "delete-char/eof"),
-    ("ctrl-e", "end-of-line"),
-    ("ctrl-f", "forward-char"),
-    ("ctrl-g", "abort"),
-    ("ctrl-j", "down"),
-    ("ctrl-k", "up"),
-    ("ctrl-l", "clear-screen"),
-    ("ctrl-u", "unix-line-discard"),
-    ("ctrl-w", "unix-word-rubout"),
-    ("ctrl-y", "yank"),
-    ("alt-b", "backward-word"),
-    ("alt-d", "kill-word"),
-    ("alt-f", "forward-word"),
-];
+use pwe_domain::Edit;
+use pwe_domain::finder::{ReadlineMeaning, readline_meaning};
 
 pub fn unbound_action(key: &str) -> Option<&'static str> {
-    FZF_DEFAULT_ACTIONS_OF_UNBOUND_KEYS
-        .iter()
-        .find(|(name, _)| *name == key)
-        .map(|(_, action)| *action)
+    Some(match readline_meaning(key)? {
+        ReadlineMeaning::Edit(edit) => fzf_edit(edit)?,
+        ReadlineMeaning::DeleteForwardOrClose => "delete-char/eof",
+        ReadlineMeaning::Up => "up",
+        ReadlineMeaning::Down => "down",
+        ReadlineMeaning::Close => "abort",
+        ReadlineMeaning::Redraw => "clear-screen",
+    })
+}
+
+fn fzf_edit(edit: Edit) -> Option<&'static str> {
+    Some(match edit {
+        Edit::Start => "beginning-of-line",
+        Edit::End => "end-of-line",
+        Edit::Backward => "backward-char",
+        Edit::Forward => "forward-char",
+        Edit::WordBackward => "backward-word",
+        Edit::WordForward => "forward-word",
+        Edit::DeleteBackward => "backward-delete-char",
+        Edit::DeleteForward => "delete-char",
+        Edit::CutToStart => "unix-line-discard",
+        Edit::CutToEnd => "kill-line",
+        Edit::CutWordBackward => "unix-word-rubout",
+        Edit::CutWordForward => "kill-word",
+        Edit::Paste => "yank",
+        Edit::Insert(_) => return None,
+    })
 }
