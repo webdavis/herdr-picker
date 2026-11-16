@@ -8,6 +8,8 @@ mod launcher;
 mod look;
 mod mru;
 mod new_pane;
+mod notice;
+mod notice_board;
 mod pick;
 mod picker;
 mod picker_act;
@@ -35,6 +37,8 @@ pub use launcher::{LauncherKeymap, launcher_base, launcher_bases, launcher_targe
 pub use look::{RowLook, Theme, unstyled};
 pub use mru::{Bounce, Mru, decide_bounce, next_mru};
 pub use new_pane::NewPane;
+pub use notice::{Level, Notice, Pane};
+pub use notice_board::{NoticeBoard, NoticeEffect, NoticeInput, NoticeSettings, Raised, RexFocus};
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
 pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, PickerStep, pickers};
 pub use picker_act::{ActRefusal, act};
