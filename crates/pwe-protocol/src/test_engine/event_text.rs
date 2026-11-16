@@ -1,21 +1,18 @@
 use pwe_domain::test_engine::{
-    Failure, RunFinished, RunStatus, TestEvent, TestFinished, TestStatus, UntrustedText,
+    Diagnostic, Failure, RunFinished, RunStatus, TestEvent, TestFinished, TestStatus, UntrustedText,
 };
+
+use super::severity_words::severity_name;
 
 const INDENT: &str = "    ";
 
 pub fn event_text(event: &TestEvent) -> String {
     match event {
         TestEvent::RunStarted(run) => format!("Running {} in {}\n", run.argv.join(" "), run.cwd),
-        TestEvent::BuildFailed { diagnostics } => diagnostics
-            .iter()
-            .map(|found| {
-                format!(
-                    "{} {}:{}:{}: {}\n",
-                    found.severity, found.file, found.line, found.column, found.message
-                )
-            })
-            .collect(),
+        TestEvent::BuildFailed { diagnostics } => {
+            let found: String = diagnostics.iter().map(diagnostic_text).collect();
+            format!("Build failed:\n{found}")
+        }
         TestEvent::TestStarted { .. } => String::new(),
         TestEvent::Output { id, text, .. } => {
             let owner = id
@@ -29,6 +26,22 @@ pub fn event_text(event: &TestEvent) -> String {
         }
         TestEvent::RunFinished(run) => run_finished(run),
     }
+}
+
+fn diagnostic_text(found: &Diagnostic) -> String {
+    let message: String = found
+        .message
+        .text
+        .lines()
+        .map(|line| format!("{INDENT}{INDENT}{line}\n"))
+        .collect();
+    format!(
+        "{INDENT}{} {}:{}:{}:\n{message}",
+        severity_name(found.severity),
+        found.file,
+        found.line,
+        found.column
+    )
 }
 
 fn test_finished(finished: &TestFinished) -> String {

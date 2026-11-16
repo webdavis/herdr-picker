@@ -1,3 +1,4 @@
+mod cargo_build;
 mod event_fields;
 mod event_lines;
 mod event_reading;
@@ -13,6 +14,7 @@ mod runner_file;
 mod runner_file_check;
 mod runner_file_error;
 mod runner_listing;
+mod severity_words;
 mod test_error;
 
 pub use event_lines::EventLines;

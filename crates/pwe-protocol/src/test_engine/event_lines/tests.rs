@@ -1,6 +1,6 @@
 use pwe_domain::test_engine::{
-    Counts, Failure, RunFinished, RunStarted, RunStatus, Stream, Target, TestEvent, TestFinished,
-    TestId, TestStatus, UntrustedText, Verdict,
+    Counts, Diagnostic, Failure, RunFinished, RunStarted, RunStatus, Severity, Stream, Target,
+    TestEvent, TestFinished, TestId, TestStatus, UntrustedText, Verdict,
 };
 use serde_json::{Value, json};
 
@@ -200,5 +200,32 @@ fn a_nearest_target_names_its_file_and_line() {
     assert_eq!(
         value["target"],
         json!({"kind": "nearest", "value": "src/lib.rs:5"})
+    );
+}
+
+#[test]
+fn a_build_failure_marks_each_compiler_message_untrusted() {
+    let mut lines = EventLines::new("run");
+    let event = TestEvent::BuildFailed {
+        diagnostics: vec![Diagnostic {
+            file: "src/lib.rs".to_string(),
+            line: 3,
+            column: 5,
+            severity: Severity::Error,
+            message: UntrustedText::new("mismatched\u{1b} types"),
+        }],
+    };
+
+    assert_eq!(
+        written(&mut lines, &event)["diagnostics"],
+        json!([{
+            "file": "src/lib.rs",
+            "line": 3,
+            "column": 5,
+            "severity": "error",
+            "message": "mismatched types",
+            "untrusted": true,
+            "stripped": 1,
+        }])
     );
 }

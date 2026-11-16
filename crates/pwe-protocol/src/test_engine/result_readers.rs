@@ -1,23 +1,35 @@
 use pwe_domain::test_engine::{ResultReader, TestEvent, TestId};
 
 use super::LibtestReader;
+use super::cargo_build::BuildDiagnostics;
 
 const LIBTEST: &str = "libtest";
 pub const PARSERS: [&str; 1] = [LIBTEST];
 
-impl ResultReader for LibtestReader {
+struct CargoLibtestReader {
+    build: BuildDiagnostics,
+    tests: LibtestReader,
+}
+
+impl ResultReader for CargoLibtestReader {
     fn read_line(&mut self, line: &str) -> Vec<TestEvent> {
-        LibtestReader::read_line(self, line)
+        match self.build.read(line) {
+            Some(build_failed) => vec![build_failed],
+            None => self.tests.read_line(line),
+        }
     }
 
     fn finish(&mut self) -> Vec<TestEvent> {
-        LibtestReader::finish(self)
+        self.tests.finish()
     }
 }
 
 pub fn result_reader(parser: &str, runner: &str, repo_root: &str) -> Option<Box<dyn ResultReader>> {
     match parser {
-        LIBTEST => Some(Box::new(LibtestReader::new(runner, repo_root))),
+        LIBTEST => Some(Box::new(CargoLibtestReader {
+            build: BuildDiagnostics::new(repo_root),
+            tests: LibtestReader::new(runner, repo_root),
+        })),
         _ => None,
     }
 }
