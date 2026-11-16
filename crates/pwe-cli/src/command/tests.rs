@@ -1,8 +1,10 @@
 use super::*;
 use crate::record::record_at;
+use pwe_adapters::FileWorkspaceHistory;
 use pwe_application::WorkspaceHistory;
 use pwe_domain::Mru;
 use std::fs;
+use std::path::PathBuf;
 fn mru(current: &str, previous: &str) -> Mru {
     Mru {
         current: current.to_string(),
