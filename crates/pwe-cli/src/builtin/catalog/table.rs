@@ -1,6 +1,5 @@
 use pwe_domain::Action;
 
-// A key binding as the chord table lists it: key, group, kind, action, description.
 pub(super) struct Binding<'a> {
     pub(super) key: String,
     pub(super) group: &'a str,
@@ -10,7 +9,6 @@ pub(super) struct Binding<'a> {
     pub(super) enter: Action,
 }
 
-// A readline command or macro is reached only by its key, so Enter leaves it be.
 pub(super) fn table_bindings(table: &str) -> impl Iterator<Item = Binding<'_>> {
     table
         .lines()

@@ -7,8 +7,6 @@ use pwe_protocol::{parse_header, parse_row};
 use crate::builtin::Places;
 use pwe_domain::PickerRow;
 
-// A git repository under the temp directory, removed when the test ends; git runs without the
-// user's settings and with fixed dates, so its commits have the same hashes on every run.
 pub(crate) struct GitRepo(pub(crate) PathBuf);
 
 impl GitRepo {
@@ -87,7 +85,6 @@ impl Drop for GitRepo {
     }
 }
 
-// What a picker printed: its header line, if any, and its rows.
 pub(crate) fn read(printed: &str) -> (Option<String>, Vec<PickerRow>) {
     let mut header = None;
     let mut rows = Vec::new();

@@ -14,11 +14,8 @@ use claims::claimed_keys;
 pub use header::{encode_header, parse_header};
 use wire::{WireAction, WireHerdr, WirePreview, Words};
 
-// The state a next action hands the picker it opens, as the JSON the action carried.
 pub const PICKER_STATE_VARIABLE: &str = "PWE_STATE";
-// The source a picker with sources reads its rows from.
 pub const PICKER_SOURCE_VARIABLE: &str = "PWE_SOURCE";
-// What is typed, for a picker whose rows follow the query.
 pub const PICKER_QUERY_VARIABLE: &str = "PWE_QUERY";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -46,7 +43,6 @@ struct WireRow {
     enter: WireAction,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     keys: BTreeMap<String, WireAction>,
-    // What a claimed key does on this row, in a few words, for help and the footer.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     labels: BTreeMap<String, String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -119,7 +115,6 @@ pub fn parse_action(text: &str) -> Result<Action, String> {
     into_action(wire, None)
 }
 
-// One line of JSON, so a herdr call rides in an instruction line whatever text it carries.
 pub fn encode_herdr_call(call: &HerdrCall) -> String {
     serde_json::to_string(&from_call(call)).expect("a herdr call always encodes")
 }

@@ -16,7 +16,6 @@ pub(crate) fn bookmark(folder: &Path, places: &Places) -> Result<String, Command
     )
 }
 
-// herdr names the focused pane's folder to a plugin action; a shell key binding runs in the shell's.
 pub(crate) fn bookmark_folder(active_pane_cwd: Option<String>, cwd: &Path) -> PathBuf {
     active_pane_cwd
         .filter(|folder| !folder.is_empty())

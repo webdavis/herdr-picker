@@ -1,6 +1,5 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-// What the user typed for one of a command's blanks, checked before it reaches a shell.
 pub(super) fn validate(name: &str, value: &str) -> Result<String, String> {
     let value = value.trim();
     let invalid = || format!("Invalid {name}");
@@ -43,7 +42,6 @@ pub(super) fn validate(name: &str, value: &str) -> Result<String, String> {
     }
 }
 
-// A range such as 192.168.1.77/24, given back as the network it is in: 192.168.1.0/24.
 fn network(value: &str) -> Result<String, String> {
     let (address, prefix) = value
         .split_once('/')

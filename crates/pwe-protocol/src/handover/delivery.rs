@@ -2,12 +2,10 @@ use super::{PaneKind, Refusal, guard};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Delivery {
-    // herdr holds a prompt sent while the agent works and hands it over after the turn.
     Now,
     WhenFree(Refusal),
 }
 
-// Whether a prompt goes to an agent now or waits in the queue; the owner's draft is never touched.
 pub fn delivery(kind: &PaneKind, status: &str, screen: &str) -> Result<Delivery, Refusal> {
     match kind {
         PaneKind::Shell => return Err(Refusal::UnknownAgent("a shell".to_string())),

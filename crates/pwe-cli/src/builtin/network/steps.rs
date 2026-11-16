@@ -14,7 +14,6 @@ use crate::command::CommandError;
 
 const QUICK: Duration = Duration::from_secs(3);
 
-// The network picker's steps, or None for a name that is not one of them.
 pub(in crate::builtin) fn network_step(
     name: &str,
     arguments: &[&str],

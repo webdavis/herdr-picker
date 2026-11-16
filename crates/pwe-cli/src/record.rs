@@ -20,8 +20,6 @@ pub(crate) fn mru_path() -> PathBuf {
     state_file(mru_file)
 }
 
-// The focus hooks: a workspace focus moves the last-workspace toggle, a pane focus is logged
-// as a recent place.
 pub(crate) fn run(event: &str) {
     record_at(&mru_path(), event);
     let socket = popup_socket(env::var(SOCKET_PATH_VARIABLE).ok());

@@ -11,7 +11,6 @@ const SETTINGS: [&str; 7] = ["host", "proto", "port", "count", "seconds", "tool"
 const PROTOCOLS: [&str; 5] = ["any", "tcp", "udp", "icmp", "icmp6"];
 const PROMPT: &str = "Type settings such as host=nas.local proto=tcp port=443 count=50 seconds=10 tool=tcpdump file=out.pcap, then press Enter.";
 
-// The interfaces `ifconfig -l` names; Enter asks for the capture's settings.
 pub(super) fn capture_interfaces(listed: &str) -> Vec<PickerRow> {
     let mut interfaces: Vec<&str> = listed.split_whitespace().collect();
     if interfaces.is_empty() {
@@ -34,7 +33,6 @@ pub(super) fn capture_interfaces(listed: &str) -> Vec<PickerRow> {
         .collect()
 }
 
-// The capture command for the settings typed; each one left out keeps its default.
 pub(super) fn capture_command(
     interface: &str,
     typed: &str,

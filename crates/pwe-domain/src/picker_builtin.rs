@@ -8,18 +8,15 @@ use macos::{APPLE, TABS};
 use pickers::PICKERS;
 pub use steps::{follows_query, is_step_builtin, step_sources};
 
-// The pickers pwe ships, on their keys unless the config turns them off or moves them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BuiltinPicker {
     pub name: &'static str,
     pub key: &'static str,
     pub description: &'static str,
-    // The first is the one a picker opens on.
     pub sources: &'static [&'static str],
     pub live: Live,
 }
 
-// Whether a picker's rows follow the query, so its command runs again as the user types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Live {
     Never,

@@ -19,7 +19,6 @@ const APPLY_INSTRUCTION: &str = r#"__pwe() {
 }
 "#;
 
-// Bound in every keymap, so the keys work whichever editing mode the shell is in or switches to.
 const KEYMAPS: [&str; 3] = ["emacs-standard", "vi-insert", "vi-command"];
 
 pub fn bash_init(pickers: &[Picker]) -> String {

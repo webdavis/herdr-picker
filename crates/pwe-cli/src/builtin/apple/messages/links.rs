@@ -21,7 +21,6 @@ pub(super) fn link_rows(message: &Message) -> Vec<PickerRow> {
         .collect()
 }
 
-// Each web address in the text, without the punctuation that ends a sentence around it.
 fn links(text: &str) -> impl Iterator<Item = &str> {
     let mut rest = text;
     std::iter::from_fn(move || {

@@ -4,8 +4,6 @@ use crate::path::expand_tilde;
 
 const API: &str = "/proxy/network/integration/v1";
 
-// How curl reaches the controller: the URL it asks, and where it connects when the
-// certificate names another host than the address the controller answers at.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Controller {
     pub(super) base: String,
@@ -56,7 +54,6 @@ pub(super) fn controller(
     })
 }
 
-// The key goes to curl on stdin, so no process listing ever shows it.
 pub(super) fn curl_args(controller: &Controller, path: &str, offset: usize) -> Vec<String> {
     let mut args: Vec<String> = [
         "curl",

@@ -7,7 +7,6 @@ use crate::builtin::rows::RowWriter;
 use crate::builtin::written;
 use crate::command::CommandError;
 
-// The ways a git row leads on: to another step, or to a command once the user says yes.
 pub(super) fn next(
     name: &str,
     args: &[&str],
@@ -43,8 +42,6 @@ pub(super) fn choice(label: &str, note: &str, action: Action) -> Choice {
     }
 }
 
-// A step with several answers: the header asks the question and each row previews the detail.
-// Cancel comes first, so Enter on the first row changes nothing.
 pub(super) fn ask(
     question: &str,
     detail: &str,

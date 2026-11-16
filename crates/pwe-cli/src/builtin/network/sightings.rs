@@ -1,6 +1,5 @@
 use serde_json::{Map, Value};
 
-// Who saw a device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Source {
     UniFi,
@@ -20,7 +19,6 @@ impl Source {
     }
 }
 
-// What one source saw of one device; the devices source merges them by MAC, then by address.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub(super) struct Sighting {
     pub(super) ip: String,
@@ -33,7 +31,6 @@ pub(super) struct Sighting {
     pub(super) unifi: Map<String, Value>,
 }
 
-// `arp -an`: `? (192.168.1.1) at 74:ac:b9:1:2:3 on en0 ifscope [ethernet]`.
 pub(super) fn arp(table: &str) -> Vec<Sighting> {
     table
         .lines()
@@ -56,7 +53,6 @@ pub(super) fn arp(table: &str) -> Vec<Sighting> {
         .collect()
 }
 
-// `ndp -an`: neighbour, MAC, interface, then its state; this Mac's own addresses are permanent.
 pub(super) fn ndp(table: &str) -> Vec<Sighting> {
     table
         .lines()
@@ -78,7 +74,6 @@ pub(super) fn ndp(table: &str) -> Vec<Sighting> {
         .collect()
 }
 
-// `dns-sd -B`: each announced instance's name and domain.
 pub(super) fn browsed(output: &str) -> Vec<(String, String)> {
     output
         .lines()
@@ -90,7 +85,6 @@ pub(super) fn browsed(output: &str) -> Vec<(String, String)> {
         .collect()
 }
 
-// `dns-sd -L`: the host an instance can be reached at.
 pub(super) fn reached(output: &str) -> Option<String> {
     let (_, after) = output.split_once("can be reached at ")?;
     let (host, _) = after.split_once(':')?;

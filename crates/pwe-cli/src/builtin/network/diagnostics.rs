@@ -22,7 +22,6 @@ fn choice(label: &str, detail: &str, step: &str) -> PickerRow {
     }
 }
 
-// The DNS record types; Enter asks for the host to look up.
 pub(super) fn dns_records() -> Vec<PickerRow> {
     RECORDS
         .iter()
@@ -34,7 +33,6 @@ pub(super) fn dns_records() -> Vec<PickerRow> {
         .collect()
 }
 
-// The host typed, then an optional server to ask in place of the system's.
 pub(super) fn dns_lookup(record: &str, typed: &str) -> Option<(String, PickerRow)> {
     RECORDS.contains(&record).then_some(())?;
     let prompt = "Type the host and an optional DNS server, then press Enter.".to_string();
@@ -55,7 +53,6 @@ pub(super) fn dns_lookup(record: &str, typed: &str) -> Option<(String, PickerRow
     Some((prompt, row))
 }
 
-// The iperf3 test modes; Enter asks for the server and settings each needs.
 pub(super) fn iperf_modes() -> Vec<PickerRow> {
     let detail = "Choose duration, port and host as applicable.\nEnter shows the exact command before preparing it.";
     MODES
@@ -108,7 +105,6 @@ fn iperf_argv(mode: &str, typed: &[&str]) -> Result<Vec<String>, String> {
     Ok(argv)
 }
 
-// A rate such as 10M: a whole number, then K, M or G if any.
 fn bitrate(text: &str) -> Result<&str, String> {
     let digits = text.strip_suffix(['K', 'M', 'G']).unwrap_or(text);
     let whole = !digits.starts_with('0') && !digits.is_empty();

@@ -32,7 +32,6 @@ pub(in crate::builtin) fn quick_answer_argv(
         .to_vec()
 }
 
-// The answer a line a row; Enter copies all of it and Esc goes back to the question.
 pub(in crate::builtin) fn answer_page(argv: &[String]) -> Vec<PickerRow> {
     let Some((program, arguments)) = argv.split_first() else {
         return Vec::new();

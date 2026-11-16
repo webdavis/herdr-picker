@@ -11,7 +11,6 @@ use crate::builtin::program::{ran, run};
 
 const MOST_PAGES: usize = 100;
 
-// Every item of a paged list: the next page starts where the last ended, until the total.
 pub(super) fn pages(
     mut get: impl FnMut(usize) -> Result<Value, String>,
 ) -> Result<Vec<Value>, String> {
@@ -41,7 +40,6 @@ pub(super) fn pages(
     Err(incomplete("UniFi kept paging"))
 }
 
-// The controller's devices and clients of every site, or rows saying why there are none.
 pub(super) fn unifi_sightings(
     settings: Option<&UnifiSettings>,
     home: Option<&str>,

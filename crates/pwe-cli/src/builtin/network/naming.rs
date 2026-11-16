@@ -5,7 +5,6 @@ use serde_json::Value;
 use super::devices::Device;
 use super::sightings::Source;
 
-// The order a device's name is taken in: the controller knows best, a scan least.
 const SOURCES: [Source; 4] = [
     Source::UniFi,
     Source::ThisMac,
@@ -17,14 +16,12 @@ const UNIFI_ROLES: [(&str, &str); 3] = [
     ("accessPoint", "access point"),
     ("switching", "switch"),
 ];
-// UniFi's features list omits routing, so the model prefix says which gear is the router.
 const ROUTER_MODELS: [&str; 5] = ["UDR", "UDM", "UXG", "UCG", "USG"];
 
 pub(super) fn is_loopback(ip: &str) -> bool {
     ip.parse::<IpAddr>().is_ok_and(|ip| ip.is_loopback())
 }
 
-// The address to paste and ssh to: a routable IPv4 one when there is a choice.
 pub(super) fn primary_ip(device: &Device) -> String {
     let mut ranked: Vec<&String> = device.ips.iter().collect();
     ranked.sort_by_key(|ip| (is_loopback(ip), ip.contains(':'), ip.as_str()));

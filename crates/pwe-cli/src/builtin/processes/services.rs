@@ -14,7 +14,6 @@ const BREW_FIELDS: [(&str, &str); 5] = [
     ("pid", "PID"),
     ("exit_code", "Last exit code"),
 ];
-// `brew services list --json`: Enter prepares `brew services info`, Alt-D tails its log files.
 pub(super) fn brew_rows(listed: &str) -> Result<Vec<PickerRow>, String> {
     let services: Vec<Value> = serde_json::from_str(listed).map_err(|why| why.to_string())?;
     Ok(services
@@ -51,7 +50,6 @@ pub(super) fn brew_rows(listed: &str) -> Result<Vec<PickerRow>, String> {
         .collect())
 }
 
-// The files a launchd plist sends a service's output to, each once.
 pub(super) fn log_paths(plist: &str) -> Vec<String> {
     let mut paths: Vec<String> = Vec::new();
     for field in ["StandardOutPath", "StandardErrorPath"] {
@@ -65,7 +63,6 @@ pub(super) fn log_paths(plist: &str) -> Vec<String> {
     paths
 }
 
-// `launchctl list`: Enter prepares `launchctl list <label>`; Alt-D reads a running job's log.
 pub(super) fn launchd_rows(listed: &str) -> Vec<PickerRow> {
     listed
         .lines()
@@ -117,7 +114,6 @@ pub(super) fn service_row(
     }
 }
 
-// The name, then the status: green when it runs, red when it failed, dim when there is none.
 pub(super) fn status_line(name: &str, status: &str) -> String {
     let lowered = status.to_lowercase();
     let starts = |prefixes: &[&str]| prefixes.iter().any(|prefix| lowered.starts_with(prefix));

@@ -41,7 +41,6 @@ pub(super) fn processes(
     written(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
-// Homebrew, launchd and Docker, asked at once; one that cannot answer says why in a row.
 fn services() -> Vec<super::PickerRow> {
     let asked: [(&str, &[&str]); 4] = [
         ("brew", &["brew", "services", "list", "--json"]),
@@ -78,7 +77,6 @@ fn services() -> Vec<super::PickerRow> {
     rows
 }
 
-// The last hour can be long, so its rows go out as `log` prints them.
 pub(super) fn unified_logs(rows: &mut RowWriter<impl Write>) -> Result<(), CommandError> {
     let mut log = Command::new("/usr/bin/log")
         .args(["show", "--style", "ndjson", "--last", "1h", "--no-pager"])

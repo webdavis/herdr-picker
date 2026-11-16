@@ -12,7 +12,6 @@ const DIM: &str = "\x1b[2m";
 const RESET: &str = "\x1b[0m";
 const FLUSH_EVERY: Duration = Duration::from_millis(16);
 
-// The first row goes out at once and later ones in batches, so the list fills fast and cheaply.
 pub(super) struct RowWriter<W: Write> {
     out: BufWriter<W>,
     flushed: Option<Instant>,
@@ -51,7 +50,6 @@ impl<W: Write> RowWriter<W> {
     }
 }
 
-// A label is one line: a log message's line breaks show the way the fzf-pickers suite drew them.
 fn one_line(label: &str) -> String {
     label
         .replace('\r', "")
@@ -75,7 +73,6 @@ pub(super) fn in_home(path: &Path, home: Option<&Path>) -> String {
     }
 }
 
-// Drawn the way the fzf-pickers suite draws a path.
 pub(super) fn painted(shown: &str) -> String {
     match shown.rsplit_once('/') {
         Some((folder, name)) => format!("{BLUE}{folder}/{RESET}{name}"),
@@ -83,7 +80,6 @@ pub(super) fn painted(shown: &str) -> String {
     }
 }
 
-// Drawn the way the fzf-pickers recent list draws a file.
 pub(super) fn named(path: &Path, home: Option<&Path>) -> String {
     let name = path.file_name().unwrap_or_default().to_string_lossy();
     let folder = in_home(path.parent().unwrap_or(path), home);

@@ -16,7 +16,6 @@ pub(super) fn files(
     places: &Places,
     rows: &mut RowWriter<impl Write>,
 ) -> Result<(), CommandError> {
-    // Alt-. switches between this folder's files with and without its hidden ones.
     let (root, hidden, depth, toggle) = match source {
         "this folder" => (places.cwd.clone(), false, None, Some("hidden")),
         "hidden" => (places.cwd.clone(), true, None, Some("this folder")),
@@ -41,7 +40,6 @@ pub(super) fn files(
     }))
 }
 
-// Newest first, so every file is read before the first row is shown.
 fn recent(places: &Places, rows: &mut RowWriter<impl Write>) -> Result<(), CommandError> {
     let home = home(places)?;
     let mut found: Vec<(SystemTime, PathBuf)> = Vec::new();

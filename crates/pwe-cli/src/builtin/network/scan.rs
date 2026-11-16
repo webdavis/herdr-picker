@@ -9,10 +9,8 @@ use crate::builtin::page::words;
 use crate::builtin::paint::{blue, bold, dim};
 use crate::builtin::rows::key;
 
-// A scan is remembered for a day, so the devices source still shows it after the picker closes.
 const KEPT: i64 = 24 * 3600;
 
-// Where Ctrl-X's nmap run leaves its results: XML for the rows, its own report for people.
 pub(super) struct ScanFiles {
     pub(super) xml: PathBuf,
     pub(super) report: PathBuf,
@@ -35,7 +33,6 @@ pub(super) struct Scan {
     pub(super) report: String,
 }
 
-// nmap's XML: the range from its command line, when it ran, and each host's addresses and name.
 pub(super) fn parse_scan(xml: &str, report: &str, now: i64) -> Option<Scan> {
     let run = xml.split_once("<nmaprun ")?.1;
     let at: i64 = attribute(run, "start")?.parse().ok()?;
@@ -92,7 +89,6 @@ pub(super) fn scan_command(range: &str) -> String {
     words(&[&["sudo", "nmap"][..], &six, &["-sn", range]].concat())
 }
 
-// The last scan: its report in the preview and on Alt-Y, its command on Enter.
 pub(super) fn scan_row(scan: &Scan, clock: Clock) -> PickerRow {
     let (when, today) = (stamp(scan.at, clock.offset), stamp(clock.now, clock.offset));
     let when = if when[..10] == today[..10] {

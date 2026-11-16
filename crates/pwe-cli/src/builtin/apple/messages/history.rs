@@ -14,9 +14,7 @@ pub(super) struct Message {
     pub(super) sender: String,
     pub(super) text: String,
     chats: Vec<String>,
-    // The conversation it belongs to, or the one being read when BlueBubbles names none.
     chat: Option<String>,
-    // Each attachment's guid and file name.
     pub(super) attachments: Vec<(String, String)>,
 }
 
@@ -60,7 +58,6 @@ pub(super) fn message(value: &Value, chat: Option<&str>, offset: i64) -> Option<
     })
 }
 
-// Each message with the two before it and the three after it in its conversation.
 pub(super) fn with_neighbors(
     messages: impl Iterator<Item = Message>,
 ) -> impl Iterator<Item = (Message, String)> {
@@ -108,7 +105,6 @@ pub(super) fn history_row(message: &Message, nearby: &str) -> PickerRow {
     )
 }
 
-// Enter copies the value and Alt-A copies it with its date and sender.
 pub(super) fn row(message: &Message, label: String, detail: String, value: &str) -> PickerRow {
     let signed = format!("{} {}\n{value}", message.date, message.sender);
     PickerRow {
@@ -123,7 +119,6 @@ pub(super) fn row(message: &Message, label: String, detail: String, value: &str)
     }
 }
 
-// Alt-M opens the message's conversation.
 pub(super) fn conversation(message: &Message) -> Option<(Key, Action)> {
     let chat = message.chat.clone()?;
     Some((key("alt-m"), step("message-history", vec![chat])))

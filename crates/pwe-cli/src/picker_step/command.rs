@@ -14,11 +14,9 @@ pub(super) struct StepCommand {
     pub(super) description: String,
     pub(super) source: Option<String>,
     pub(super) sources: Vec<String>,
-    // Its rows follow the query, so it runs again as the user types.
     pub(super) live: bool,
 }
 
-// `trail` names the pickers the user came through, whose steps a next may name.
 pub(super) fn step_command(
     page: &Page,
     chosen: Option<&str>,
@@ -97,7 +95,6 @@ fn own_step<'a>(name: &str, config: &'a PluginConfig, trail: &[&str]) -> Option<
     })
 }
 
-// A source the step does not offer, such as one carried from another step, falls back to its first.
 fn chosen_or_first(chosen: Option<&str>, sources: &[String]) -> Option<String> {
     let offered = |chosen: &&str| sources.iter().any(|source| source == chosen);
     chosen

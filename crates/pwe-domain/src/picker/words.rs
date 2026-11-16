@@ -10,7 +10,6 @@ pub(super) fn checked_sources(name: &str, sources: &[String]) -> Result<(), Pick
     }
 }
 
-// A source is shown in the header and chooser and kept on one tab-separated line.
 fn is_lowercase_text(source: &str) -> bool {
     !source.is_empty()
         && source

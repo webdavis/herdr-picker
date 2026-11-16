@@ -6,11 +6,9 @@ use crate::builtin::Places;
 use crate::builtin::page::words;
 use crate::builtin::paint::dim;
 
-// clauth's profiles for the two accounts: personal work, and Broccoli's team account.
 pub(super) const PERSONAL: &str = "main";
 pub(super) const BROCCOLI: &str = "broccoli";
 
-// Each tool on each account, started in a new pane beside this one, in this folder.
 pub(super) fn start(places: &Places) -> Vec<PickerRow> {
     let mut tools: Vec<(&str, &str, String)> = vec![
         ("Claude", "personal", format!("clauth start {PERSONAL}")),

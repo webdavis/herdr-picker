@@ -26,7 +26,6 @@ use load::Origin;
 use place::Place;
 use row::Doc;
 
-// The data picker and its steps, or None for a name that is not one of them.
 pub(super) fn data_rows(
     name: &str,
     arguments: &[&str],
@@ -80,7 +79,6 @@ fn document(origin: &Origin, source: &str, place: &Place) -> (Option<String>, Ve
     )
 }
 
-// The value at a place in the document, or why there is none.
 fn value(origin: &Origin, place: &Place) -> Result<serde_json::Value, String> {
     let document = origin.read()?;
     tree::at(&document, place)
@@ -91,7 +89,6 @@ fn unreadable(failure: &str) -> PickerRow {
     notice("Could not read this document", failure)
 }
 
-// pwe data value ORIGIN PLACE: the value as a preview or an editor shows it.
 pub(crate) fn data_command(arguments: &[&str]) -> Result<(), CommandError> {
     let ["value", origin, place] = arguments else {
         return Err(CommandError::Usage);

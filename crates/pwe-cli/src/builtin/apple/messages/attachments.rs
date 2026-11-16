@@ -11,7 +11,6 @@ use crate::builtin::paint::dim;
 use crate::builtin::program::run;
 use crate::builtin::rows::key;
 
-// Enter prepares opening the original file and Ctrl-Enter opens it now.
 pub(super) fn attachment_rows(
     message: &Message,
     paths: &HashMap<String, String>,
@@ -48,8 +47,6 @@ struct Attachment {
     filename: String,
 }
 
-// BlueBubbles names an attachment by its guid; the Messages database knows its file, when the
-// terminal has Full Disk Access.
 pub(super) fn attachment_paths(home: &Path) -> HashMap<String, String> {
     let database = home.join("Library/Messages/chat.db");
     let query = "SELECT guid, filename FROM attachment WHERE filename IS NOT NULL";

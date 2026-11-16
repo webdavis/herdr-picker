@@ -24,7 +24,6 @@ pub(crate) struct Run<'a> {
 }
 
 impl Run<'_> {
-    // The action the finder closed on and where the user was, or nothing when it was closed.
     pub(crate) fn show(&self, trail: &Trail) -> Result<Option<(Action, Spot)>, CommandError> {
         let step = trail.current();
         let StepCommand {
@@ -76,7 +75,6 @@ impl Run<'_> {
         let picked = picked.map_err(|failure| failed(format!("picker {name}: {failure}")))?;
         Ok(picked.map(|picked| {
             let action = chosen_action(&picked, left.source.as_deref(), self.quickfix, &from);
-            // The query a switch leaves behind filtered the chooser, not the rows.
             let switched = picked.key == SWITCH_SOURCE;
             let spot = Spot {
                 query: if switched {
@@ -96,7 +94,6 @@ impl Run<'_> {
     }
 }
 
-// `from` is the title of the picker the trail began in.
 fn chosen_action(picked: &Picked, source: Option<&str>, quickfix: &Path, from: &str) -> Action {
     match picked.key.as_str() {
         "esc" => return Action::Back,

@@ -1,6 +1,5 @@
 use super::{BuiltinPicker, Live};
 
-// Herdr's agents, and the handoff sources kept from the agents picker the shell suite had.
 pub(super) const AGENTS: BuiltinPicker = BuiltinPicker {
     name: "agents",
     key: "ctrl-t a",

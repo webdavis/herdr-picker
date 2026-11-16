@@ -75,7 +75,6 @@ impl SocketPanes {
     }
 }
 
-// A picker's result, handed to the pane it was opened over the way what runs there takes it.
 pub fn hand_over(
     panes: &mut SocketPanes,
     target: &str,
@@ -98,7 +97,6 @@ pub fn hand_over(
     match handover(&instruction, &underneath)? {
         Handover::Herdr(call) => calls::carry_out(panes, queue, &call),
         Handover::Type { text, submit } => {
-            // An insert lands at the shell's cursor, after any draft; a cd or run would submit it.
             if submit || kind != PaneKind::Shell {
                 guard(&kind, &pane.status, &panes.screen(target)?)?;
             }

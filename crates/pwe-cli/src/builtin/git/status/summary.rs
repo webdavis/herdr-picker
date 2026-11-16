@@ -1,6 +1,5 @@
 use super::porcelain::{Porcelain, STATES};
 
-// What git status says first, such as main → origin/main ↑1 | 2 staged, 1 untracked.
 pub(super) fn summary(status: &Porcelain) -> String {
     let mut place = match status.head.as_str() {
         "(detached)" => "detached HEAD".to_string(),

@@ -10,7 +10,6 @@ use crate::builtin::rows::{RowWriter, file_row, key, painted, shown};
 use crate::builtin::{Places, written};
 use crate::command::{CommandError, failed};
 
-// Ignored files, a whole ignored folder as one row, each with the rule that ignores it.
 pub(super) fn ignored(
     repo: &Repo,
     places: &Places,

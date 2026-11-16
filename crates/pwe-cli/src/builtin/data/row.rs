@@ -12,24 +12,19 @@ use crate::builtin::page::{own_program, words};
 use crate::builtin::paint::dim;
 use crate::builtin::rows::key;
 
-// shortcut: a bigger value copies through Alt-; only, so the list stays near the file's size;
-// raise it if copying big objects from the list is missed.
 const LARGEST_ROW_COPY: usize = 64 * 1024;
 
-// A document being shown: where it came from and where its values start.
 pub(super) struct Doc<'a> {
     pub(super) origin: &'a Origin,
     pub(super) lines: &'a Lines,
 }
 
-// What Enter does on an object or array: type its jq path, or open it as the next step.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Enter {
     Types,
     Opens,
 }
 
-// The jq path, the value in brief, and a dim tag when it was decoded.
 pub(super) fn path_label(place: &Place, value: &Value) -> String {
     format!("{}  {}{}", place.label(), dim(&summary(value)), tag(place))
 }
@@ -83,7 +78,6 @@ pub(super) fn node_row(
     }
 }
 
-// Ctrl-Enter: the file in the editor at the value, or a text of many lines alone as plain text.
 fn opened(doc: &Doc, place: &Place, value: &Value) -> Action {
     let plain_text = value.as_str().is_some_and(|text| text.contains('\n'));
     match doc.origin {

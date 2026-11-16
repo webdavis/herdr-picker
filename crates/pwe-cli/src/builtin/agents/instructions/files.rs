@@ -6,7 +6,6 @@ use serde_json::Value;
 
 use super::INSTRUCTION_NAMES;
 
-// The files in a folder, by name; `skills` is every file, `entries` the named file in each subfolder.
 pub(super) fn skills(folder: &Path) -> Vec<PathBuf> {
     let mut files: Vec<PathBuf> = listed(folder)
         .into_iter()
@@ -26,7 +25,6 @@ pub(super) fn entries(folder: &Path, name: &str) -> Vec<PathBuf> {
     files
 }
 
-// The files in the folder whose text names the repository.
 pub(super) fn mentioning(folder: &Path, repo: &str) -> Vec<PathBuf> {
     if repo.is_empty() {
         return Vec::new();
@@ -37,7 +35,6 @@ pub(super) fn mentioning(folder: &Path, repo: &str) -> Vec<PathBuf> {
         .collect()
 }
 
-// Claude Code keeps a project's memory under its path with every other character a dash.
 pub(in crate::builtin::agents) fn claude_project(home: &Path, root: &Path) -> PathBuf {
     let name: String = root
         .to_string_lossy()
@@ -53,7 +50,6 @@ pub(in crate::builtin::agents) fn claude_project(home: &Path, root: &Path) -> Pa
     home.join(".claude/projects").join(name)
 }
 
-// The installed Claude Code plugins that load here: every user plugin, and project ones for this repo.
 pub(super) fn plugin_roots(home: &Path, root: &Path) -> Vec<PathBuf> {
     let installed = home.join(".claude/plugins/installed_plugins.json");
     let Some(listed) = fs::read(installed)
@@ -74,7 +70,6 @@ pub(super) fn plugin_roots(home: &Path, root: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
-// Instruction files deeper in the repository, and its handoffs; fd skips what git ignores.
 pub(super) fn repo_files(root: &Path, fd: Option<&Path>) -> (Vec<PathBuf>, Vec<PathBuf>) {
     let (mut instructions, mut handoffs) = (Vec::new(), Vec::new());
     let every = Walk {

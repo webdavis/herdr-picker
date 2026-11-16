@@ -9,7 +9,6 @@ use crate::program::on_path;
 const SHOWN_LINES: usize = 200;
 const SNIFFED_BYTES: u64 = 8192;
 
-// bat and eza color what they show; without them the path is read here, plain.
 pub fn path_preview(path: &Path, path_variable: Option<&OsStr>) -> String {
     let shown = fs::metadata(path).and_then(|found| {
         if found.is_dir() {

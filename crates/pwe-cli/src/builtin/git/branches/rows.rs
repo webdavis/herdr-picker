@@ -124,7 +124,6 @@ fn row(
     }
 }
 
-// Fetch, pull and prune act on the repository, whichever row is highlighted.
 fn repository_keys(repo: &Repo) -> Vec<(Key, Action)> {
     let root = repo.root.to_string_lossy().into_owned();
     vec![

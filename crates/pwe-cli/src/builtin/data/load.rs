@@ -10,11 +10,9 @@ use crate::builtin::program::{ran, run};
 const CLIPBOARD: &str = "clipboard";
 const READ_DEADLINE: Duration = Duration::from_secs(20);
 
-// Where a document's text comes from.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum Origin {
     File(PathBuf),
-    // Read with pbpaste, never written.
     Clipboard,
 }
 
@@ -63,7 +61,6 @@ impl Origin {
     }
 }
 
-// One value, or each of a stream of values (JSON Lines, YAML documents) as an array.
 pub(super) fn values(text: &str) -> Result<Value, String> {
     let mut read = Deserializer::from_str(text)
         .into_iter::<Value>()

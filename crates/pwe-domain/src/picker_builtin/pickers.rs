@@ -1,6 +1,5 @@
 use super::{BuiltinPicker, Live};
 
-// Every picker on its key, and every key binding: pwe's own and the owner's chord table.
 pub(super) const PICKERS: BuiltinPicker = BuiltinPicker {
     name: "pickers",
     key: "ctrl-t ;",

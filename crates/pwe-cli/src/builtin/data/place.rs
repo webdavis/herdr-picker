@@ -2,16 +2,13 @@ use serde_json::{Value, json};
 
 pub(super) use super::decode::Decoding;
 
-// One step from a value to a value inside it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum Segment {
     Key(String),
     Index(usize),
-    // The string here, read as what it holds.
     Decoded(Decoding),
 }
 
-// Where a value sits in a document: the segments from the top.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub(super) struct Place(pub(super) Vec<Segment>);
 
@@ -26,12 +23,10 @@ impl Place {
         self.render(false, false)
     }
 
-    // The jq filter that reaches the value, decodings included.
     pub(super) fn jq(&self) -> String {
         self.render(true, false)
     }
 
-    // The path with every array item at once, as a label and as the jq filter.
     pub(super) fn shape(&self) -> String {
         self.render(false, true)
     }

@@ -6,8 +6,6 @@ use super::Repo;
 use super::paint::bold;
 use crate::command::CommandError;
 
-// The previews git alone cannot draw: a change's staged and unstaged parts, a conflict's three
-// sides, and a committed file colored for its language.
 pub(crate) fn git_preview(arguments: &[&str]) -> Result<String, CommandError> {
     match arguments {
         ["diff", root, name] => diff(&repo(root), name),
@@ -50,7 +48,6 @@ fn diff(repo: &Repo, name: &str) -> Result<String, CommandError> {
     Ok(sections.join("\n"))
 }
 
-// bat colors it for the language its name says; without bat it is shown plain.
 fn committed(repo: &Repo, blob: &str, name: &str) -> Result<String, CommandError> {
     let content = repo.git(&["cat-file", "blob", blob])?;
     if content.contains(&0) {

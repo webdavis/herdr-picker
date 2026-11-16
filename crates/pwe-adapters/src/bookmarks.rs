@@ -11,7 +11,6 @@ pub fn read_bookmarks(file: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
-// False when the folder was already bookmarked.
 pub fn add_bookmark(file: &Path, folder: &Path) -> io::Result<bool> {
     if read_bookmarks(file).iter().any(|saved| saved == folder) {
         return Ok(false);

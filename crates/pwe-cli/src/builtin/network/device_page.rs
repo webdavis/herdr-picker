@@ -6,7 +6,6 @@ use super::naming::{display_name, role};
 use super::unifi_record::{connection, since, text, unifi_fields};
 use crate::builtin::page::fields;
 
-// The clock a page reads ages and local times from.
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Clock {
     pub(super) now: i64,

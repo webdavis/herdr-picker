@@ -14,7 +14,6 @@ mod state;
 use state::Sort;
 
 const COMMITS: &str = "--format=%H%x00%h%x00%s%x00%cr, %an%x00";
-// A reflog entry says what moved HEAD and when, so it shows that instead of the subject.
 const REFLOG: &str = "--format=%H%x00%h%x00%gs%x00%gd%x00";
 
 pub(super) fn history(
@@ -75,7 +74,6 @@ fn commit_row(repo: &Repo, fields: &[String; 4], sort: Sort) -> PickerRow {
     }
 }
 
-// The files of one commit, each read as it was then.
 pub(super) fn commit_files(
     commit: &str,
     places: &Places,

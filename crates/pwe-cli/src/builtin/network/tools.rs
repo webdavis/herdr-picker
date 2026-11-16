@@ -4,7 +4,6 @@ use std::time::Duration;
 use crate::builtin::program::ran;
 use crate::command::{CommandError, failed};
 
-// pwe network ping <address> <page> | pwe network wake <mac> <broadcast>...
 pub(crate) fn network_tool(arguments: &[&str]) -> Result<(), CommandError> {
     match arguments {
         ["ping", address, page] => {
@@ -19,7 +18,6 @@ pub(crate) fn network_tool(arguments: &[&str]) -> Result<(), CommandError> {
             for target in targets {
                 socket.send_to(&packet, (*target, 9)).map_err(failed)?;
             }
-            // A sent packet proves nothing about the device; only one set up for it wakes.
             println!(
                 "Wake-up packet sent to {mac}. Reopen the devices to see whether it answers; only devices set up for Wake-on-LAN will."
             );
@@ -29,7 +27,6 @@ pub(crate) fn network_tool(arguments: &[&str]) -> Result<(), CommandError> {
     }
 }
 
-// How long the device took to answer one ping, and the name the system resolver has for it.
 fn pinged(address: &str) -> String {
     let ping = match address.contains(':') {
         true => ran(
@@ -78,7 +75,6 @@ pub(super) fn resolved(output: &str) -> Option<String> {
         .map(str::to_string)
 }
 
-// Six 0xff bytes, then the MAC sixteen times.
 pub(super) fn magic_packet(mac: &str) -> Option<Vec<u8>> {
     let bytes: Vec<u8> = mac
         .split([':', '-'])

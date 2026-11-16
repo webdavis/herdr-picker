@@ -33,7 +33,6 @@ impl PaneKind {
     }
 }
 
-// What the pane under a picker opened from herdr runs, and how to tell its words apart.
 pub struct Underneath<'a> {
     pub kind: PaneKind,
     pub cwd: &'a str,
@@ -44,12 +43,10 @@ pub struct Underneath<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Handover {
-    // Typed into the pane underneath, then Enter when `submit`.
     Type {
         text: String,
         submit: bool,
     },
-    // A new pane in `folder`, or the folder underneath, running `run` if any.
     Open {
         pane: NewPane,
         folder: Option<String>,

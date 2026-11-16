@@ -19,10 +19,8 @@ mod start;
 use herdr_view::herdr_view;
 pub(crate) use send::send_call;
 
-// Ctrl-R asks herdr again rather than reading what the status hook saved.
 const FRESH: &str = r#"{"fresh":true}"#;
 
-// The agents picker, by source, and the steps Alt-O opens in any picker.
 pub(super) fn agents(
     name: &str,
     asked: &Asked,

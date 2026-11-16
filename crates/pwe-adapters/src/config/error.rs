@@ -25,7 +25,6 @@ pub enum ConfigError {
     Misplaced {
         path: PathBuf,
         table: String,
-        // The one picker that reads the table.
         owner: &'static str,
     },
 }

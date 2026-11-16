@@ -8,7 +8,6 @@ use super::frameworks::Framework;
 use super::{command_row, nearest, notice};
 use crate::builtin::Places;
 
-// The tests each saved listing found, each run alone; a listing that failed says so first.
 pub(super) fn discovered(places: &Places) -> Vec<PickerRow> {
     let mut rows = Vec::new();
     for saved in read_captures(&saved_dir(places), "tests") {
@@ -35,8 +34,6 @@ pub(super) fn discovered(places: &Places) -> Vec<PickerRow> {
     rows
 }
 
-// For each kind of project the picker runs in: the row that saves its test listing, then the
-// row that runs all its tests.
 pub(super) fn discoveries(places: &Places) -> Vec<PickerRow> {
     let cwd = &places.cwd;
     let mut rows = Vec::new();

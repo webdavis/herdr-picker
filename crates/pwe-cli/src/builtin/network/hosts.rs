@@ -18,7 +18,6 @@ const TAILSCALE: [&str; 8] = [
     "CurAddr",
 ];
 
-// Saved hosts: SSH aliases prepare ssh, hosts-file names and Tailscale peers paste their address.
 pub(super) fn host_rows(
     ssh: &[SshHost],
     etc_hosts: Option<&str>,
@@ -101,7 +100,6 @@ fn text(value: &Value) -> String {
     }
 }
 
-// Enter pastes the address, or the name when there is none.
 fn pasted(name: &str, address: &str, page: String, group: &str) -> PickerRow {
     let label = match address.is_empty() {
         true => name.to_string(),

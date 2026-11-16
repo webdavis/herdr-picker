@@ -4,8 +4,6 @@ pub(crate) const EVERY_GROUP: &str = "all";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum View {
-    // The rows as the command printed them, before the list draws a group column; the group is
-    // the one to filter to once they load, when Esc came back to this step.
     Streamed { group: Option<String> },
     List { group: Option<String> },
     Chooser { group: Option<String> },
@@ -16,7 +14,6 @@ pub enum ViewKey {
     Loaded,
     Choose,
     Enter(Option<usize>),
-    // A row's key other than enter.
     Other,
     Back,
 }
@@ -26,14 +23,12 @@ pub enum ViewResponse {
     Redraw,
     OpenChooser,
     CloseChooser,
-    // Leave this run so the step shows again, its rows read from the named source.
     Switch(String),
     Accept,
     Back,
     Stay,
 }
 
-// What the callbacks fzf runs during one step need to know about it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ViewState {
     pub view: View,
@@ -50,7 +45,6 @@ pub fn groups(rows: &[PickerRow]) -> Vec<String> {
     groups
 }
 
-// The sources first, then every group when the rows carry them.
 pub fn chooser_entries<'a>(sources: &'a [String], groups: &'a [String]) -> Vec<&'a str> {
     let grouped = (!groups.is_empty()).then_some(EVERY_GROUP);
     sources
@@ -91,7 +85,6 @@ pub fn press(
             ViewResponse::Redraw,
         ),
         (View::List { group }, ViewKey::Choose) => open(group),
-        // Sources are known before the rows load, so they can be switched while rows still stream.
         (View::Streamed { group }, ViewKey::Choose) if !sources.is_empty() => open(group),
         (View::Chooser { .. }, ViewKey::Enter(Some(entry))) => {
             chosen(entry, sources, groups).unwrap_or(stay)

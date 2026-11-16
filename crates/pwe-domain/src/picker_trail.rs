@@ -1,18 +1,15 @@
 use crate::picker_row::{Action, PickerCall};
 
-// What a step shows: a picker's rows, or a question.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Page {
     Picker(PickerCall),
     Confirm { question: String, action: Action },
 }
 
-// Where the user was on a step: restored when Esc comes back to it.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Spot {
     pub query: String,
     pub group: Option<String>,
-    // None reads the picker's first source.
     pub source: Option<String>,
 }
 
@@ -31,7 +28,6 @@ pub enum Turn {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Trail {
-    // Never empty: the last step is the one showing.
     steps: Vec<Step>,
 }
 
@@ -77,7 +73,6 @@ impl Trail {
         match action {
             Action::Next(call) => {
                 let query = call.query.clone().unwrap_or_default();
-                // Going deeper into the same picker, such as a level down, keeps the source in view.
                 let source = match &self.current().page {
                     Page::Picker(current) if current.name == call.name => {
                         self.current().spot.source.clone()

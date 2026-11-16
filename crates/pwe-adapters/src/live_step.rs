@@ -11,7 +11,6 @@ use crate::picker_files::{picker_command_file, picker_error_file, picker_header_
 use crate::picker_run::{PickerRunError, feed::failure};
 use crate::private::write_private;
 
-// A step's command, kept beside its rows so fzf can run it again as the query changes.
 #[derive(Serialize, Deserialize)]
 struct SavedCommand {
     program: String,
@@ -32,12 +31,10 @@ pub fn save_step_command(cache: &Path, command: &Command) -> io::Result<()> {
     write_private(&picker_command_file(cache), &serde_json::to_vec(&saved)?)
 }
 
-// Only a live step keeps its command beside its rows.
 pub fn is_live_step(cache: &Path) -> bool {
     picker_command_file(cache).exists()
 }
 
-// The rows land whole, so fzf never reads half a list.
 pub fn rerun_step(cache: &Path, query: &str) -> Result<(), PickerRunError> {
     let refused = |refusal: PickerRunError| {
         let _ = write_private(&picker_error_file(cache), refusal.to_string().as_bytes());

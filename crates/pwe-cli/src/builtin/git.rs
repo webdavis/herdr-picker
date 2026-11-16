@@ -26,7 +26,6 @@ mod worktrunk;
 
 pub(crate) use preview::git_preview;
 
-// The repository a git picker reads, by its top folder.
 pub(super) struct Repo {
     pub(super) root: PathBuf,
 }
@@ -58,7 +57,6 @@ impl Repo {
         command
     }
 
-    // A command for the shell to run in this repository, wherever the shell is.
     pub(super) fn shell(&self, arguments: &[&str]) -> String {
         let root = self.root.to_string_lossy();
         ["git", "-C", &root]
@@ -83,7 +81,6 @@ pub(super) fn output(command: &mut Command) -> Result<Vec<u8>, CommandError> {
     }))
 }
 
-// Git's -z output: names and fields split at NUL.
 pub(super) fn strings(data: &[u8]) -> Vec<String> {
     data.split(|byte| *byte == 0)
         .filter(|field| !field.is_empty())
@@ -91,7 +88,6 @@ pub(super) fn strings(data: &[u8]) -> Vec<String> {
         .collect()
 }
 
-// A preview that runs pwe itself, for the ones git alone cannot draw.
 pub(super) fn own_preview(arguments: &[&str]) -> Vec<String> {
     let program = env::current_exe()
         .map_or_else(|_| "pwe".into(), |path| path.to_string_lossy().into_owned());
@@ -101,7 +97,6 @@ pub(super) fn own_preview(arguments: &[&str]) -> Vec<String> {
         .collect()
 }
 
-// A worktrunk command for the shell to run on a repository, wherever the shell is.
 pub(super) fn wt(root: &Path, arguments: &[&str]) -> String {
     let root = root.to_string_lossy();
     ["wt", "-C", &root]
@@ -116,7 +111,6 @@ pub(super) fn plural(count: usize, noun: &str) -> String {
     format!("{count} {noun}{}", if count == 1 { "" } else { "s" })
 }
 
-// The git pickers and their steps, or None for a name that is not one of them.
 pub(super) fn git_rows(
     name: &str,
     arguments: &[&str],

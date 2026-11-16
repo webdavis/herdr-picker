@@ -7,7 +7,6 @@ use super::notice;
 use crate::builtin::Places;
 use crate::builtin::rows::{key, shown};
 
-// The list Ctrl-Q saved: Enter reopens Neovim with all of it, at the entry picked.
 pub(super) fn saved(places: &Places) -> Vec<PickerRow> {
     let entries = read_quickfix(&places.quickfix).unwrap_or_default();
     if entries.is_empty() {

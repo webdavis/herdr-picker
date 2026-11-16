@@ -1,7 +1,6 @@
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-// Seconds east of UTC, as `date +%z` says, so times show the way the Mac's clock does.
 pub(super) fn local_offset() -> i64 {
     let said = Command::new("date").arg("+%z").output();
     said.ok()
@@ -27,7 +26,6 @@ fn offset(zone: &str) -> Option<i64> {
     }
 }
 
-// A moment as the pickers show one: `2026-10-19 06:07`.
 pub(super) fn stamp(epoch: i64, offset: i64) -> String {
     let local = epoch + offset;
     let (year, month, day) = civil(local.div_euclid(86_400));
@@ -39,7 +37,6 @@ pub(super) fn stamp(epoch: i64, offset: i64) -> String {
     )
 }
 
-// The moment an ISO 8601 time names, like `2026-10-19T12:07:44Z` or one with a `+02:00` offset.
 pub(super) fn parse_iso(text: &str) -> Option<i64> {
     let number = |range: std::ops::Range<usize>| text.get(range)?.parse::<i64>().ok();
     let days = days(number(0..4)?, number(5..7)?, number(8..10)?);
@@ -52,7 +49,6 @@ pub(super) fn parse_iso(text: &str) -> Option<i64> {
     Some(days * 86_400 + seconds - east)
 }
 
-// Howard Hinnant's days-from-civil and its inverse, counted from 1970-01-01.
 fn days(year: i64, month: i64, day: i64) -> i64 {
     let year = if month <= 2 { year - 1 } else { year };
     let era = year.div_euclid(400);

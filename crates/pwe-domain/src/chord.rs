@@ -60,7 +60,6 @@ fn stroke(word: &str) -> Option<Stroke> {
     }
 }
 
-// A quote or backslash would end or escape the readline binding the chord becomes.
 fn bindable_punctuation(character: char) -> bool {
     character.is_ascii_punctuation() && !"'\"\\".contains(character)
 }

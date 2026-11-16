@@ -15,7 +15,6 @@ pub fn on_path(name: &str, path_variable: Option<&OsStr>) -> Option<PathBuf> {
         })
 }
 
-// A bare name reads better in history; a program the PATH would not find keeps its full path.
 pub fn bare_program(command: &str, path_variable: Option<&OsStr>) -> String {
     let Ok(mut words) = split_words(command) else {
         return command.to_string();

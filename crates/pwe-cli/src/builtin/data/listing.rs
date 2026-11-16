@@ -13,7 +13,6 @@ use crate::command::CommandError;
 
 pub(super) const NO_TEMPORAL: &str = "Temporal picker not built yet";
 
-// The data files under this folder; Enter opens one's values as the next step.
 pub(super) fn data_files(
     places: &Places,
     rows: &mut RowWriter<impl Write>,

@@ -79,7 +79,6 @@ pub(super) fn network(
     written(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
-// A network command: Enter prepares it, Ctrl-Enter runs it now, Alt-Y copies it.
 fn command(title: &str, command: &str, purpose: &str) -> PickerRow {
     let detail = [title, command, purpose, "Enter prepares the command."];
     let detail: Vec<&str> = detail.into_iter().filter(|line| !line.is_empty()).collect();

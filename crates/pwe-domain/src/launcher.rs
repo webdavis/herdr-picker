@@ -4,8 +4,6 @@ use crate::pick::{Command, Mode};
 use crate::picker::Picker;
 use crate::target::JumpTarget;
 
-// herdr binds one chord per action, so the launcher popup reads the key that follows the base.
-// shortcut: a picker whose second key holds ctrl, like the bookmark, is left out; offer it once one needs to be.
 pub fn launcher_targets(pickers: &[Picker], base: Stroke) -> Vec<JumpTarget> {
     let mut targets: Vec<JumpTarget> = pickers
         .iter()

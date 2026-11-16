@@ -2,8 +2,6 @@ use std::fs;
 
 const SECRET_PARAMETERS: [&str; 5] = ["token", "access_token", "password", "api_key", "apikey"];
 
-// The line a setting is written on in a Git config file, the last one when it is written more
-// than once, since that is the one Git uses; 1 when it cannot be found.
 pub(super) fn setting_line(path: &str, name: &str) -> u32 {
     let Some((section, key)) = name.rsplit_once('.') else {
         return 1;
@@ -40,7 +38,6 @@ pub(super) fn setting_line(path: &str, name: &str) -> u32 {
     found
 }
 
-// [remote "origin"] and the older [remote.origin] name the same section.
 fn section_of(inside: &str) -> (String, String) {
     let inside = inside.trim();
     if let Some((head, quoted)) = inside.split_once(char::is_whitespace) {
@@ -55,7 +52,6 @@ fn section_of(inside: &str) -> (String, String) {
     }
 }
 
-// A user and password in a URL, and secret query parameters, never show.
 pub(super) fn redact(text: &str) -> String {
     let mut shown = text.to_string();
     if let Some(scheme) = shown.find("://") {

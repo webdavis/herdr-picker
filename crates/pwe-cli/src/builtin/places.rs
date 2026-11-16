@@ -17,19 +17,15 @@ pub(crate) struct Places {
     pub(crate) bookmarks: PathBuf,
     pub(crate) quickfix: PathBuf,
     pub(crate) captures: PathBuf,
-    // The apple picker's copy of the address book.
     pub(crate) contacts: PathBuf,
     pub(crate) herdr: HerdrPlaces,
 }
 
-// Where the agents picker finds herdr and what the plugin saved about it.
 pub(crate) struct HerdrPlaces {
-    // None outside herdr.
     pub(crate) socket: Option<PathBuf>,
     pub(crate) tab: Option<String>,
     pub(crate) snapshot: PathBuf,
     pub(crate) places: PathBuf,
-    // The herdr CLI, which previews an agent's latest reply.
     pub(crate) bin: String,
 }
 

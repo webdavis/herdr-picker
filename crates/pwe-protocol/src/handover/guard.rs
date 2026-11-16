@@ -31,9 +31,6 @@ impl fmt::Display for Refusal {
     }
 }
 
-// herdr sends typed text even into a half-typed prompt, where it joins the owner's draft, and
-// into a question menu, where it would answer it.
-// shortcut: a dim placeholder in the input line reads as a draft and refuses; strip faint text once one shows up.
 pub fn guard(kind: &PaneKind, status: &str, screen: &str) -> Result<(), Refusal> {
     let prompt = match kind {
         PaneKind::Claude => '❯',
@@ -55,14 +52,8 @@ pub fn guard(kind: &PaneKind, status: &str, screen: &str) -> Result<(), Refusal>
     }
 }
 
-// Starship's prompt characters and the classic shell ones, each followed by a space or the end.
 const SHELL_PROMPTS: [char; 6] = ['❯', '❮', '$', '#', '%', '>'];
 
-// herdr says which agent a pane runs but not which program holds a shell's screen, so the prompt is
-// read off the cursor's line: the first prompt character, with only prompt-like words before it.
-// What follows it is typed, so a draft holding a prompt character of its own still reads as a draft.
-// shortcut: a prompt with plain words before its character (bash-5.2$, on main ❯) reads as unseen
-// and refuses; teach prompt_like that word.
 fn shell_guard(screen: &str) -> Result<(), Refusal> {
     let line = screen
         .lines()
@@ -84,8 +75,6 @@ fn shell_guard(screen: &str) -> Result<(), Refusal> {
     }
 }
 
-// user@host, a path, (venv) or [git status], or a bare marker such as +; a program's status line
-// or a REPL's >>> holds some other word.
 fn prompt_like(word: &str) -> bool {
     let wrapped = |open, close| word.starts_with(open) && word.ends_with(close);
     word.contains('@')

@@ -1,4 +1,3 @@
-// Bonjour service types and what each means to a person.
 pub(super) const BONJOUR: [(&str, &str); 16] = [
     ("_ssh._tcp", "SSH login"),
     ("_sftp-ssh._tcp", "SFTP"),

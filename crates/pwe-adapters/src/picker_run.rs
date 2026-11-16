@@ -18,7 +18,6 @@ pub(crate) mod feed;
 
 pub use error::PickerRunError;
 
-// What the finder answered: its query, the key that closed it, and the rows it marked.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Picked {
     pub query: String,
@@ -39,7 +38,6 @@ pub fn run_picker(
         path: said_file.clone(),
         reason: failure.to_string(),
     })?;
-    // Its own process group, so stopping it also stops whatever it spawned to print rows.
     let mut source = spawn(
         command
             .stdin(Stdio::null())
@@ -77,14 +75,12 @@ pub fn run_picker(
     };
     let picked = finder_process.wait_with_output();
     stopping.store(true, Ordering::SeqCst);
-    // A group signal misses a child forked at that instant, so it repeats until the rows end.
     while !feeder.is_finished() {
         signal(source_pid, kill_process_group);
         thread::sleep(RESIGNAL_EVERY);
     }
     let rows = feeder.join().expect("feeding rows does not panic")?;
     let picked = picked.map_err(|failure| PickerRunError::FinderFailed(failure.to_string()))?;
-    // A live step lists its rows again as the user types, so the cache holds the last list.
     Ok(chosen(&picked.stdout, cached_rows(cache).unwrap_or(rows)))
 }
 
@@ -115,7 +111,6 @@ fn spawn(command: &mut Command) -> Result<Child, PickerRunError> {
         })
 }
 
-// The finder prints the query, then the key, then one index-tab-label line per marked row.
 fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<Picked> {
     let picked = String::from_utf8_lossy(picked);
     let mut lines = picked.lines();

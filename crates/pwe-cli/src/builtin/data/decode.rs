@@ -22,10 +22,8 @@ impl Decoding {
     }
 }
 
-// Shorter runs are too often plain words that happen to fit the alphabet.
 const SHORTEST_BASE64: usize = 16;
 
-// What a string holds when it is JSON or base64 text, with the decodings that reach it.
 pub(super) fn decoded(text: &str) -> Option<(Vec<Decoding>, Value)> {
     let trimmed = text.trim();
     if trimmed.starts_with(['{', '[']) {

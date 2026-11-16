@@ -5,7 +5,6 @@ use pwe_domain::{PickerRow, Preview};
 use super::captures::next;
 use crate::builtin::page::notice;
 
-// Alt-F's step: the folder typed, or else the current one, opened as its own list of captures.
 pub(super) fn folder_rows(typed: &str, cwd: &Path, home: Option<&Path>) -> (String, PickerRow) {
     let prompt = "Type the folder to search for captures, then press Enter.".to_string();
     let typed = typed.trim();

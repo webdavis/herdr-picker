@@ -13,7 +13,6 @@ use crate::command::{CommandError, config_path, failed, state_dir};
 use crate::pick::AFTER_PID;
 use crate::popup::present;
 
-// The plugin action on a base key such as ctrl-t: a popup over the focused pane reads the next key.
 pub(crate) fn open(
     socket_path: Option<String>,
     plugin_id: Option<String>,
@@ -44,8 +43,6 @@ pub(crate) fn open(
     .map_err(|failure| failed(format!("could not open the launcher: {failure}")))
 }
 
-// The launcher popup itself. The picker opens in a popup of its own once this one is gone,
-// since herdr shows one popup at a time.
 pub(crate) fn choose() -> Result<(), CommandError> {
     let variable = |name| {
         env::var(name)

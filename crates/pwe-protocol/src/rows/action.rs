@@ -6,7 +6,6 @@ use super::wire::{
 };
 use crate::shell::shell_word;
 
-// A list of words is inserted as shell words; one text is inserted as it is.
 fn inserted(words: Words) -> String {
     match words {
         Words::One(text) => text,

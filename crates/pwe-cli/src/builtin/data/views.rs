@@ -12,7 +12,6 @@ use crate::builtin::paint::{blue, dim};
 pub(super) const SHAPE_NOTE: &str =
     "Each field once, with an example value. A first version: its display is still to be designed.";
 
-// A document's rows as a source shows them, from the place the step opened at; a header if any.
 pub(super) fn view(
     source: &str,
     doc: &Doc,
@@ -71,7 +70,6 @@ pub(super) fn view(
     (header, rows)
 }
 
-// Like folders: the keys one level down, an object or array opening as the next level.
 fn levels(doc: &Doc, value: &Value, place: &Place) -> Vec<PickerRow> {
     children(value, place)
         .iter()
@@ -96,7 +94,6 @@ fn levels(doc: &Doc, value: &Value, place: &Place) -> Vec<PickerRow> {
         .collect()
 }
 
-// Every place a key appears, the places of one key together.
 fn keys(doc: &Doc, value: &Value, place: &Place) -> Vec<PickerRow> {
     let mut found: Vec<(String, PickerRow)> = Vec::new();
     walk(value, place.clone(), &mut |place, value| {
@@ -117,7 +114,6 @@ fn keys(doc: &Doc, value: &Value, place: &Place) -> Vec<PickerRow> {
     found.into_iter().map(|(_, row)| row).collect()
 }
 
-// Each field once, every item of an array counted as one, with the first value met as its example.
 fn shape(doc: &Doc, value: &Value, place: &Place) -> Vec<PickerRow> {
     let mut seen = HashSet::new();
     let mut rows = Vec::new();

@@ -26,7 +26,6 @@ pub(super) struct Field {
     pub(super) value: String,
 }
 
-// Alt-0 to Alt-6 choose which of a contact's fields Enter copies.
 const MODES: [&str; 7] = ["all", "name", "phone", "email", "address", "work", "link"];
 
 pub(super) fn contact_rows(people: &[Person], mode: &str, offset: i64) -> Vec<PickerRow> {
@@ -115,7 +114,6 @@ fn in_group<'a>(person: &'a Person, group: &'a str) -> impl Iterator<Item = &'a 
         .map(|field| field.value.as_str())
 }
 
-// The non-empty fields, Contacts' ISO creation and change times shown as local times.
 pub(super) fn readable(person: &Person, offset: i64) -> Vec<(&Field, String)> {
     person
         .fields

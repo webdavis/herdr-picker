@@ -2,7 +2,6 @@ use std::collections::{HashSet, VecDeque};
 
 use serde_json::Value;
 
-// A paged list read lazily, each record once; a failure is the last item.
 pub(in crate::builtin::apple) fn pages(
     get: impl FnMut(usize) -> Result<Value, String>,
 ) -> impl Iterator<Item = Result<Value, String>> {

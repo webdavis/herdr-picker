@@ -16,7 +16,6 @@ use files::{entries, mentioning, plugin_roots, repo_files, skills};
 pub(super) const INSTRUCTION_NAMES: [&str; 3] = ["AGENTS.md", "CLAUDE.md", "GEMINI.md"];
 const NOTES: [&str; 3] = ["CONTEXT.md", "GLOSSARY.md", "TASKS.md"];
 
-// Every file that tells an agent how to work here, each once, with what kind of file it is.
 pub(super) fn instructions(places: &Places) -> Vec<PickerRow> {
     let root = Repo::at(&places.cwd).map_or_else(|_| places.cwd.clone(), |repo| repo.root);
     let found = instruction_files(

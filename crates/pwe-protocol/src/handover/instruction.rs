@@ -5,11 +5,9 @@ pub enum Verb {
     Insert,
     Cd,
     Run,
-    // The text is a herdr call's JSON.
     Herdr,
 }
 
-// A line `instruction` printed, read back: `<verb>\t<text>`, led by `<new pane>\t` for Alt-H/J/K/L/N.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instruction {
     pub pane: Option<NewPane>,

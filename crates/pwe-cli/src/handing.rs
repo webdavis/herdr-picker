@@ -8,8 +8,6 @@ use crate::agent_hook::queue_path;
 use crate::command::{CommandError, config_path, failed};
 use crate::{pick, picker, picker_popup};
 
-// A shell key prints its result for the bash function to apply in that shell, except a result
-// only herdr can carry out, such as a new pane or a focus.
 pub(crate) fn answer(
     socket: Option<&Path>,
     instruction: Option<String>,
@@ -40,8 +38,6 @@ pub(crate) fn answer(
     Ok(())
 }
 
-// The launcher's picker, run once the launcher popup is gone, its result handed to the pane the
-// launcher opened over. herdr shows a refusal as a notification, since no terminal is left.
 pub(crate) fn deliver(name: &str, target: &str, spawner: &str) -> Result<(), CommandError> {
     pick::wait_for_spawner(spawner.parse().map_err(|_| CommandError::Usage)?);
     let socket = picker_popup::popup_socket(env::var(SOCKET_PATH_VARIABLE).ok())

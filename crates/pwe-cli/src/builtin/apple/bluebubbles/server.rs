@@ -1,7 +1,6 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(in crate::builtin::apple) struct Server {
     pub(in crate::builtin::apple) url: String,
-    // Plain HTTP is allowed only to a server on this Mac.
     pub(in crate::builtin::apple) local: bool,
 }
 

@@ -25,7 +25,6 @@ const GENERAL: [(&str, &str); 5] = [
     ("F1", "this help"),
 ];
 
-// One short entry a key, for the footer to lay out.
 pub fn footer_hint(row: &PickerRow) -> Vec<String> {
     let claimed = row.offered().filter_map(|(key, action)| {
         let does = key.label().or_else(|| verb(action))?;
@@ -50,7 +49,6 @@ pub fn footer_hint(row: &PickerRow) -> Vec<String> {
         .collect()
 }
 
-// Each key the row claims, the new-pane keys it leaves free, then the keys every picker has.
 pub fn help_entries(row: Option<&PickerRow>, grouped: bool) -> Vec<(String, String)> {
     let claimed = row.into_iter().flat_map(|row| {
         row.offered().filter_map(|(key, action)| {

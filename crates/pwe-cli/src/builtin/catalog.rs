@@ -13,7 +13,6 @@ use table::{Binding, table_bindings};
 const CHORD_TABLE: &str = ".config/chord/bindings-menu.tsv";
 const OWN_GROUP: &str = "pwe";
 
-// The pickers on their keys, or every key binding: pwe's, then the chord table's.
 pub(super) fn catalog(
     source: &str,
     places: &Places,
@@ -101,7 +100,6 @@ fn picker_rows(pickers: &[Picker]) -> Vec<PickerRow> {
         .collect()
 }
 
-// The bookmark runs no finder, and this picker is already open.
 fn start(picker: &Picker) -> Action {
     match &picker.command {
         PickerCommand::Builtin(name) if name == "bookmark" || name == "pickers" => Action::Nothing,

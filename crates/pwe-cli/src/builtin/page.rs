@@ -7,7 +7,6 @@ use pwe_protocol::shell_word;
 use super::paint::dim;
 use super::rows::key;
 
-// A row that only says something: its detail is the preview and Enter does nothing.
 pub(super) fn notice(label: &str, detail: &str) -> PickerRow {
     PickerRow {
         label: dim(label),
@@ -18,7 +17,6 @@ pub(super) fn notice(label: &str, detail: &str) -> PickerRow {
     }
 }
 
-// Enter prepares the command at the prompt; Ctrl-Enter runs it now.
 pub(super) fn command_row(label: String, command: String, detail: &str) -> PickerRow {
     PickerRow {
         label,
@@ -39,7 +37,6 @@ pub(super) fn words(words: &[&str]) -> String {
         .join(" ")
 }
 
-// Named values a line each, the names in one column; empty values are left out.
 pub(super) fn fields(fields: &[(&str, String)]) -> String {
     let width = fields.iter().map(|(name, _)| name.len()).max();
     fields
@@ -50,7 +47,6 @@ pub(super) fn fields(fields: &[(&str, String)]) -> String {
         .join("\n")
 }
 
-// pwe itself as the shell would run it: by name when it is the one on PATH.
 pub(super) fn own_program() -> String {
     env::current_exe().map_or_else(
         |_| "pwe".to_string(),

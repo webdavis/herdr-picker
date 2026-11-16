@@ -1,4 +1,3 @@
-// Alt-S flips the list between newest and oldest first; the step keeps it in its state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Sort {
     NewestFirst,

@@ -47,7 +47,6 @@ pub fn await_pane_result(
     let asked = Instant::now();
     loop {
         match read_state(path)? {
-            // The popup may write its result and exit between two polls, so read once more.
             Some(PaneState::Running { pid }) if !alive(pid) => return settled(read_state(path)?),
             Some(PaneState::Running { .. }) => {}
             None if asked.elapsed() >= start_within => return Err(PaneWaitError::NeverStarted),

@@ -71,8 +71,6 @@ pub fn remove_run_files(cache: &Path) {
 #[cfg(test)]
 mod tests;
 
-// A run killed before it cleaned up leaves its files; each names its process, so a run whose
-// process is gone has nothing left to read them.
 pub fn remove_stale_runs(state: &Path) {
     let Ok(entries) = fs::read_dir(state) else {
         return;

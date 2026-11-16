@@ -46,7 +46,6 @@ pub(super) fn menu_rows() -> Vec<PickerRow> {
         .collect()
 }
 
-// The conversations, only those with one of the addresses when a contact's Alt-M names some.
 pub(super) fn chat_rows(chats: &[Value], addresses: &[&str]) -> Vec<PickerRow> {
     let wanted: Vec<String> = addresses
         .iter()
@@ -98,7 +97,6 @@ pub(super) fn chat_rows(chats: &[Value], addresses: &[&str]) -> Vec<PickerRow> {
         .collect()
 }
 
-// Email addresses match whatever their case; phone numbers whatever their spacing and punctuation.
 fn normalized(address: &str) -> String {
     let address = address.trim();
     match address.contains('@') {

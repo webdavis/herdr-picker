@@ -35,12 +35,10 @@ pub(super) fn tests(
     written(listed.iter().try_for_each(|row| rows.row(row)))
 }
 
-// The folder the project's files hang from: its repository's, or the one the picker runs in.
 fn root(cwd: &Path) -> PathBuf {
     Repo::at(cwd).map_or_else(|_| cwd.to_path_buf(), |repo| repo.root)
 }
 
-// The first of the files in this folder or a folder above it.
 fn nearest(cwd: &Path, names: &[&str]) -> Option<PathBuf> {
     cwd.ancestors()
         .flat_map(|folder| names.iter().map(move |name| folder.join(name)))

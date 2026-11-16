@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::private::write_private;
 
-// One run of a check or a test listing, saved for a picker to read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Capture {
     pub category: String,
@@ -47,7 +46,6 @@ pub fn run_capture(
     Ok(capture)
 }
 
-// The category's saved runs in the folder, by file name; one that cannot be read is skipped.
 pub fn read_captures(directory: &Path, category: &str) -> Vec<Capture> {
     let prefix = format!("{category}-");
     let mut files: Vec<_> = fs::read_dir(directory)

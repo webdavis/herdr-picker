@@ -6,7 +6,6 @@ mod lines;
 
 use lines::{escaped, go_test, swift_test};
 
-// A test framework that lists its tests when asked and runs one of them by name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Framework {
     Swift,
@@ -18,7 +17,6 @@ pub(super) enum Framework {
 impl Framework {
     pub(super) const ALL: [Self; 4] = [Self::Swift, Self::Rust, Self::Pytest, Self::Go];
 
-    // The name a saved listing is filed under.
     pub(super) fn name(self) -> &'static str {
         match self {
             Self::Swift => "swift",
@@ -34,7 +32,6 @@ impl Framework {
             .find(|framework| framework.name() == name)
     }
 
-    // The files that mark a project this framework tests.
     pub(super) fn markers(self) -> &'static [&'static str] {
         match self {
             Self::Swift => &["Package.swift"],
@@ -53,7 +50,6 @@ impl Framework {
         }
     }
 
-    // The command that prints the tests of the project in this folder.
     pub(super) fn listing(self, folder: &Path) -> String {
         let folder = folder.to_string_lossy();
         match self {
@@ -67,7 +63,6 @@ impl Framework {
         }
     }
 
-    // The label and command of the row that runs every test, for frameworks with one.
     pub(super) fn everything(self, folder: &Path) -> Option<(&'static str, String)> {
         let folder = folder.to_string_lossy();
         match self {
@@ -83,7 +78,6 @@ impl Framework {
         }
     }
 
-    // The tests a listing printed, each once, in the order printed.
     pub(super) fn tests(self, printed: &str) -> Vec<String> {
         let mut found: Vec<String> = Vec::new();
         for line in printed.lines() {
@@ -102,7 +96,6 @@ impl Framework {
         found
     }
 
-    // The command that runs only this test of the project in the folder.
     pub(super) fn one(self, folder: &Path, test: &str) -> String {
         let shown = folder.to_string_lossy();
         let exactly = format!("^{}$", escaped(test));

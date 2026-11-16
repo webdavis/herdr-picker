@@ -47,7 +47,6 @@ pub(super) fn rows(source: &str, view: &HerdrView, home: Option<&Path>) -> Vec<P
     }
 }
 
-// Tabs with no agent in them.
 fn terminals(view: &HerdrView) -> Vec<PickerRow> {
     view.snapshot
         .tabs
@@ -108,7 +107,6 @@ fn workspaces(view: &HerdrView) -> Vec<PickerRow> {
         .collect()
 }
 
-// The places the record hook logged, newest first, while their tab is still open.
 fn recent_places(view: &HerdrView, home: Option<&Path>) -> Vec<PickerRow> {
     view.recent
         .iter()

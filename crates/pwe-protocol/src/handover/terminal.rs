@@ -8,8 +8,6 @@ const INTERACTIVE: [&str; 15] = [
 ];
 const SHELL_INTO: [&str; 3] = ["docker", "podman", "kubectl"];
 
-// An agent's `!` runs a command without a terminal, so an editor, a login or a password prompt
-// would hang there.
 pub(super) fn needs_terminal(command: &str, editor: &str) -> bool {
     let editor = split_words(editor).unwrap_or_default();
     let editor = editor.first().map(|word| program_name(word));

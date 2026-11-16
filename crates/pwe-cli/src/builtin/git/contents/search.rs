@@ -14,7 +14,6 @@ pub(super) struct Hit {
     pub(super) text: String,
 }
 
-// The files a search in a repository reads: the tracked ones, or the untracked ones.
 pub(super) fn names(root: &Path, switches: &Switches) -> Result<Vec<String>, CommandError> {
     let listing: &[&str] = match switches.untracked {
         true => &["ls-files", "-z", "--others", "--exclude-standard"],
@@ -29,9 +28,6 @@ pub(super) fn names(root: &Path, switches: &Switches) -> Result<Vec<String>, Com
         .collect())
 }
 
-// The listed files are searched a chunk at a time, every chunk at once; the hits come back in
-// the order of the list, then by line, since ripgrep reports a chunk in whatever order its
-// threads finish.
 pub(super) fn search(
     root: &Path,
     names: Option<&[String]>,
