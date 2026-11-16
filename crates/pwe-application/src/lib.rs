@@ -1,4 +1,5 @@
 mod agents;
+mod desktop_notifier;
 mod doctor;
 mod error;
 mod jump;
@@ -12,6 +13,7 @@ mod whereabouts;
 pub use agents::{
     AgentProgram, AgentReadError, OpenFile, OpenFiles, ProcessEnvironment, agent_sessions,
 };
+pub use desktop_notifier::{DesktopNotifier, DesktopNotifierError, DesktopRoute};
 pub use doctor::automation_permission_check;
 pub use error::JumpError;
 pub use jump::{WorkspaceDirectory, jump};
