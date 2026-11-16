@@ -5,6 +5,7 @@ mod list;
 mod readline;
 mod row_matcher;
 mod step;
+mod window;
 
 #[cfg(test)]
 mod fixtures;
@@ -15,3 +16,4 @@ pub use list::Finder;
 pub use readline::{ReadlineMeaning, readline_meaning};
 pub use row_matcher::RowMatcher;
 pub use step::{Effect, Input, step};
+pub use window::ListLine;

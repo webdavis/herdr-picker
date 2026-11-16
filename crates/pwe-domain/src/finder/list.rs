@@ -3,7 +3,7 @@ use crate::look::unstyled;
 use crate::{Edit, PickerRow, ReadlineField, TextField, View, ViewState};
 
 pub struct Finder<M> {
-    matcher: M,
+    pub(super) matcher: M,
     pub(super) query: ReadlineField,
     pub(super) rows: Vec<PickerRow>,
     plain: Vec<String>,
@@ -15,6 +15,7 @@ pub struct Finder<M> {
     pub(super) rows_ended: bool,
     pub(super) remark: Option<Remark>,
     pub(super) help_shown: bool,
+    pub(super) preview: Option<(usize, String)>,
 }
 
 impl<M: RowMatcher> Finder<M> {
@@ -38,6 +39,7 @@ impl<M: RowMatcher> Finder<M> {
             rows_ended: false,
             remark: None,
             help_shown: false,
+            preview: None,
         }
     }
 
@@ -73,11 +75,11 @@ impl<M: RowMatcher> Finder<M> {
         &self.state
     }
 
-    pub(super) fn in_chooser(&self) -> bool {
+    pub fn in_chooser(&self) -> bool {
         matches!(self.state.view, View::Chooser { .. })
     }
 
-    fn candidates(&self) -> &[String] {
+    pub(super) fn candidates(&self) -> &[String] {
         match self.in_chooser() {
             true => &self.entries,
             false => &self.plain,
