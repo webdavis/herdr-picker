@@ -31,7 +31,7 @@ impl RexPanes {
         self.run(&["capture", "-b", target, "--trim"])
     }
 
-    fn run(&self, arguments: &[&str]) -> Result<String, JumpError> {
+    pub(crate) fn run(&self, arguments: &[&str]) -> Result<String, JumpError> {
         let output = Command::new(&self.binary)
             .arg(NEVER_START_A_SERVER)
             .args(arguments)
