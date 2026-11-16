@@ -27,3 +27,7 @@ jobs:
         run: cargo test --workspace --locked
       - name: Doc build
         run: cargo doc --workspace --no-deps --locked
+      - name: Standards check
+        run: |
+          scripts/check-standards
+          scripts/check-standards.test

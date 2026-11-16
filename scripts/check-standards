@@ -1,0 +1,100 @@
+#!/bin/sh
+set -eu
+
+production_line_limit=150
+test_line_limit=250
+
+# Reads Rust source while skipping strings, raw strings and char literals,
+# so a // inside a literal is never taken for a comment.
+production_rules='
+function is_identifier_char(c) { return c ~ /[A-Za-z0-9_]/ }
+
+function raw_string_opens_at(i,    rest, hashes) {
+  if (i > 1 && is_identifier_char(substr(line, i - 1, 1))) {
+    if (substr(line, i - 1, 1) != "b" || (i > 2 && is_identifier_char(substr(line, i - 2, 1)))) return 0
+  }
+  rest = substr(line, i + 1)
+  if (!match(rest, /^#*"/)) return 0
+  raw_end = "\""
+  for (hashes = 1; hashes < RLENGTH; hashes++) raw_end = raw_end "#"
+  return 1 + RLENGTH
+}
+
+function breach(rule) { print FILENAME ":" FNR ": " rule }
+
+BEGIN { state = "code"; inline_module = "^[ \t]*(pub(\\([a-z]+\\))?[ \t]+)?mod[ \t]+[A-Za-z0-9_]+[ \t]*\\{" }
+
+{
+  line = $0; n = length(line); code = ""; has_comment = 0; i = 1
+  while (i <= n) {
+    c = substr(line, i, 1)
+    if (state == "string") {
+      if (c == "\\") { i += 2; continue }
+      if (c == "\"") state = "code"
+      i++; continue
+    }
+    if (state == "raw") {
+      if (substr(line, i, length(raw_end)) == raw_end) { state = "code"; i += length(raw_end); continue }
+      i++; continue
+    }
+    if (state == "block") {
+      if (substr(line, i, 2) == "*/") { state = "code"; i += 2; continue }
+      i++; continue
+    }
+    pair = substr(line, i, 2)
+    if (pair == "//") { has_comment = 1; break }
+    if (pair == "/*") { has_comment = 1; state = "block"; i += 2; continue }
+    if (c == "\"") { state = "string"; code = code "\"\""; i++; continue }
+    if (c == "r" && (skip = raw_string_opens_at(i)) > 0) { state = "raw"; code = code "\"\""; i += skip; continue }
+    if (c == quote && substr(line, i + 1, 1) == "\\") {
+      closing = index(substr(line, i + 3), quote)
+      i = closing ? i + 3 + closing : n + 1
+      code = code quote quote; continue
+    }
+    if (c == quote && substr(line, i + 2, 1) == quote) { i += 3; code = code quote quote; continue }
+    code = code c; i++
+  }
+
+  if (has_comment) breach("comment in production code")
+  if (code ~ /(^|[^A-Za-z0-9_])unsafe([^A-Za-z0-9_]|$)/) breach("unsafe in production code")
+
+  if (awaiting_test_module && code !~ /^[ \t]*$/ && code !~ /^[ \t]*#\[/) {
+    if (code ~ inline_module) breach("inline test module in production code")
+    awaiting_test_module = 0
+  }
+  if (match(code, /#\[cfg\(test\)\]/)) {
+    after = substr(code, RSTART + RLENGTH)
+    if (after ~ inline_module) breach("inline test module in production code")
+    else if (after ~ /^[ \t]*$/) awaiting_test_module = 1
+  }
+}
+'
+
+is_test_file() {
+  case "$1" in
+    */tests.rs | */tests/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+check_length() {
+  awk -v limit="$2" -v rule="$3" 'END { if (NR > limit) print FILENAME ":" limit + 1 ": " rule }' "$1"
+}
+
+check_file() {
+  if is_test_file "$1"; then
+    check_length "$1" "$test_line_limit" "test file over $test_line_limit lines"
+  else
+    check_length "$1" "$production_line_limit" "production file over $production_line_limit lines"
+    awk -v quote="'" "$production_rules" "$1"
+  fi
+}
+
+cd "$(git rev-parse --show-toplevel)"
+
+breaches=$(git ls-files -- 'crates/*.rs' | while IFS= read -r file; do check_file "$file" || exit 2; done)
+
+if [ -n "$breaches" ]; then
+  echo "$breaches" >&2
+  exit 1
+fi
