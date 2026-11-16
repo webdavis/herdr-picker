@@ -153,3 +153,23 @@ fn the_loop_wakes_for_a_job_without_any_request() {
 
     assert!(woke.is_ok(), "the job never ran");
 }
+
+#[test]
+fn a_notify_line_over_the_socket_answers_with_the_notices_id() {
+    let folder = TempFolder::new("notify");
+    let (parts, calls) = crate::notice_fakes::fake_parts(folder.0.join("inbox.jsonl"), false);
+    let daemon = Daemon::claim(&folder.socket(), STARTED_AT)
+        .unwrap_or_else(|refusal| panic!("the daemon did not start: {refusal}"))
+        .with_notices(parts);
+    let serving = thread::spawn(move || daemon.serve());
+    let line = r#"{"pwe-daemon":1,"request":"notify","source":"tests","kind":"run","key":"k","level":"finished","text":"Tests passed"}"#;
+
+    let answered = pwe_adapters::ask_daemon_line(&folder.socket(), &format!("{line}\n"));
+    stopped(&folder.socket(), serving);
+
+    let id = answered
+        .map(|result| result["id"].as_str().unwrap_or_default().to_string())
+        .unwrap_or_else(|refusal| panic!("{refusal}"));
+    assert!(id.ends_with("-1"), "{id}");
+    assert_eq!(calls.asked.taken(), vec!["where"]);
+}

@@ -2,9 +2,10 @@ use std::collections::HashMap;
 
 use pwe_domain::Timers;
 use pwe_protocol::{
-    DaemonRequest, DaemonStatus, daemon_reply_line, daemon_status_result, parse_daemon_request,
+    DaemonError, DaemonErrorKind, DaemonRequest, DaemonStatus, daemon_reply_line,
+    daemon_status_result, parse_daemon_request, parse_notice_request,
 };
-use serde_json::json;
+use serde_json::{Value, json};
 
 use crate::notices::NoticeDesk;
 
@@ -58,16 +59,31 @@ impl DaemonCore {
         self.timers.next_at().into_iter().chain(notices_at).min()
     }
 
-    pub(crate) fn answer(&self, request_line: &str) -> Answer {
+    pub(crate) fn answer(&mut self, request_line: &str, now: u64) -> Answer {
         let (reply, keeps_serving) = match parse_daemon_request(request_line) {
             Ok(DaemonRequest::Status) => (Ok(daemon_status_result(&self.status)), true),
             Ok(DaemonRequest::Stop) => (Ok(json!({ "stopping": true })), false),
+            Err(refusal) if refusal.kind == DaemonErrorKind::UnknownRequest => (
+                self.answer_notices(request_line, now)
+                    .unwrap_or(Err(refusal)),
+                true,
+            ),
             Err(refusal) => (Err(refusal), true),
         };
         Answer {
             reply_line: daemon_reply_line(&reply),
             keeps_serving,
         }
+    }
+
+    fn answer_notices(
+        &mut self,
+        request_line: &str,
+        now: u64,
+    ) -> Option<Result<Value, DaemonError>> {
+        let request = parse_notice_request(request_line)?;
+        let notices = self.notices.as_mut()?;
+        Some(request.and_then(|request| notices.answer(request, now)))
     }
 }
 

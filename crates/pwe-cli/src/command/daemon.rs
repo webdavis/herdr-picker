@@ -12,6 +12,7 @@ use pwe_daemon::{
 };
 
 use super::{CommandError, failed, prints_json};
+use crate::daemon_notices::notice_parts;
 
 pub(super) fn execute(words: &[&str]) -> Option<Result<(), CommandError>> {
     Some(match words {
@@ -29,7 +30,7 @@ fn variable(name: &str) -> Option<String> {
     env::var(name).ok()
 }
 
-fn socket() -> PathBuf {
+pub(super) fn socket() -> PathBuf {
     daemon_socket_file(
         variable("XDG_RUNTIME_DIR").as_deref(),
         variable("XDG_STATE_HOME").as_deref(),
@@ -38,8 +39,10 @@ fn socket() -> PathBuf {
 }
 
 fn run() -> Result<(), CommandError> {
+    let notices = notice_parts()?;
     Daemon::claim(&socket(), seconds_since_1970())
         .map_err(failed)?
+        .with_notices(notices)
         .serve()
         .map_err(failed)
 }

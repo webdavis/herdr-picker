@@ -10,6 +10,7 @@ mod showing;
 mod updating;
 
 pub use input::{NoticeEffect, NoticeInput, Raised, RexFocus};
+pub use line::fit_label;
 pub use settings::NoticeSettings;
 
 use crate::notice::Notice;

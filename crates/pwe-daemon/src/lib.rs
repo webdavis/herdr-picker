@@ -13,3 +13,7 @@ pub use lifecycle::{LifecycleError, Started, Stopped, start_daemon, stop_daemon}
 pub use notices::NoticeParts;
 pub use registration::{RegistrationError, disable_daemon, enable_daemon};
 pub use report::{DaemonReport, daemon_report};
+
+#[cfg(test)]
+#[path = "tests/notice_fakes.rs"]
+mod notice_fakes;

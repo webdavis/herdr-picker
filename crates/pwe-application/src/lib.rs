@@ -23,7 +23,7 @@ pub use error::JumpError;
 pub use jump::{WorkspaceDirectory, jump};
 pub use mru::{WorkspaceHistory, bounce, record};
 pub use notice_screen::{NoticeFloat, NoticeScreen};
-pub use pane_places::PanePlaces;
+pub use pane_places::{PanePlaces, PlacedPane};
 pub use pick::{InputSource, PickError, PickInput, Screen, pick};
 pub use popup::{PopupHost, open_picker};
 pub use step_finder::{StepFinder, StepOutcome, StepSetup};

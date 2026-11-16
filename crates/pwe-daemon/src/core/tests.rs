@@ -14,7 +14,7 @@ fn core() -> DaemonCore {
 
 #[test]
 fn an_unknown_request_is_refused_and_the_daemon_keeps_serving() {
-    let answer = core().answer(r#"{"pwe-daemon":1,"request":"dance"}"#);
+    let answer = core().answer(r#"{"pwe-daemon":1,"request":"dance"}"#, 0);
 
     let refusal = parse_daemon_reply(&answer.reply_line).err();
     assert_eq!(
@@ -26,7 +26,7 @@ fn an_unknown_request_is_refused_and_the_daemon_keeps_serving() {
 
 #[test]
 fn stop_is_answered_and_ends_serving() {
-    let answer = core().answer(r#"{"pwe-daemon":1,"request":"stop"}"#);
+    let answer = core().answer(r#"{"pwe-daemon":1,"request":"stop"}"#, 0);
 
     assert_eq!(
         parse_daemon_reply(&answer.reply_line),

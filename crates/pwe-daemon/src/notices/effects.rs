@@ -5,16 +5,26 @@ use pwe_adapters::save_inbox_row;
 
 use super::{ASK_FOR_SESSION, NoticeDesk};
 
+#[derive(Debug, Default)]
+pub(crate) struct Outcome {
+    pub(crate) waiting: Vec<Notice>,
+    pub(crate) saved: Vec<Notice>,
+}
+
 impl NoticeDesk {
-    pub(super) fn run(&mut self, effects: Vec<NoticeEffect>, now: u64) -> Vec<Notice> {
-        let mut waiting = Vec::new();
+    pub(super) fn run(&mut self, effects: Vec<NoticeEffect>, now: u64) -> Outcome {
+        let mut outcome = Outcome::default();
         for effect in effects {
             match effect {
-                NoticeEffect::Waiting(notices) => waiting = notices,
+                NoticeEffect::Waiting(notices) => outcome.waiting = notices,
+                NoticeEffect::SaveRow(notice) => {
+                    self.run_one(NoticeEffect::SaveRow(notice.clone()), now);
+                    outcome.saved.push(*notice);
+                }
                 effect => self.run_one(effect, now),
             }
         }
-        waiting
+        outcome
     }
 
     fn run_one(&mut self, effect: NoticeEffect, now: u64) {

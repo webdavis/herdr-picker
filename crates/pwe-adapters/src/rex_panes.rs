@@ -9,6 +9,7 @@ use crate::response::jump_error;
 const NEVER_START_A_SERVER: &str = "--autostart=false";
 
 mod host;
+mod places;
 mod statuses;
 
 pub struct RexPanes {

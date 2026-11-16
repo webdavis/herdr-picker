@@ -102,7 +102,7 @@ fn answer_until_stopped(
             Err(RecvTimeoutError::Timeout) => continue,
             Err(RecvTimeoutError::Disconnected) => return,
         };
-        let answer = core.answer(&request.line);
+        let answer = core.answer(&request.line, seconds_since_1970());
         if !answer.keeps_serving {
             close_to_new_requests();
             let _ = request.answer_to.send(answer);

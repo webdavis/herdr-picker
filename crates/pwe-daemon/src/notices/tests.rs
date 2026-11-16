@@ -1,29 +1,21 @@
 use std::fs;
 use std::path::PathBuf;
 use std::process;
-use std::sync::{Arc, Mutex};
 
 use pwe_adapters::read_inbox;
-use pwe_domain::{Level, NoticeInput, NoticeSettings, OwnerPlace, Raised, RexFocus};
+use pwe_domain::{Level, NoticeInput, OwnerPlace, Raised, RexFocus};
 
 use super::*;
-use fakes::{
-    Calls, FakeNotifier, FakePlaces, FakeScreen, FakeWhereabouts, SESSION, in_front_of, pane,
-};
+use crate::notice_fakes::{OWNER_PANE, Recorders, SESSION, fake_parts, pane};
 
-mod fakes;
+mod answering;
 
 const NOW: u64 = 1_790_000_100;
-const OWNER_PANE: &str = "block:00000000-0000-4000-8000-0000000000b1";
 const OTHER_PANE: &str = "block:00000000-0000-4000-8000-0000000000b2";
 
 struct Bench {
     desk: NoticeDesk,
-    screen: Calls,
-    macos: Calls,
-    asked: Calls,
-    log: Calls,
-    place: Arc<Mutex<OwnerPlace>>,
+    calls: Recorders,
     inbox: PathBuf,
 }
 
@@ -31,33 +23,11 @@ impl Bench {
     fn new(name: &str, screen_fails: bool) -> Self {
         let folder = std::env::temp_dir().join(format!("pwed-notices-{name}-{}", process::id()));
         let _ = fs::remove_dir_all(&folder);
-        let (screen, macos, asked, log) = Default::default();
-        let place = Arc::new(Mutex::new(in_front_of(SESSION)));
         let inbox = folder.join("inbox.jsonl");
-        let parts = NoticeParts {
-            settings: NoticeSettings::default(),
-            screen: Box::new(FakeScreen {
-                calls: Calls::clone(&screen),
-                fails: screen_fails,
-            }),
-            notifier: Box::new(FakeNotifier(Calls::clone(&macos))),
-            whereabouts: Box::new(FakeWhereabouts {
-                calls: Calls::clone(&asked),
-                place: Arc::clone(&place),
-            }),
-            places: Box::new(FakePlaces {
-                focused: Arc::new(Mutex::new(pane(OWNER_PANE))),
-            }),
-            inbox: inbox.clone(),
-            log: Box::new(Calls::clone(&log)),
-        };
+        let (parts, calls) = fake_parts(inbox.clone(), screen_fails);
         Self {
             desk: NoticeDesk::new(parts, NOW),
-            screen,
-            macos,
-            asked,
-            log,
-            place,
+            calls,
             inbox,
         }
     }
@@ -101,11 +71,11 @@ impl Drop for Bench {
 fn the_session_is_asked_for_only_while_a_notice_waits() {
     let mut bench = Bench::new("asking", false);
     bench.run_clock(NOW, NOW + 10);
-    let before_any_notice = bench.asked.taken();
+    let before_any_notice = bench.calls.asked.taken();
 
     bench.raise("agent-1", Level::NeedsYou, NOW + 10);
     bench.run_clock(NOW + 11, NOW + 14);
-    let while_waiting = bench.asked.taken();
+    let while_waiting = bench.calls.asked.taken();
     bench.desk.apply(
         NoticeInput::Resolve {
             key: "agent-1".to_string(),
@@ -116,7 +86,7 @@ fn the_session_is_asked_for_only_while_a_notice_waits() {
 
     assert_eq!(before_any_notice, Vec::<String>::new());
     assert_eq!(while_waiting, vec!["where", "where"]);
-    assert_eq!(bench.asked.taken(), Vec::<String>::new());
+    assert_eq!(bench.calls.asked.taken(), Vec::<String>::new());
 }
 
 #[test]
@@ -125,9 +95,9 @@ fn a_finished_notice_shows_in_the_session_in_view_and_closes_on_the_daemon_clock
     bench.owner_looks_at_rex(NOW);
 
     bench.raise("tests", Level::Finished, NOW);
-    let shown = bench.screen.taken();
+    let shown = bench.calls.screen.taken();
     bench.run_clock(NOW + 1, NOW + 5);
-    let before_its_seconds = bench.screen.taken();
+    let before_its_seconds = bench.calls.screen.taken();
     bench.run_clock(NOW + 6, NOW + 6);
 
     assert_eq!(shown.len(), 1, "{shown:?}");
@@ -139,7 +109,7 @@ fn a_finished_notice_shows_in_the_session_in_view_and_closes_on_the_daemon_clock
         "{shown:?}"
     );
     assert_eq!(before_its_seconds, Vec::<String>::new());
-    assert_eq!(bench.screen.taken(), vec!["close float-2"]);
+    assert_eq!(bench.calls.screen.taken(), vec!["close float-2"]);
 }
 
 #[test]
@@ -152,10 +122,10 @@ fn with_rex_in_the_background_a_notice_goes_to_macos() {
     bench.raise("tests", Level::Finished, NOW);
 
     assert_eq!(
-        bench.macos.taken(),
+        bench.calls.macos.taken(),
         vec!["macos finished: tests: Tests passed, in tab api"]
     );
-    assert_eq!(bench.screen.taken(), Vec::<String>::new());
+    assert_eq!(bench.calls.screen.taken(), Vec::<String>::new());
 }
 
 #[test]
@@ -169,7 +139,7 @@ fn a_failed_screen_is_logged_and_the_row_is_still_saved() {
     let rows = read_inbox(&bench.inbox).unwrap_or_else(|failure| panic!("{failure}"));
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0].text, "Tests passed");
-    let log = bench.log.taken();
+    let log = bench.calls.log.taken();
     assert_eq!(log.len(), 2, "{log:?}");
     assert!(
         log.iter().all(|line| line.contains("rex is gone")),
@@ -182,7 +152,7 @@ fn the_answer_to_the_session_ask_becomes_the_boards_focus() {
     let mut bench = Bench::new("focus", false);
     bench.owner_looks_at_rex(NOW);
     bench.raise("agent-1", Level::NeedsYou, NOW);
-    if let Ok(mut place) = bench.place.lock() {
+    if let Ok(mut place) = bench.calls.place.lock() {
         *place = OwnerPlace::Closed;
     }
 
@@ -190,7 +160,7 @@ fn the_answer_to_the_session_ask_becomes_the_boards_focus() {
     bench.raise("tests", Level::Finished, NOW + 2);
 
     assert_eq!(
-        bench.macos.taken(),
+        bench.calls.macos.taken(),
         vec!["macos finished: tests: Tests passed, in tab api"]
     );
 }
