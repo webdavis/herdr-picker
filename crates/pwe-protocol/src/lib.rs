@@ -7,6 +7,7 @@ mod doctor_report;
 mod focused;
 mod handover;
 mod manifest;
+mod notice_line;
 mod pane_state;
 mod panes;
 mod popup;
@@ -41,6 +42,7 @@ pub use handover::{
     handover, parse_instruction,
 };
 pub use manifest::{PLUGIN_ID, render_manifest};
+pub use notice_line::{NoticeRequest, NotifyRequest, notice_request_line, parse_notice_request};
 pub use pane_state::{PaneState, encode_pane_state, parse_pane_state};
 pub use panes::{
     PaneInfo, enter_request, notify_request, open_request, pane_of, pane_request, screen_of,
@@ -53,9 +55,9 @@ pub use popup::{
 };
 pub use rex::{
     KeyFacts, OpenedLayer, block_label_request, close_layer_request, float_request,
-    focused_block_in_view, notice_float_request, opened_block, opened_layer, parse_key_facts,
-    rex_lua, rex_pane, rex_pane_status, rex_session_ids, rex_status_record, rex_terminal_panes,
-    session_request, window_in_view,
+    focused_block_in_view, focused_pane_in_view, notice_float_request, opened_block, opened_layer,
+    parse_key_facts, placed_pane_in_view, rex_lua, rex_pane, rex_pane_status, rex_session_ids,
+    rex_status_record, rex_terminal_panes, session_request, window_in_view,
 };
 pub use rex_event::{
     ForegroundProcess, ProgramStatus, RexBlock, RexEvent, RexEventError, parse_rex_event,

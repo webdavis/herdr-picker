@@ -1,23 +1,26 @@
 use std::io::{self, Write};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use pwe_application::{
     DesktopNotifier, DesktopNotifierError, JumpError, NoticeFloat, NoticeScreen, PanePlaces,
-    Whereabouts, WhereaboutsError,
+    PlacedPane, Whereabouts, WhereaboutsError,
 };
-use pwe_domain::{OwnerPlace, Pane, SessionSeen};
+use pwe_domain::{NoticeSettings, OwnerPlace, Pane, SessionSeen};
+
+use crate::NoticeParts;
 
 #[derive(Clone, Default)]
-pub(super) struct Calls(Arc<Mutex<Vec<String>>>);
+pub(crate) struct Calls(Arc<Mutex<Vec<String>>>);
 
 impl Calls {
-    pub(super) fn push(&self, call: String) {
+    pub(crate) fn push(&self, call: String) {
         if let Ok(mut calls) = self.0.lock() {
             calls.push(call);
         }
     }
 
-    pub(super) fn taken(&self) -> Vec<String> {
+    pub(crate) fn taken(&self) -> Vec<String> {
         self.0
             .lock()
             .map(|mut calls| std::mem::take(&mut *calls))
@@ -36,9 +39,10 @@ impl Write for Calls {
     }
 }
 
-pub(super) const SESSION: &str = "session:00000000-0000-4000-8000-0000000000a1";
+pub(crate) const SESSION: &str = "session:00000000-0000-4000-8000-0000000000a1";
+pub(crate) const GONE_PANE: &str = "block:00000000-0000-4000-8000-0000000000b0";
 
-pub(super) fn pane(block: &str) -> Pane {
+pub(crate) fn pane(block: &str) -> Pane {
     Pane {
         rex_session: SESSION.to_string(),
         tab: "window:00000000-0000-4000-8000-0000000000d1".to_string(),
@@ -46,9 +50,9 @@ pub(super) fn pane(block: &str) -> Pane {
     }
 }
 
-pub(super) struct FakeScreen {
-    pub(super) calls: Calls,
-    pub(super) fails: bool,
+pub(crate) struct FakeScreen {
+    pub(crate) calls: Calls,
+    pub(crate) fails: bool,
 }
 
 impl FakeScreen {
@@ -78,7 +82,7 @@ impl NoticeScreen for FakeScreen {
     }
 }
 
-pub(super) struct FakeNotifier(pub(super) Calls);
+pub(crate) struct FakeNotifier(pub(crate) Calls);
 
 impl DesktopNotifier for FakeNotifier {
     fn notify(&self, title: &str, text: &str) -> Result<(), DesktopNotifierError> {
@@ -87,12 +91,12 @@ impl DesktopNotifier for FakeNotifier {
     }
 }
 
-pub(super) struct FakeWhereabouts {
-    pub(super) calls: Calls,
-    pub(super) place: Arc<Mutex<OwnerPlace>>,
+pub(crate) struct FakeWhereabouts {
+    pub(crate) calls: Calls,
+    pub(crate) place: Arc<Mutex<OwnerPlace>>,
 }
 
-pub(super) fn in_front_of(session: &str) -> OwnerPlace {
+pub(crate) fn in_front_of(session: &str) -> OwnerPlace {
     OwnerPlace::Front(SessionSeen::OnThisMac {
         rex_session: session.to_string(),
         name: "invented".to_string(),
@@ -109,8 +113,8 @@ impl Whereabouts for FakeWhereabouts {
     }
 }
 
-pub(super) struct FakePlaces {
-    pub(super) focused: Arc<Mutex<Pane>>,
+pub(crate) struct FakePlaces {
+    pub(crate) focused: Arc<Mutex<Pane>>,
 }
 
 impl PanePlaces for FakePlaces {
@@ -125,4 +129,49 @@ impl PanePlaces for FakePlaces {
             ..focused
         })
     }
+
+    fn placed_pane(&mut self, block: &str) -> Result<Option<PlacedPane>, JumpError> {
+        Ok((block != GONE_PANE).then(|| PlacedPane {
+            pane: pane(block),
+            tab_label: "api".to_string(),
+        }))
+    }
+}
+
+pub(crate) const OWNER_PANE: &str = "block:00000000-0000-4000-8000-0000000000b1";
+
+pub(crate) struct Recorders {
+    pub(crate) screen: Calls,
+    pub(crate) macos: Calls,
+    pub(crate) asked: Calls,
+    pub(crate) log: Calls,
+    pub(crate) place: Arc<Mutex<OwnerPlace>>,
+}
+
+pub(crate) fn fake_parts(inbox: PathBuf, screen_fails: bool) -> (NoticeParts, Recorders) {
+    let recorders = Recorders {
+        screen: Calls::default(),
+        macos: Calls::default(),
+        asked: Calls::default(),
+        log: Calls::default(),
+        place: Arc::new(Mutex::new(in_front_of(SESSION))),
+    };
+    let parts = NoticeParts {
+        settings: NoticeSettings::default(),
+        screen: Box::new(FakeScreen {
+            calls: recorders.screen.clone(),
+            fails: screen_fails,
+        }),
+        notifier: Box::new(FakeNotifier(recorders.macos.clone())),
+        whereabouts: Box::new(FakeWhereabouts {
+            calls: recorders.asked.clone(),
+            place: Arc::clone(&recorders.place),
+        }),
+        places: Box::new(FakePlaces {
+            focused: Arc::new(Mutex::new(pane(OWNER_PANE))),
+        }),
+        inbox,
+        log: Box::new(recorders.log.clone()),
+    };
+    (parts, recorders)
 }

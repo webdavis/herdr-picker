@@ -1,11 +1,13 @@
+mod answer;
 mod effects;
 mod focus;
 
 use std::io::Write;
 use std::path::PathBuf;
 
+use effects::Outcome;
 use pwe_application::{DesktopNotifier, NoticeScreen, PanePlaces, Whereabouts};
-use pwe_domain::{Notice, NoticeBoard, NoticeInput, NoticeSettings, RexFocus, Timers};
+use pwe_domain::{NoticeBoard, NoticeInput, NoticeSettings, RexFocus, Timers};
 
 const NOTICE_CLOCK: &str = "notice-clock";
 const ASK_FOR_SESSION: &str = "ask-for-session";
@@ -39,7 +41,7 @@ impl NoticeDesk {
         }
     }
 
-    pub(crate) fn apply(&mut self, input: NoticeInput, now: u64) -> Vec<Notice> {
+    pub(crate) fn apply(&mut self, input: NoticeInput, now: u64) -> Outcome {
         if let NoticeInput::OwnerMoved(focus) = &input {
             self.focus = focus.clone();
         }

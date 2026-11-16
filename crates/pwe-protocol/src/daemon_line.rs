@@ -22,8 +22,8 @@ pub struct DaemonError {
     pub message: String,
 }
 
-const PROTOCOL_FIELD: &str = "pwe-daemon";
-const PROTOCOL_VERSION: u64 = 1;
+pub(crate) const PROTOCOL_FIELD: &str = "pwe-daemon";
+pub(crate) const PROTOCOL_VERSION: u64 = 1;
 
 impl DaemonError {
     fn new(kind: DaemonErrorKind, message: impl Into<String>) -> Self {

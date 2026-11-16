@@ -67,7 +67,7 @@ fn counted(count: usize, kind: &str) -> String {
     }
 }
 
-fn fit_label(line: &str) -> String {
+pub fn fit_label(line: &str) -> String {
     let printable: Vec<char> = line.chars().filter(|glyph| !glyph.is_control()).collect();
     if printable.len() <= MOST_LABEL_CHARACTERS {
         return printable.into_iter().collect();

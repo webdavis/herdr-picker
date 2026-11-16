@@ -57,7 +57,7 @@ pub use config::{
     BlueBubblesSettings, ConfigError, NoticeConfig, PluginConfig, RexSettings, UnifiSettings,
     config_file, read_config, read_picker_config,
 };
-pub use daemon_client::{DaemonAskError, ask_daemon};
+pub use daemon_client::{DaemonAskError, ask_daemon, ask_daemon_line};
 pub use daemon_files::{
     daemon_log_file, daemon_socket_file, launch_agent_file, pwe_state_folder, systemd_unit_file,
 };

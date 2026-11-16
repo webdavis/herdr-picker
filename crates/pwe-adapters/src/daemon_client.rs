@@ -30,18 +30,22 @@ impl fmt::Display for DaemonAskError {
 }
 
 pub fn ask_daemon(socket: &Path, request: DaemonRequest) -> Result<Value, DaemonAskError> {
+    ask_daemon_line(socket, &daemon_request_line(request))
+}
+
+pub fn ask_daemon_line(socket: &Path, request_line: &str) -> Result<Value, DaemonAskError> {
     let mut stream = UnixStream::connect(socket).map_err(|error| match error.kind() {
         io::ErrorKind::NotFound | io::ErrorKind::ConnectionRefused => DaemonAskError::NotRunning,
         _ => DaemonAskError::Unreachable(error),
     })?;
-    let reply = exchange(&mut stream, request).map_err(DaemonAskError::Unreachable)?;
+    let reply = exchange(&mut stream, request_line).map_err(DaemonAskError::Unreachable)?;
     parse_daemon_reply(&reply).map_err(DaemonAskError::Refused)
 }
 
-fn exchange(stream: &mut UnixStream, request: DaemonRequest) -> io::Result<String> {
+fn exchange(stream: &mut UnixStream, request_line: &str) -> io::Result<String> {
     stream.set_read_timeout(Some(REPLY_DEADLINE))?;
     stream.set_write_timeout(Some(REPLY_DEADLINE))?;
-    stream.write_all(daemon_request_line(request).as_bytes())?;
+    stream.write_all(request_line.as_bytes())?;
     let mut reply = String::new();
     BufReader::new(stream.take(LONGEST_REPLY_BYTES)).read_line(&mut reply)?;
     Ok(reply)

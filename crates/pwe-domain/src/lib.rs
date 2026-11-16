@@ -55,7 +55,9 @@ pub use look::{RowLook, Theme, unstyled};
 pub use mru::{Bounce, Mru, decide_bounce, next_mru};
 pub use new_pane::NewPane;
 pub use notice::{Level, Notice, Pane};
-pub use notice_board::{NoticeBoard, NoticeEffect, NoticeInput, NoticeSettings, Raised, RexFocus};
+pub use notice_board::{
+    NoticeBoard, NoticeEffect, NoticeInput, NoticeSettings, Raised, RexFocus, fit_label,
+};
 pub use notice_float::{Corner, NoticePlace, notice_place};
 pub use notice_program::{NoticeEvent, NoticeStep, notice_step};
 pub use owner_place::{OwnerPlace, SessionSeen};
