@@ -28,6 +28,10 @@ impl Timers {
         self.jobs.insert(name.to_string(), job);
     }
 
+    pub fn cancel(&mut self, name: &str) {
+        self.jobs.remove(name);
+    }
+
     pub fn due(&mut self, now: u64) -> Vec<String> {
         self.jobs
             .iter_mut()

@@ -11,6 +11,7 @@ use pwe_protocol::{DaemonStatus, Listens};
 
 use crate::clock::seconds_since_1970;
 use crate::core::{Answer, DaemonCore};
+use crate::notices::{NoticeDesk, NoticeParts};
 use crate::socket_claim::{ClaimRefusal, SocketClaim};
 
 const REQUEST_DEADLINE: Duration = Duration::from_secs(2);
@@ -64,6 +65,12 @@ impl Daemon {
     pub fn every(&mut self, name: &str, seconds: u64, job: impl FnMut(u64) + Send + 'static) {
         self.core
             .every(name, seconds, seconds_since_1970(), Box::new(job));
+    }
+
+    pub fn with_notices(mut self, parts: NoticeParts) -> Self {
+        let desk = NoticeDesk::new(parts, seconds_since_1970());
+        self.core.attach_notices(desk);
+        self
     }
 
     pub fn serve(self) -> io::Result<()> {
