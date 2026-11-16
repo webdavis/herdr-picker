@@ -1,0 +1,108 @@
+{
+  "block": "block:22222222-2222-7222-8222-222222222222",
+  "process": {
+    "child": {
+      "argv0": "/bin/sleep",
+      "cwd": "/Users/ada/src/project",
+      "invoked_path": "/bin/sleep",
+      "name": "sleep",
+      "path": "/bin/sleep",
+      "pid": 4242,
+      "user": "ada",
+      "user_id": 1000
+    },
+    "foreground": {
+      "argv0": "/bin/sleep",
+      "cwd": "/Users/ada/src/project",
+      "invoked_path": "/bin/sleep",
+      "name": "sleep",
+      "path": "/bin/sleep",
+      "pid": 4242,
+      "user": "ada",
+      "user_id": 1000
+    },
+    "home": "/Users/ada"
+  },
+  "size": {
+    "cell_height_px": 16,
+    "cell_width_px": 8,
+    "columns": 80,
+    "desired": {},
+    "owner": "client:77777777-7777-7777-8777-777777777777",
+    "rows": 24
+  },
+  "view": {
+    "active_window_id": "window:55555555-5555-7555-8555-555555555555",
+    "label": "notes",
+    "revision": 4,
+    "session_id": "session:11111111-1111-7111-8111-111111111111",
+    "windows": [
+      {
+        "focused_block_id": "block:22222222-2222-7222-8222-222222222222",
+        "label": "Window 55555555",
+        "layers": [
+          {
+            "blocks": [
+              {
+                "block_id": "block:44444444-4444-7444-8444-444444444444",
+                "creator_name": "com.superlogical.terminal",
+                "flavor": "com.superlogical.terminal.shell",
+                "host_id": "33333333-3333-4333-8333-333333333333",
+                "label": "shell",
+                "owner": "client:77777777-7777-7777-8777-777777777777"
+              },
+              {
+                "block_id": "block:22222222-2222-7222-8222-222222222222",
+                "creator_name": "com.superlogical.terminal",
+                "flavor": "com.superlogical.terminal.shell",
+                "host_id": "33333333-3333-4333-8333-333333333333",
+                "label": "shell",
+                "owner": "client:77777777-7777-7777-8777-777777777777"
+              }
+            ],
+            "bounds": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "kind": "tiled",
+            "layer_id": "layer:66666666-6666-7666-8666-666666666666",
+            "layout": {
+              "rect": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "split": {
+                "split_id": "split:88888888-8888-7888-8888-888888888888",
+                "direction": "horizontal",
+                "ratio": 0.5,
+                "before": {
+                  "rect": [
+                    0,
+                    0,
+                    0.5,
+                    1
+                  ],
+                  "block_id": "block:44444444-4444-7444-8444-444444444444"
+                },
+                "after": {
+                  "rect": [
+                    0.5,
+                    0,
+                    0.5,
+                    1
+                  ],
+                  "block_id": "block:22222222-2222-7222-8222-222222222222"
+                }
+              }
+            }
+          }
+        ],
+        "window_id": "window:55555555-5555-7555-8555-555555555555"
+      }
+    ]
+  }
+}
