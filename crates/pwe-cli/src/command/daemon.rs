@@ -11,7 +11,7 @@ use pwe_daemon::{
     start_daemon, stop_daemon,
 };
 
-use super::{CommandError, failed};
+use super::{CommandError, failed, prints_json};
 
 pub(super) fn execute(words: &[&str]) -> Option<Result<(), CommandError>> {
     Some(match words {
@@ -20,8 +20,7 @@ pub(super) fn execute(words: &[&str]) -> Option<Result<(), CommandError>> {
         ["daemon", "stop"] => stop(),
         ["daemon", "enable"] => enable(),
         ["daemon", "disable"] => disable(),
-        ["daemon", "status"] => status(false),
-        ["daemon", "status", "--output", "json"] => status(true),
+        ["daemon", "status", options @ ..] => prints_json(options).and_then(status),
         _ => return None,
     })
 }
