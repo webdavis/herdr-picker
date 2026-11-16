@@ -5,6 +5,7 @@ mod cli;
 mod clipboard;
 mod command_preview;
 mod config;
+pub mod finder;
 mod fzf;
 mod herdr_socket;
 mod history;
