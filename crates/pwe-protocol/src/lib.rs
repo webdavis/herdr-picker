@@ -21,8 +21,9 @@ mod view;
 mod wire;
 
 pub use agent_programs::{
-    agent_sessions_json, claude_code_sessions, codex_session, omp_held_session_ids, omp_session,
-    open_files_in_lsof_listing, variable_in_environ_file, variable_in_ps_listing,
+    agent_sessions_json, agent_sessions_value, claude_code_sessions, codex_session,
+    omp_held_session_ids, omp_session, open_files_in_lsof_listing, variable_in_environ_file,
+    variable_in_ps_listing,
 };
 pub use agents::{
     WireTab, agent_list_request, agents_of, call_request, parse_status_change, tab_list_request,
@@ -56,8 +57,8 @@ pub use popup::{
 pub use rex::{
     KeyFacts, OpenedLayer, block_label_request, close_layer_request, float_request,
     focused_block_in_view, notice_float_request, opened_block, opened_layer, parse_key_facts,
-    rex_lua, rex_pane, rex_pane_status, rex_session_ids, rex_status_record, rex_terminal_panes,
-    session_request, window_in_view,
+    rex_lua, rex_pane, rex_pane_status, rex_reported_state, rex_session_ids, rex_status_record,
+    rex_terminal_panes, session_request, window_in_view,
 };
 pub use rex_event::{
     ForegroundProcess, ProgramStatus, RexBlock, RexEvent, RexEventError, parse_rex_event,

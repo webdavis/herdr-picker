@@ -13,8 +13,8 @@ pub mod test_engine;
 mod whereabouts;
 
 pub use agents::{
-    AgentProgram, AgentReadError, OpenFile, OpenFiles, PaneStatuses, ProcessEnvironment,
-    agent_sessions,
+    AgentProgram, AgentReadError, AgentSources, OpenFile, OpenFiles, PaneStatuses,
+    ProcessEnvironment, agent_sessions, joined_sessions, read_agent_sources,
 };
 pub use desktop_notifier::{DesktopNotifier, DesktopNotifierError, DesktopRoute};
 pub use doctor::automation_permission_check;

@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 
+use pwe_application::AgentSources;
 use pwe_domain::Timers;
 use pwe_protocol::{
-    DaemonRequest, DaemonStatus, RexLink, daemon_reply_line, daemon_status_result,
-    parse_daemon_request,
+    DaemonError, DaemonErrorKind, DaemonRequest, DaemonStatus, RexLink, daemon_reply_line,
+    daemon_status_result, parse_daemon_request,
 };
+use serde_json::Value;
 use serde_json::json;
 
+use crate::agents::AgentWatch;
 use crate::arrival::RexNews;
 
 pub(crate) type Job = Box<dyn FnMut(u64) + Send>;
@@ -15,6 +18,7 @@ pub(crate) struct DaemonCore {
     status: DaemonStatus,
     timers: Timers,
     jobs: HashMap<String, Job>,
+    agents: Option<AgentWatch>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -29,6 +33,7 @@ impl DaemonCore {
             status,
             timers: Timers::default(),
             jobs: HashMap::new(),
+            agents: None,
         }
     }
 
@@ -53,16 +58,42 @@ impl DaemonCore {
         self.status.rex = link;
     }
 
-    pub(crate) fn hear_rex(&mut self, news: RexNews) {
-        if let RexNews::Linked(link) = news {
-            self.rex_link(link);
+    pub(crate) fn watch_agents(&mut self, watch: AgentWatch) {
+        self.agents = Some(watch);
+    }
+
+    pub(crate) fn hear_rex(&mut self, news: RexNews, now: u64) {
+        match news {
+            RexNews::Linked(link) => self.rex_link(link),
+            RexNews::Event(event) => {
+                if let Some(agents) = self.agents.as_mut() {
+                    agents.hear_event(&event, now);
+                }
+            }
         }
+    }
+
+    pub(crate) fn take_agent_reading(&mut self, sources: AgentSources, now: u64) {
+        if let Some(agents) = self.agents.as_mut() {
+            agents.take_reading(sources, now);
+        }
+    }
+
+    fn agent_listing(&self) -> Result<Value, DaemonError> {
+        self.agents
+            .as_ref()
+            .and_then(AgentWatch::listing)
+            .ok_or_else(|| DaemonError {
+                kind: DaemonErrorKind::NotReadYet,
+                message: "the daemon has not read the agent programs yet".to_string(),
+            })
     }
 
     pub(crate) fn answer(&self, request_line: &str) -> Answer {
         let (reply, keeps_serving) = match parse_daemon_request(request_line) {
             Ok(DaemonRequest::Status) => (Ok(daemon_status_result(&self.status)), true),
             Ok(DaemonRequest::Stop) => (Ok(json!({ "stopping": true })), false),
+            Ok(DaemonRequest::Agents) => (self.agent_listing(), true),
             Err(refusal) => (Err(refusal), true),
         };
         Answer {

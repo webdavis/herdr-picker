@@ -1,14 +1,18 @@
+mod agents;
 mod arrival;
 mod clock;
+mod companions;
 mod core;
 mod daemon;
 mod daemon_start_error;
 mod lifecycle;
+mod listener;
 mod registration;
 mod report;
 mod rex_stream;
 mod socket_claim;
 
+pub use agents::AgentSubscriber;
 pub use clock::seconds_since_1970;
 pub use daemon::Daemon;
 pub use daemon_start_error::DaemonStartError;

@@ -20,6 +20,7 @@ mod quickfix;
 mod record;
 mod rex;
 mod run;
+mod surroundings;
 
 use std::env;
 use std::process::ExitCode;

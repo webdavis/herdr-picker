@@ -5,17 +5,21 @@ use std::path::{Path, PathBuf};
 use pwe_domain::{JumpTarget, Picker, RowLook, Theme, jump_targets};
 use serde::Deserialize;
 
+mod agents;
 mod error;
 mod pickers;
 mod rex;
 mod services;
+mod theme;
 mod workspaces;
 
+pub use agents::AgentSettings;
 pub use error::ConfigError;
 use pickers::{PickerEntry, declared_pickers};
 pub use rex::RexSettings;
 use services::service_tables;
 pub use services::{BlueBubblesSettings, UnifiSettings};
+use theme::ThemeName;
 use workspaces::Declaration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,6 +31,7 @@ pub struct PluginConfig {
     pub unifi: Option<UnifiSettings>,
     pub bluebubbles: Option<BlueBubblesSettings>,
     pub rex: RexSettings,
+    pub agents: AgentSettings,
 }
 
 #[derive(Deserialize)]
@@ -39,6 +44,8 @@ struct ConfigFile {
     pickers: BTreeMap<String, PickerEntry>,
     #[serde(default)]
     rex: RexSettings,
+    #[serde(default)]
+    agents: AgentSettings,
 }
 
 #[derive(Deserialize, Default)]
@@ -52,20 +59,6 @@ struct PickerTable {
     theme: ThemeName,
 }
 
-#[derive(Deserialize, Default, Clone, Copy)]
-#[serde(rename_all = "kebab-case")]
-enum ThemeName {
-    #[default]
-    CatppuccinMocha,
-}
-
-impl From<ThemeName> for Theme {
-    fn from(name: ThemeName) -> Self {
-        match name {
-            ThemeName::CatppuccinMocha => Self::CatppuccinMocha,
-        }
-    }
-}
 pub fn config_file(
     plugin_config_dir: Option<&str>,
     xdg_config_home: Option<&str>,
@@ -138,6 +131,7 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
         unifi,
         bluebubbles,
         rex: file.rex,
+        agents: file.agents,
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {

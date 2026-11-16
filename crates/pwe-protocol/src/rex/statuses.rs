@@ -42,15 +42,23 @@ pub fn rex_pane_status(
         .get("foreground")
         .filter(|foreground| !foreground.is_null())
         .or_else(|| process.get("child"));
-    let state = state_of(record);
+    let (state, waiting_for) = rex_reported_state(record);
     Ok(PaneStatus {
         pane,
         program: ProgramName::parse(&record.program),
         pid: record.pid,
         folder: in_front.and_then(|found| text(found, "cwd")),
-        waiting_for: (state == AgentState::Waiting).then(|| waiting_for(record)),
+        waiting_for,
         state,
     })
+}
+
+pub fn rex_reported_state(record: &ProgramStatus) -> (AgentState, Option<WaitingFor>) {
+    let state = state_of(record);
+    (
+        state,
+        (state == AgentState::Waiting).then(|| waiting_for(record)),
+    )
 }
 
 fn state_of(record: &ProgramStatus) -> AgentState {
