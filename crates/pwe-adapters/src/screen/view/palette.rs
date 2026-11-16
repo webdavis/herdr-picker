@@ -11,6 +11,8 @@ pub(crate) struct Palette {
     pub(crate) stripe: &'static str,
     pub(crate) bar: &'static str,
     pub(crate) refusal: &'static str,
+    pub(crate) needs_you: &'static str,
+    pub(crate) finished: &'static str,
 }
 
 const MOCHA_BOLD_BLUE: &str = "\x1b[1;38;2;137;180;250m";
@@ -26,6 +28,8 @@ const CATPPUCCIN_MOCHA: Palette = Palette {
     stripe: "\x1b[48;2;33;33;52m",
     bar: "\x1b[48;2;54;54;70m",
     refusal: "\x1b[38;2;243;139;168m",
+    needs_you: "\x1b[48;2;243;139;168m",
+    finished: "\x1b[48;2;166;227;161m",
 };
 
 pub(crate) fn palette(theme: Theme) -> &'static Palette {

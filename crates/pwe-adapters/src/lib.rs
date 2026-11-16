@@ -17,6 +17,7 @@ mod keyboard;
 mod live_step;
 mod mac_notifier;
 mod manifest;
+mod notice_pane;
 mod pane_handover;
 mod pane_result;
 mod path_preview;
@@ -71,6 +72,7 @@ pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step};
 pub use mac_notifier::MacNotifier;
 pub use manifest::{ManifestError, write_manifest};
+pub use notice_pane::show_notice_pane;
 pub use pane_handover::{
     HandoverError, PaneHost, Sent, SocketPanes, drain_queue, hand_over, send_prompt,
 };
