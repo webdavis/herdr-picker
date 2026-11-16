@@ -33,6 +33,9 @@ pub fn bookmarks_file(state: &Path) -> PathBuf {
 pub fn quickfix_file(state: &Path) -> PathBuf {
     state.join("quickfix.json")
 }
+pub fn inbox_file(state: &Path) -> PathBuf {
+    state.join("inbox.jsonl")
+}
 pub fn captures_dir(state: &Path) -> PathBuf {
     state.join("captures")
 }

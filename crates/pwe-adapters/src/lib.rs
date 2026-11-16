@@ -8,6 +8,7 @@ mod config;
 mod fzf;
 mod herdr_socket;
 mod history;
+mod inbox;
 mod keyboard;
 mod live_step;
 mod manifest;
@@ -46,6 +47,7 @@ pub use fzf::{
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
+pub use inbox::{prune_inbox_file, read_inbox, save_inbox_row};
 pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step, save_step_command};
 pub use manifest::{ManifestError, write_manifest};
@@ -66,8 +68,9 @@ pub use saved_contacts::{contacts_file, save_contacts, saved_contacts};
 pub use screen::{Layout, TerminalScreen};
 pub use socket::SocketWorkspaceDirectory;
 pub use state::{
-    bookmarks_file, captures_dir, mru_file, picker_result_file, picker_rows_file, places_file,
-    plugin_state_dir, quickfix_file, send_queue_file, snapshot_file, spawned_jump_log_file,
+    bookmarks_file, captures_dir, inbox_file, mru_file, picker_result_file, picker_rows_file,
+    places_file, plugin_state_dir, quickfix_file, send_queue_file, snapshot_file,
+    spawned_jump_log_file,
 };
 pub use walk::{Entry, Walk, walk};
 
