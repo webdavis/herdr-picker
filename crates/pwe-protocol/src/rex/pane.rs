@@ -36,6 +36,14 @@ pub fn rex_pane(target: &str, status: &str, process: &str) -> Result<PaneInfo, P
     })
 }
 
+pub fn opened_block(answer: &str) -> Result<String, ProtocolError> {
+    parsed(answer, "new block")?
+        .pointer("/block_ids/0")
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| ProtocolError::Malformed(format!("Rex named no new block in {answer}")))
+}
+
 fn parsed(text: &str, method: &str) -> Result<Value, ProtocolError> {
     serde_json::from_str(text)
         .map_err(|failure| ProtocolError::Malformed(format!("Rex {method} answer: {failure}")))

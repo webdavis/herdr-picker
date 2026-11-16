@@ -8,13 +8,16 @@ use crate::response::jump_error;
 
 const NEVER_START_A_SERVER: &str = "--autostart=false";
 
+mod host;
+
 pub struct RexPanes {
     binary: PathBuf,
+    session: Option<String>,
 }
 
 impl RexPanes {
-    pub fn at(binary: PathBuf) -> Self {
-        Self { binary }
+    pub fn at(binary: PathBuf, session: Option<String>) -> Self {
+        Self { binary, session }
     }
 
     pub fn pane(&mut self, target: &str) -> Result<PaneInfo, JumpError> {

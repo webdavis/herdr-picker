@@ -9,6 +9,7 @@ pub enum Refusal {
     InputUnseen,
     UnknownAgent(String),
     NothingToOpen,
+    OnlyInHerdr,
 }
 
 impl fmt::Display for Refusal {
@@ -27,6 +28,7 @@ impl fmt::Display for Refusal {
                 write!(formatter, "pwe does not know how to hand {agent} a result")
             }
             Self::NothingToOpen => write!(formatter, "a new pane opens only a command or a folder"),
+            Self::OnlyInHerdr => write!(formatter, "only herdr can do that, so nothing was sent"),
         }
     }
 }
