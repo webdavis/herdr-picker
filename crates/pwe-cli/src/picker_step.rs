@@ -1,11 +1,11 @@
 use std::path::Path;
 
 use pwe_adapters::{
-    Chrome, Helper, Picked, Placement, PluginConfig, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE,
-    fzf_arguments, open_quickfix, read_view, remove_run_files, run_picker, save_step_command,
-    write_view,
+    Chrome, Helper, Placement, PluginConfig, fzf_arguments, open_quickfix, read_view,
+    remove_run_files, run_picker, save_step_command, write_view,
 };
-use pwe_domain::{Action, Key, Page, Spot, Trail, View, ViewState, act, header};
+use pwe_domain::finder::{Ending, Found};
+use pwe_domain::{Action, Page, PickerRow, Spot, Trail, View, ViewState, act, header};
 use pwe_protocol::PICKER_QUERY_VARIABLE;
 
 use crate::builtin::agents::send_call;
@@ -73,19 +73,19 @@ impl Run<'_> {
             Page::Confirm { .. } => "confirm",
         };
         let picked = picked.map_err(|failure| failed(format!("picker {name}: {failure}")))?;
-        Ok(picked.map(|picked| {
+        Ok(picked.map(|found| {
             let action = chosen_action(
-                &picked,
+                &found,
                 left.source.as_deref(),
                 self.quickfix,
                 &first_picker_title,
             );
-            let query_filtered_the_chooser = picked.key == SWITCH_SOURCE;
+            let query_filtered_the_chooser = found.ending == Ending::SwitchSource;
             let spot = Spot {
                 query: if query_filtered_the_chooser {
                     String::new()
                 } else {
-                    picked.query
+                    found.query
                 },
                 group: match left.view {
                     View::Streamed { group } | View::List { group } | View::Chooser { group } => {
@@ -100,24 +100,23 @@ impl Run<'_> {
 }
 
 fn chosen_action(
-    picked: &Picked,
+    found: &Found<PickerRow>,
     source: Option<&str>,
     quickfix: &Path,
     first_picker_title: &str,
 ) -> Action {
-    match picked.key.as_str() {
-        "esc" => return Action::Back,
-        SEND_ROWS => return Action::Next(send_call(&picked.rows, first_picker_title)),
-        SAVE_QUICKFIX => return Action::Run(open_quickfix(quickfix, None)),
-        SWITCH_SOURCE => {
-            return source.map_or(Action::Nothing, |source| Action::Source(source.to_string()));
+    match &found.ending {
+        Ending::Back => Action::Back,
+        Ending::SendRows => Action::Next(send_call(&found.rows, first_picker_title)),
+        Ending::SaveQuickfix => Action::Run(open_quickfix(quickfix, None)),
+        Ending::SwitchSource => {
+            source.map_or(Action::Nothing, |source| Action::Source(source.to_string()))
         }
-        _ => {}
+        Ending::Key(key) => {
+            let rows: Vec<_> = found.rows.iter().collect();
+            act(&rows, key).unwrap_or(Action::Nothing)
+        }
     }
-    let rows: Vec<_> = picked.rows.iter().collect();
-    Key::parse(&picked.key)
-        .and_then(|key| act(&rows, &key).ok())
-        .unwrap_or(Action::Nothing)
 }
 
 #[cfg(test)]

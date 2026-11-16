@@ -10,8 +10,8 @@ pub enum Ending {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Found {
+pub struct Found<Row = usize> {
     pub query: String,
     pub ending: Ending,
-    pub rows: Vec<usize>,
+    pub rows: Vec<Row>,
 }

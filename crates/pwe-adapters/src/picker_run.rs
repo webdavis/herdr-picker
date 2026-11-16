@@ -8,8 +8,10 @@ use std::thread;
 use std::time::Duration;
 
 use pwe_domain::PickerRow;
+use pwe_domain::finder::Found;
 use rustix::process::{Pid, Signal, kill_process_group};
 
+use crate::fzf::fzf_ending;
 use crate::picker_files::{cached_rows, picker_error_file, picker_header_file, picker_said_file};
 use crate::private::create_private;
 
@@ -18,13 +20,6 @@ pub(crate) mod feed;
 
 pub use error::PickerRunError;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Picked {
-    pub query: String,
-    pub key: String,
-    pub rows: Vec<PickerRow>,
-}
-
 const RESIGNAL_EVERY: Duration = Duration::from_millis(20);
 
 pub fn run_picker(
@@ -32,7 +27,7 @@ pub fn run_picker(
     finder: &Path,
     finder_arguments: &[String],
     cache: &Path,
-) -> Result<Option<Picked>, PickerRunError> {
+) -> Result<Option<Found<PickerRow>>, PickerRunError> {
     let said_file = picker_said_file(cache);
     let stderr_in_a_file_that_cannot_block =
         create_private(&said_file).map_err(|failure| PickerRunError::CannotCache {
@@ -119,15 +114,19 @@ fn spawn(command: &mut Command) -> Result<Child, PickerRunError> {
         })
 }
 
-fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<Picked> {
+fn chosen(picked: &[u8], rows: Vec<PickerRow>) -> Option<Found<PickerRow>> {
     let picked = String::from_utf8_lossy(picked);
     let mut lines = picked.lines();
-    let (query, key) = (lines.next()?.to_string(), lines.next()?.to_string());
+    let (query, ending) = (lines.next()?.to_string(), fzf_ending(lines.next()?)?);
     let rows = lines
         .filter_map(|line| line.split('\t').next()?.trim().parse::<usize>().ok())
         .filter_map(|index| rows.get(index).cloned())
         .collect();
-    Some(Picked { query, key, rows })
+    Some(Found {
+        query,
+        ending,
+        rows,
+    })
 }
 
 fn stop(source: &mut Child) {

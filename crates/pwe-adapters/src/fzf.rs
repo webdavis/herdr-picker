@@ -5,12 +5,15 @@ use colors::colors;
 
 mod chrome;
 mod colors;
+mod ending;
 mod unbound;
 
 pub use chrome::{
-    SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer, chooser_lines, error_footer,
-    finder_actions, help_page, leave, list_lines, step_footer,
+    change_footer, chooser_lines, error_footer, finder_actions, help_page, leave, list_lines,
+    step_footer,
 };
+pub(crate) use ending::fzf_ending;
+pub use ending::{SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE};
 pub use unbound::unbound_action;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
