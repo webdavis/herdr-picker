@@ -36,7 +36,7 @@ mod system_service;
 mod walk;
 
 pub use agent_programs::{
-    ClaudeCodeSessions, LsofOpenFiles, OmpSessions, SystemProcessEnvironment,
+    ClaudeCodeSessions, CodexSessions, LsofOpenFiles, OmpSessions, SystemProcessEnvironment,
 };
 pub use agent_store::{AgentSnapshot, read_queue, read_snapshot, write_queue, write_snapshot};
 pub use bookmarks::{add_bookmark, read_bookmarks};
