@@ -46,7 +46,10 @@ fn a_run_without_a_target_is_refused_with_the_accepted_targets() {
 
     assert_eq!(
         (&error["code"], &error["hint"]["accepted"]),
-        (&json!("BAD_TARGET"), &json!(["--all", "--file", "--id"]))
+        (
+            &json!("BAD_TARGET"),
+            &json!(["--all", "--file", "--id", "--failed", "--last"])
+        )
     );
 }
 

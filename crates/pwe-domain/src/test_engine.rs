@@ -1,5 +1,6 @@
 mod event;
 mod invocation;
+mod rerun;
 mod result_reader;
 mod retention;
 mod runner_match;
@@ -13,6 +14,7 @@ pub use event::{
     Diagnostic, Failure, RunFinished, RunStarted, Stream, TestEvent, TestFinished, TestStatus,
 };
 pub use invocation::{Invocation, InvocationError, Selection, invocation};
+pub use rerun::failed_ids;
 pub use result_reader::ResultReader;
 pub use retention::{Retention, StoredRun, runs_to_drop};
 pub use runner_match::{MatchedRunner, matched_runners};
