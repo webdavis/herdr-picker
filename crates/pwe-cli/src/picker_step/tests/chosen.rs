@@ -1,4 +1,5 @@
-use pwe_domain::{Location, PickerRow};
+use pwe_domain::finder::{Ending, Found};
+use pwe_domain::{Key, Location, PickerRow};
 
 use super::*;
 
@@ -14,22 +15,23 @@ fn esc_goes_back_and_any_other_key_does_what_the_marked_rows_say() {
         keys: Vec::new(),
         group: None,
     };
-    let picked = |key: &str| Picked {
+    let picked = |ending: Ending| Found {
         query: String::new(),
-        key: key.to_string(),
+        ending,
         rows: vec![row("a"), row("b")],
     };
+    let key = |name: &str| Ending::Key(Key::parse(name).expect("a row key"));
 
     assert_eq!(
-        chosen_action(&picked("esc"), None, Path::new("/q.json"), "Files"),
+        chosen_action(&picked(Ending::Back), None, Path::new("/q.json"), "Files"),
         Action::Back
     );
     assert_eq!(
-        chosen_action(&picked("ctrl-o"), None, Path::new("/q.json"), "Files"),
+        chosen_action(&picked(key("ctrl-o")), None, Path::new("/q.json"), "Files"),
         Action::Nothing
     );
     assert_eq!(
-        chosen_action(&picked("enter"), None, Path::new("/q.json"), "Files"),
+        chosen_action(&picked(key("enter")), None, Path::new("/q.json"), "Files"),
         Action::Edit(vec![
             Location {
                 path: "a".to_string(),
@@ -45,9 +47,9 @@ fn esc_goes_back_and_any_other_key_does_what_the_marked_rows_say() {
 
 #[test]
 fn leaving_to_save_the_quickfix_list_opens_neovim_with_it() {
-    let picked = Picked {
+    let picked = Found {
         query: String::new(),
-        key: SAVE_QUICKFIX.to_string(),
+        ending: Ending::SaveQuickfix,
         rows: Vec::new(),
     };
 
@@ -62,9 +64,9 @@ fn leaving_to_save_the_quickfix_list_opens_neovim_with_it() {
 
 #[test]
 fn a_source_picked_in_the_chooser_shows_the_step_again_from_that_source() {
-    let picked = Picked {
+    let picked = Found {
         query: "hid".to_string(),
-        key: SWITCH_SOURCE.to_string(),
+        ending: Ending::SwitchSource,
         rows: Vec::new(),
     };
 

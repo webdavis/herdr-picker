@@ -5,7 +5,8 @@ use std::time::{Duration, Instant};
 
 use crate::picker_files::picker_error_file;
 
-use pwe_domain::Action;
+use pwe_domain::finder::{Ending, Found};
+use pwe_domain::{Action, Key};
 
 use super::*;
 
@@ -37,7 +38,7 @@ impl Sandbox {
         self.0.join("rows.jsonl")
     }
 
-    fn run(&self, picker: &str, finder: &str) -> Result<Option<Picked>, PickerRunError> {
+    fn run(&self, picker: &str, finder: &str) -> Result<Option<Found<PickerRow>>, PickerRunError> {
         let finder_arguments = ["-c".to_string(), finder.to_string()];
         run_picker(
             &mut Command::new(self.picker(picker)),
@@ -74,9 +75,9 @@ fn the_finder_reads_index_tab_label_lines_and_answers_its_query_key_and_marked_r
     };
     assert_eq!(
         picked,
-        Ok(Some(Picked {
+        Ok(Some(Found {
             query: "ga".to_string(),
-            key: "ctrl-o".to_string(),
+            ending: Ending::Key(Key::parse("ctrl-o").expect("a row key")),
             rows: vec![
                 row("alpha", Action::Insert("a".to_string())),
                 row("gamma", Action::Run("echo gamma".to_string())),
@@ -90,6 +91,21 @@ fn the_finder_reads_index_tab_label_lines_and_answers_its_query_key_and_marked_r
     assert_eq!(
         fs::read_to_string(sandbox.cache()).expect("the cache"),
         format!("{THREE_ROWS}\n")
+    );
+}
+
+#[test]
+fn escape_ends_the_step_by_going_back() {
+    let sandbox = Sandbox::new("back");
+
+    let picked = sandbox.run(
+        &format!("cat <<'ROWS'\n{THREE_ROWS}\nROWS"),
+        "cat >/dev/null; printf 'al\\nesc\\n'",
+    );
+
+    assert_eq!(
+        picked.map(|picked| picked.map(|picked| (picked.query, picked.ending))),
+        Ok(Some(("al".to_string(), Ending::Back)))
     );
 }
 

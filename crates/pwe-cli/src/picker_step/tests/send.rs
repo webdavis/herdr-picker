@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use pwe_adapters::{Picked, SEND_ROWS};
+use pwe_domain::finder::{Ending, Found};
 use pwe_domain::{Action, PickerCall, PickerRow};
 
 use super::super::chosen_action;
@@ -14,9 +14,9 @@ fn alt_o_leaves_for_the_send_step_carrying_the_marked_rows_as_text() {
         keys: Vec::new(),
         group: None,
     };
-    let picked = Picked {
+    let picked = Found {
         query: String::new(),
-        key: SEND_ROWS.to_string(),
+        ending: Ending::SendRows,
         rows: vec![row("\x1b[2msrc/a.rs\x1b[0m:3  broken"), row("b")],
     };
 

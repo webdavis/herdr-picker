@@ -1,6 +1,7 @@
 use pwe_domain::{PickerRow, Theme, View, ViewResponse, shown};
 
 use super::Helper;
+use super::ending::{BACK, SWITCH_SOURCE};
 use crate::screen::palette;
 
 const DIM: &str = "\x1b[2m";
@@ -27,12 +28,6 @@ pub fn list_lines(rows: &[PickerRow], view: &View) -> Vec<String> {
         .collect()
 }
 
-pub const SWITCH_SOURCE: &str = "source";
-
-pub const SAVE_QUICKFIX: &str = "quickfix";
-
-pub const SEND_ROWS: &str = "send";
-
 pub fn chooser_lines(entries: &[&str]) -> Vec<String> {
     entries
         .iter()
@@ -48,7 +43,7 @@ pub fn finder_actions(response: ViewResponse, helper: Helper, failed: bool, live
         ViewResponse::OpenChooser => vec![reload, "clear-query".into(), "hide-preview".into()],
         ViewResponse::CloseChooser => vec![reload, "clear-query".into(), "show-preview".into()],
         ViewResponse::Accept => vec!["accept".into()],
-        ViewResponse::Back => vec![leave("esc")],
+        ViewResponse::Back => vec![leave(BACK)],
         ViewResponse::Switch(_) => vec![leave(SWITCH_SOURCE)],
         ViewResponse::Stay => Vec::new(),
     };

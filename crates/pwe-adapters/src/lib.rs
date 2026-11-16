@@ -74,7 +74,7 @@ pub use picker_files::{
     cached_rows, picker_error_file, read_run_error, read_step_header, read_view, remove_run_files,
     remove_runs_whose_process_is_gone, write_view,
 };
-pub use picker_run::{Picked, PickerRunError, run_picker};
+pub use picker_run::{PickerRunError, run_picker};
 pub use places::{recent_places, record_place_without_a_lock};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
