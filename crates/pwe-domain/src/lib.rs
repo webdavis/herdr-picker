@@ -1,6 +1,7 @@
 mod agent;
 mod chord;
 mod field;
+pub mod finder;
 mod fuzzy;
 mod inbox;
 mod jump;
