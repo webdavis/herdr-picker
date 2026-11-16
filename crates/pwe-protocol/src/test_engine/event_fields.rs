@@ -117,14 +117,14 @@ fn run_finished(run: &RunFinished) -> Fields {
         )
 }
 
-fn stream_name(stream: Stream) -> &'static str {
+pub(super) fn stream_name(stream: Stream) -> &'static str {
     match stream {
         Stream::Stdout => "stdout",
         Stream::Stderr => "stderr",
     }
 }
 
-fn test_status_name(status: TestStatus) -> &'static str {
+pub(super) fn test_status_name(status: TestStatus) -> &'static str {
     match status {
         TestStatus::Passed => "passed",
         TestStatus::Failed => "failed",
@@ -133,7 +133,7 @@ fn test_status_name(status: TestStatus) -> &'static str {
     }
 }
 
-fn run_status_name(status: RunStatus) -> &'static str {
+pub(super) fn run_status_name(status: RunStatus) -> &'static str {
     match status {
         RunStatus::Passed => "passed",
         RunStatus::Failed => "failed",

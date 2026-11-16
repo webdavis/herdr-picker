@@ -7,6 +7,9 @@ pub(super) struct Flags {
     pub(super) file: Option<String>,
     pub(super) ids: Vec<String>,
     pub(super) runner: Option<String>,
+    pub(super) run: Option<String>,
+    pub(super) last: bool,
+    pub(super) failed: bool,
 }
 
 pub(super) fn read_flags(words: &[&str], accepted: &[&str]) -> Result<Flags, TestError> {
@@ -25,7 +28,10 @@ pub(super) fn read_flags(words: &[&str], accepted: &[&str]) -> Result<Flags, Tes
             "--format" => flags.format = Some(value()?),
             "--file" => flags.file = Some(value()?),
             "--runner" => flags.runner = Some(value()?),
+            "--run" => flags.run = Some(value()?),
             "--all" => flags.all = true,
+            "--last" => flags.last = true,
+            "--failed" => flags.failed = true,
             _ => {
                 while let Some(id) = rest.next_if(|word| !word.starts_with("--")) {
                     flags.ids.push(id.to_string());

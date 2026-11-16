@@ -50,6 +50,14 @@ pub(super) fn print_out(text: &str) {
     let _ = stdout.flush();
 }
 
+pub(super) fn exit_with(code: i32) -> Result<(), CommandError> {
+    match u8::try_from(code) {
+        Ok(0) => Ok(()),
+        Ok(code) => Err(CommandError::Exit(code)),
+        Err(_) => Err(CommandError::Exit(1)),
+    }
+}
+
 pub(super) fn refused(format: Option<Format>, error: &TestError) -> CommandError {
     let format = format.unwrap_or_else(|| chosen_format(None).unwrap_or(Format::Jsonl));
     let text = encoded(format, &error.json(), || error.text());
