@@ -40,13 +40,5 @@ pub fn systemd_unit_file(config_home: Option<&str>, home: Option<&str>) -> PathB
         .join(format!("{SYSTEM_JOB_NAME}.service"))
 }
 
-pub fn system_job_file(config_home: Option<&str>, home: Option<&str>) -> PathBuf {
-    if cfg!(target_os = "macos") {
-        launch_agent_file(home)
-    } else {
-        systemd_unit_file(config_home, home)
-    }
-}
-
 #[cfg(test)]
 mod tests;

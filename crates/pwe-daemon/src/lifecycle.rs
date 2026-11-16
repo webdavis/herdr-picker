@@ -68,12 +68,21 @@ pub fn start_daemon(program: &Path, socket: &Path, log: &Path) -> Result<Started
         return Ok(Started::AlreadyRunning(pid));
     }
     let mut daemon = launch(program, log).map_err(LifecycleError::Launch)?;
+    let pid = wait_for_answer(socket, log, || matches!(daemon.try_wait(), Ok(Some(_))))?;
+    Ok(Started::Now(pid))
+}
+
+pub(crate) fn wait_for_answer(
+    socket: &Path,
+    log: &Path,
+    mut has_ended: impl FnMut() -> bool,
+) -> Result<u32, LifecycleError> {
     let deadline = Instant::now() + ANSWER_DEADLINE;
     while Instant::now() < deadline {
         if let Some(pid) = running_pid(socket)? {
-            return Ok(Started::Now(pid));
+            return Ok(pid);
         }
-        if let Ok(Some(_)) = daemon.try_wait() {
+        if has_ended() {
             return Err(LifecycleError::EndedAtOnce(log.to_path_buf()));
         }
         thread::sleep(POLL_INTERVAL);

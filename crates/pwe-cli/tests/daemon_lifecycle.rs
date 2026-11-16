@@ -1,50 +1,7 @@
-use std::fs;
-use std::path::PathBuf;
-use std::process::{self, Command, Output};
+mod support;
 
-use serde_json::{Value, json};
-
-struct TempHome(PathBuf);
-
-impl TempHome {
-    fn new(name: &str) -> Self {
-        let home = std::env::temp_dir().join(format!("pwc-{name}-{}", process::id()));
-        let _ = fs::remove_dir_all(&home);
-        fs::create_dir_all(&home).unwrap_or_else(|failure| panic!("{failure}"));
-        Self(home)
-    }
-
-    fn pwe(&self, words: &[&str]) -> Output {
-        Command::new(env!("CARGO_BIN_EXE_pwe"))
-            .args(words)
-            .env("HOME", &self.0)
-            .env_remove("XDG_RUNTIME_DIR")
-            .env_remove("XDG_STATE_HOME")
-            .env_remove("XDG_CONFIG_HOME")
-            .output()
-            .unwrap_or_else(|failure| panic!("pwe did not run: {failure}"))
-    }
-}
-
-impl Drop for TempHome {
-    fn drop(&mut self) {
-        let _ = self.pwe(&["daemon", "stop"]);
-        let _ = fs::remove_dir_all(&self.0);
-    }
-}
-
-fn succeeded(output: Output) -> String {
-    assert!(
-        output.status.success(),
-        "pwe failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    String::from_utf8_lossy(&output.stdout).into_owned()
-}
-
-fn json_of(text: &str) -> Value {
-    serde_json::from_str(text).unwrap_or_else(|failure| panic!("{failure}: {text}"))
-}
+use serde_json::json;
+use support::{TempHome, json_of, succeeded};
 
 #[test]
 fn start_then_status_says_running_and_not_enabled() {
