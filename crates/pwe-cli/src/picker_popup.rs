@@ -79,6 +79,9 @@ pub(crate) fn answer_in_popup(
         Err(CommandError::Usage) => PaneState::Failed {
             reason: crate::command::USAGE.to_string(),
         },
+        Err(CommandError::Exit(code)) => PaneState::Failed {
+            reason: format!("the picker ended with exit code {code}"),
+        },
     };
     write_pane_state(result, &answer).map_err(failed)
 }

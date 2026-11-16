@@ -8,9 +8,13 @@ mod libtest_target;
 mod runner_file;
 mod runner_file_check;
 mod runner_file_error;
+mod runner_listing;
+mod test_error;
 
 pub use event_lines::EventLines;
 pub use libtest::LibtestReader;
 pub use libtest_name::read_libtest_listing;
 pub use runner_file::read_runner_file;
 pub use runner_file_error::RunnerFileError;
+pub use runner_listing::{runner_listing_json, runner_listing_text};
+pub use test_error::{Hint, TestError, TestErrorCode};

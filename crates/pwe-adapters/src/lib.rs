@@ -39,6 +39,7 @@ mod screen;
 mod socket;
 mod state;
 mod system_service;
+pub mod test_engine;
 mod walk;
 
 pub use agent_programs::{

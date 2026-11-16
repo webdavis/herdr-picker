@@ -1,0 +1,16 @@
+name = "cargo"
+language = "rust"
+status = "tested"
+when = "The folder holds a Cargo.toml."
+does = "Runs cargo test for every package, without stopping at the first failed package."
+
+[detect]
+files = ["Cargo.toml"]
+
+[run]
+all = ["cargo", "test", "--no-fail-fast", "--message-format", "json"]
+ids = ["cargo", "test", "--no-fail-fast", "--message-format", "json", "--", "--exact", "{names...}"]
+
+[output]
+parser = "libtest"
+report = "stdout"
