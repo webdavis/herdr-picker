@@ -3,19 +3,22 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 
 use pwe_adapters::{
-    ClaudeCodeSessions, CodexSessions, LsofOpenFiles, OmpSessions, SystemProcessEnvironment,
+    ClaudeCodeSessions, CodexSessions, LsofOpenFiles, OmpSessions, RexPanes, RexSettings,
+    SystemProcessEnvironment, read_picker_config, rex_program,
 };
-use pwe_application::{AgentReadError, agent_sessions};
+use pwe_application::{AgentReadError, PaneStatuses, agent_sessions};
 use pwe_protocol::agent_sessions_json;
 
 use crate::agent_hook;
-use crate::command::{CommandError, failed};
+use crate::command::{CommandError, config_path, failed};
 
 pub(crate) struct Surroundings {
     pub(crate) path_variable: Option<OsString>,
     pub(crate) home: PathBuf,
     pub(crate) codex_folder: PathBuf,
     pub(crate) proc_folder: PathBuf,
+    pub(crate) applications: PathBuf,
+    pub(crate) rex_app_name: String,
 }
 
 impl Surroundings {
@@ -27,6 +30,11 @@ impl Surroundings {
                 .map_or_else(|| home.join(".codex"), PathBuf::from),
             home,
             proc_folder: PathBuf::from("/proc"),
+            applications: PathBuf::from("/Applications"),
+            rex_app_name: read_picker_config(&config_path()).map_or_else(
+                |_| RexSettings::default().app_name,
+                |config| config.rex.app_name,
+            ),
         }
     }
 }
@@ -53,7 +61,18 @@ pub(crate) fn listing(
         LsofOpenFiles::on(path),
     );
     let mut codex = CodexSessions::on(&surroundings.codex_folder, LsofOpenFiles::on(path));
-    let (sessions, refusals) = agent_sessions(&mut [&mut claude_code, &mut omp, &mut codex], now);
+    let mut rex = rex_program(path, &surroundings.applications, &surroundings.rex_app_name)
+        .ok()
+        .map(|binary| RexPanes::at(binary, None));
+    let mut rex_panes: Vec<&mut dyn PaneStatuses> = rex
+        .iter_mut()
+        .map(|panes| panes as &mut dyn PaneStatuses)
+        .collect();
+    let (sessions, refusals) = agent_sessions(
+        &mut [&mut claude_code, &mut omp, &mut codex],
+        &mut rex_panes,
+        now,
+    );
     let printed = agent_sessions_json(&sessions).map_err(failed)?;
     Ok((printed, refusals))
 }

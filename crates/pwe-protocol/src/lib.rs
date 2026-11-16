@@ -51,7 +51,10 @@ pub use popup::{
     PICKER_RESULT_VARIABLE, PICKER_TARGET_VARIABLE, PopupPane, SOCKET_PATH_VARIABLE,
     layout_request, popup_request, window_of,
 };
-pub use rex::{KeyFacts, float_request, opened_block, parse_key_facts, rex_lua, rex_pane};
+pub use rex::{
+    KeyFacts, float_request, opened_block, parse_key_facts, rex_lua, rex_pane, rex_pane_status,
+    rex_session_ids, rex_status_record, rex_terminal_panes,
+};
 pub use rex_event::{
     ForegroundProcess, ProgramStatus, RexBlock, RexEvent, RexEventError, parse_rex_event,
 };
