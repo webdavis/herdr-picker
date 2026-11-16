@@ -2,6 +2,7 @@ mod agent;
 mod agent_session;
 mod backoff;
 mod chord;
+mod doctor;
 mod field;
 pub mod finder;
 mod fuzzy;
@@ -41,6 +42,7 @@ pub use agent_session::{
 };
 pub use backoff::Backoff;
 pub use chord::{Chord, Stroke, pick_key_label};
+pub use doctor::{CheckResult, DoctorCheck};
 pub use field::{Edit, ReadlineField, TextField};
 pub use fuzzy::{Fuzzy, Match, Matcher};
 pub use inbox::{InboxLimits, newest_first, prune_inbox};

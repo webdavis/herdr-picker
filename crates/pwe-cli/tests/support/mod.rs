@@ -47,6 +47,17 @@ impl TempHome {
         self
     }
 
+    pub fn with_fake_program(mut self, name: &str, script: &str) -> Self {
+        let bin = self.folder.join("fake-bin");
+        fs::create_dir_all(&bin).unwrap_or_else(|failure| panic!("{failure}"));
+        let program = bin.join(name);
+        fs::write(&program, script).unwrap_or_else(|failure| panic!("{failure}"));
+        fs::set_permissions(&program, fs::Permissions::from_mode(0o700))
+            .unwrap_or_else(|failure| panic!("{failure}"));
+        self.path_variable = Some(format!("{}:/usr/bin:/bin", bin.display()));
+        self
+    }
+
     fn calls_file(&self) -> PathBuf {
         self.folder.join("system-calls")
     }
