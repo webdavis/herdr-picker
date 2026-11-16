@@ -1,0 +1,9 @@
+{"type":"session","version":3,"id":"44444444-4444-7444-8444-444444444444","timestamp":"2026-01-01T00:00:06.000Z","cwd":"/work/project"}
+{"type":"model_change","id":"a1","parentId":null,"model":"some-model","resolvedModelIsFallback":false,"runtime":{},"timestamp":"2026-01-01T00:00:07.000Z"}
+{"type":"message","id":"a2","parentId":"a1","runtime":{},"timestamp":"2026-01-01T00:00:08.000Z","message":{"role":"user","content":"Say hello."}}
+{"type":"message","id":"a3","parentId":"a2","runtime":{},"timestamp":"2026-01-01T00:00:09.000Z","message":{"role":"assistant","content":[],"stopReason":"stop"}}
+{"type":"model_usage","id":"a4","parentId":"a3","runtime":{},"timestamp":"2026-01-01T00:00:10.000Z","purpose":"title","stopReason":"stop"}
+{"type":"title_change","id":"a5","parentId":"a4","runtime":{},"timestamp":"2026-01-01T00:00:11.000Z","source":"auto","title":"Greeting check"}
+{"type":"message","id":"a6","parentId":"a5","runtime":{},"timestamp":"2026-01-01T00:00:12.000Z","message":{"role":"user","content":"Run one command."}}
+{"type":"message","id":"a7","parentId":"a6","runtime":{},"timestamp":"2026-01-01T00:00:13.000Z","message":{"role":"assistant","content":[],"stopReason":"toolUse"}}
+{"type":"custom","customType":"tool_execution_start","id":"a8","parentId":"a7","runtime":{},"timestamp":"2026-01-01T00:00:14.000Z","data":{}}
