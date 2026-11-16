@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 use pwe_application::{JumpError, NoticeFloat, NoticeScreen};
-use pwe_domain::{Corner, notice_place};
+use pwe_domain::{Corner, Pane, notice_place};
 use pwe_protocol::{
-    block_label_request, close_layer_request, focused_block_in_view, notice_float_request,
-    opened_layer, session_request, window_in_view,
+    block_label_request, close_layer_request, focus_block_request, focused_block_in_view,
+    notice_float_request, opened_layer, session_request, window_in_view,
 };
 
 use crate::RexPanes;
@@ -92,6 +92,13 @@ impl NoticeScreen for RexNoticeScreen {
         let shown = self.shown.remove(index);
         let request = close_layer_request(&shown.rex_session, &shown.layer);
         self.call("session.close_layer", &request).map(|_| ())
+    }
+
+    fn jump(&mut self, pane: &Pane) -> Result<(), JumpError> {
+        let select = format!("session_id={}", pane.rex_session);
+        self.rex.run(&["do", "session.select", &select])?;
+        let request = focus_block_request(&pane.rex_session, &pane.block);
+        self.call("session.focus_block", &request).map(|_| ())
     }
 }
 

@@ -67,7 +67,10 @@ pub use fzf::{
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
-pub use inbox::{inbox_listing_json, prune_inbox_file, read_inbox, save_inbox_row};
+pub use inbox::{
+    inbox_listing_json, mark_inbox_row_read, notice_rows, prune_inbox_file, read_inbox,
+    save_inbox_row,
+};
 pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step};
 pub use mac_notifier::MacNotifier;

@@ -1,4 +1,4 @@
-use pwe_domain::Level;
+use pwe_domain::{Level, Pane};
 
 use crate::JumpError;
 
@@ -16,4 +16,5 @@ pub trait NoticeScreen {
     fn show(&mut self, notice: &NoticeFloat) -> Result<(), JumpError>;
     fn relabel(&mut self, float: &str, line: &str) -> Result<(), JumpError>;
     fn close(&mut self, float: &str) -> Result<(), JumpError>;
+    fn jump(&mut self, pane: &Pane) -> Result<(), JumpError>;
 }

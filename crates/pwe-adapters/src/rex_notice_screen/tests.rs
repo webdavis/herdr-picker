@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use pwe_application::{NoticeFloat, NoticeScreen};
-use pwe_domain::{Corner, Level};
+use pwe_domain::{Corner, Level, Pane};
 use serde_json::{Value, json};
 
 use super::RexNoticeScreen;
@@ -143,4 +143,32 @@ fn an_unknown_float_is_left_alone() {
     screen.close("float-9").expect("nothing to close");
 
     assert!(!fake.folder().join("count").exists());
+}
+
+#[test]
+fn a_jump_selects_the_session_in_the_app_and_focuses_the_block() {
+    let _spawning = spawning();
+    let focus = json!({"session_id": SESSION, "block_id": FOCUSED}).to_string();
+    let fake = RecordedCli::rex(&[
+        (
+            &format!("--autostart=false do session.select session_id={SESSION}"),
+            "",
+        ),
+        (
+            &format!("--autostart=false api call session.focus_block {focus}"),
+            r#"{"revision":7}"#,
+        ),
+    ]);
+    let pane = Pane {
+        rex_session: SESSION.to_string(),
+        tab: "window:00000000-0000-4000-8000-0000000000d1".to_string(),
+        block: FOCUSED.to_string(),
+    };
+
+    screen(&fake).jump(&pane).expect("jumped");
+
+    let calls = fake.calls();
+    assert_eq!(calls.len(), 2);
+    assert_eq!(calls[0][1..3], ["do", "session.select"]);
+    assert_eq!(calls[1][3], "session.focus_block");
 }

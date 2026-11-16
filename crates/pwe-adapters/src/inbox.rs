@@ -42,6 +42,20 @@ pub fn prune_inbox_file(file: &Path, now: u64, limits: &InboxLimits) -> io::Resu
     write_inbox(file, &prune_inbox(read_inbox(file)?, now, limits))
 }
 
+pub fn notice_rows(rows: &[Notice]) -> serde_json::Result<serde_json::Value> {
+    serde_json::to_value(rows.iter().map(InboxRow::from).collect::<Vec<_>>())
+}
+
+pub fn mark_inbox_row_read(file: &Path, id: &str, now: u64) -> io::Result<bool> {
+    let mut rows = read_inbox(file)?;
+    let Some(row) = rows.iter_mut().find(|row| row.id == id && row.is_unread()) else {
+        return Ok(false);
+    };
+    row.read_at = Some(now);
+    write_inbox(file, &rows)?;
+    Ok(true)
+}
+
 pub fn inbox_listing_json(rows: &[Notice]) -> serde_json::Result<String> {
     serde_json::to_string(&InboxListing {
         inbox: rows.iter().map(InboxRow::from).collect(),

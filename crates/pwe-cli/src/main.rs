@@ -9,6 +9,7 @@ mod inbox;
 mod last_workspace;
 mod launch;
 mod notice;
+mod notice_keys;
 mod notify;
 mod path;
 mod pick;
