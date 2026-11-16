@@ -210,6 +210,7 @@ name = "pwe-daemon"
 version = "0.1.0"
 dependencies = [
  "pwe-adapters",
+ "pwe-application",
  "pwe-protocol",
  "serde_json",
 ]

@@ -31,6 +31,7 @@ mod saved_contacts;
 mod screen;
 mod socket;
 mod state;
+mod system_service;
 mod walk;
 
 pub use agent_store::{AgentSnapshot, read_queue, read_snapshot, write_queue, write_snapshot};
@@ -45,8 +46,7 @@ pub use config::{
 };
 pub use daemon_client::{DaemonAskError, ask_daemon};
 pub use daemon_files::{
-    daemon_log_file, daemon_socket_file, launch_agent_file, pwe_state_folder, system_job_file,
-    systemd_unit_file,
+    daemon_log_file, daemon_socket_file, launch_agent_file, pwe_state_folder, systemd_unit_file,
 };
 pub use fzf::{
     Chrome, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
@@ -80,6 +80,7 @@ pub use state::{
     places_file, plugin_state_dir, quickfix_file, send_queue_file, snapshot_file,
     spawned_jump_log_file,
 };
+pub use system_service::{LaunchAgent, SystemdUser};
 pub use walk::{Entry, Walk, walk};
 
 #[cfg(test)]

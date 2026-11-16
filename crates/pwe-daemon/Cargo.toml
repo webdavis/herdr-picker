@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+pwe-application = { path = "../pwe-application" }
 pwe-protocol = { path = "../pwe-protocol" }
 pwe-adapters = { path = "../pwe-adapters" }
 serde_json = "1"
