@@ -5,6 +5,7 @@ members = [
   "crates/pwe-application",
   "crates/pwe-protocol",
   "crates/pwe-adapters",
+  "crates/pwe-daemon",
   "crates/pwe-cli",
 ]
 default-members = ["crates/pwe-cli"]

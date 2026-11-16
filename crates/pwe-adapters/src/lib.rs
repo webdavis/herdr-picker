@@ -5,6 +5,7 @@ mod cli;
 mod clipboard;
 mod command_preview;
 mod config;
+mod daemon_client;
 pub mod finder;
 mod fzf;
 mod herdr_socket;
@@ -41,6 +42,7 @@ pub use config::{
     BlueBubblesSettings, ConfigError, PluginConfig, UnifiSettings, config_file, read_config,
     read_picker_config,
 };
+pub use daemon_client::{DaemonAskError, ask_daemon, daemon_socket_file};
 pub use fzf::{
     Chrome, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
     chooser_lines, error_footer, finder_actions, fzf_arguments, help_page, leave, list_lines,

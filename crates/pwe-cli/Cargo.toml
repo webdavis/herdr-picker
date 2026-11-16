@@ -12,6 +12,7 @@ pwe-protocol = { path = "../pwe-protocol" }
 pwe-domain = { path = "../pwe-domain" }
 pwe-application = { path = "../pwe-application" }
 pwe-adapters = { path = "../pwe-adapters" }
+pwe-daemon = { path = "../pwe-daemon" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 toml = "1"

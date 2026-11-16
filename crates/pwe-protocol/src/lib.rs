@@ -1,6 +1,7 @@
 mod agents;
 mod bash;
 mod daemon_line;
+mod daemon_status;
 mod focused;
 mod handover;
 mod manifest;
@@ -22,6 +23,7 @@ pub use daemon_line::{
     DaemonError, DaemonErrorKind, DaemonRequest, daemon_reply_line, daemon_request_line,
     parse_daemon_reply, parse_daemon_request,
 };
+pub use daemon_status::{DaemonStatus, Listens, daemon_status_result, parse_daemon_status};
 pub use focused::{parse_context_pane, parse_focused_id, parse_focused_pane};
 pub use handover::{
     Delivery, Handover, Instruction, PaneKind, Refusal, Underneath, Verb, delivery, guard,
