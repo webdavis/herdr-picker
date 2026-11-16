@@ -75,6 +75,7 @@ fn save_alone(inbox: &Path, request: &NoticeRequest, now: u64) -> Result<Value, 
             }
             Ok(json!({ "resolved": !open.is_empty() }))
         }
+        _ => Err(CommandError::Usage),
     }
 }
 

@@ -80,6 +80,10 @@ impl NoticeScreen for FakeScreen {
     fn close(&mut self, float: &str) -> Result<(), JumpError> {
         self.answer(format!("close {float}"))
     }
+
+    fn jump(&mut self, pane: &Pane) -> Result<(), JumpError> {
+        self.answer(format!("jump {}", pane.block))
+    }
 }
 
 pub(crate) struct FakeNotifier(pub(crate) Calls);

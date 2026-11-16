@@ -55,9 +55,10 @@ pub use popup::{
 };
 pub use rex::{
     KeyFacts, OpenedLayer, block_label_request, close_layer_request, float_request,
-    focused_block_in_view, focused_pane_in_view, notice_float_request, opened_block, opened_layer,
-    parse_key_facts, placed_pane_in_view, rex_lua, rex_pane, rex_pane_status, rex_session_ids,
-    rex_status_record, rex_terminal_panes, session_request, window_in_view,
+    focus_block_request, focused_block_in_view, focused_pane_in_view, notice_float_request,
+    opened_block, opened_layer, parse_key_facts, placed_pane_in_view, rex_lua, rex_pane,
+    rex_pane_status, rex_session_ids, rex_status_record, rex_terminal_panes, session_request,
+    window_in_view,
 };
 pub use rex_event::{
     ForegroundProcess, ProgramStatus, RexBlock, RexEvent, RexEventError, parse_rex_event,

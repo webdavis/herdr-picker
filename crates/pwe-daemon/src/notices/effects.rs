@@ -68,7 +68,12 @@ impl NoticeDesk {
                 self.timers.cancel(ASK_FOR_SESSION);
                 Ok(())
             }
-            NoticeEffect::JumpTo(_) | NoticeEffect::Waiting(_) => Ok(()),
+            NoticeEffect::JumpTo(pane) => self
+                .parts
+                .screen
+                .jump(&pane)
+                .map_err(|failure| format!("could not jump to a notice's pane: {failure}")),
+            NoticeEffect::Waiting(_) => Ok(()),
         };
         if let Err(failure) = outcome {
             self.report(failure);

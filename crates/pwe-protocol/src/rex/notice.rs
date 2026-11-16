@@ -75,6 +75,10 @@ pub fn block_label_request(session: &str, block: &str, label: &str) -> String {
     json!({"session_id": session, "block_id": block, "label": label}).to_string()
 }
 
+pub fn focus_block_request(session: &str, block: &str) -> String {
+    json!({"session_id": session, "block_id": block}).to_string()
+}
+
 pub fn close_layer_request(session: &str, layer: &str) -> String {
     json!({"session_id": session, "layer_id": layer}).to_string()
 }
