@@ -36,6 +36,7 @@ pub(crate) fn notice_parts() -> Result<NoticeParts, CommandError> {
         whereabouts: Box::new(RexWhereabouts::new(&config.rex.app_name, path_variable)),
         places: Box::new(RexPanes::at(rex, None)),
         inbox: inbox_file(&state_dir()),
+        inbox_limits: config.inbox,
         log: Box::new(io::stderr()),
     })
 }

@@ -6,7 +6,7 @@ use pwe_application::{
     DesktopNotifier, DesktopNotifierError, JumpError, NoticeFloat, NoticeScreen, PanePlaces,
     PlacedPane, Whereabouts, WhereaboutsError,
 };
-use pwe_domain::{NoticeSettings, OwnerPlace, Pane, SessionSeen};
+use pwe_domain::{InboxLimits, NoticeSettings, OwnerPlace, Pane, SessionSeen};
 
 use crate::NoticeParts;
 
@@ -175,6 +175,7 @@ pub(crate) fn fake_parts(inbox: PathBuf, screen_fails: bool) -> (NoticeParts, Re
             focused: Arc::new(Mutex::new(pane(OWNER_PANE))),
         }),
         inbox,
+        inbox_limits: InboxLimits::default(),
         log: Box::new(recorders.log.clone()),
     };
     (parts, recorders)
