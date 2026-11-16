@@ -15,6 +15,7 @@ mod history;
 mod inbox;
 mod keyboard;
 mod live_step;
+mod mac_notifier;
 mod manifest;
 mod pane_handover;
 mod pane_result;
@@ -66,6 +67,7 @@ pub use history::FileWorkspaceHistory;
 pub use inbox::{inbox_listing_json, prune_inbox_file, read_inbox, save_inbox_row};
 pub use keyboard::TerminalInput;
 pub use live_step::{is_live_step, rerun_step};
+pub use mac_notifier::MacNotifier;
 pub use manifest::{ManifestError, write_manifest};
 pub use pane_handover::{
     HandoverError, PaneHost, Sent, SocketPanes, drain_queue, hand_over, send_prompt,
