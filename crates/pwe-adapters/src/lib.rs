@@ -21,6 +21,7 @@ mod pane_result;
 mod path_preview;
 mod picker_files;
 mod picker_run;
+mod picker_text;
 mod places;
 mod popup_host;
 mod private;
@@ -56,8 +57,7 @@ pub use daemon_files::{
 };
 pub use fzf::{
     FzfStepFinder, Helper, Placement, SAVE_QUICKFIX, SEND_ROWS, SWITCH_SOURCE, change_footer,
-    chooser_lines, error_footer, finder_actions, help_page, leave, list_lines, step_footer,
-    unbound_action,
+    chooser_lines, finder_actions, leave, list_lines, unbound_action,
 };
 pub use herdr_socket::DEADLINE;
 pub use history::FileWorkspaceHistory;
@@ -75,6 +75,7 @@ pub use picker_files::{
     remove_runs_whose_process_is_gone, write_view,
 };
 pub use picker_run::{PickerRunError, run_picker};
+pub use picker_text::{error_footer, help_page, step_footer};
 pub use places::{recent_places, record_place_without_a_lock};
 pub use popup_host::SocketPopupHost;
 pub use process::{spawn_detached, wait_for_process_exit};
