@@ -34,7 +34,7 @@ fn the_launcher_opens_over_the_focused_pane_in_its_folder_knowing_its_base() {
     assert_eq!(popup["params"]["cwd"], "/work/repo");
     assert_eq!(
         popup["params"]["env"],
-        json!({"HERDR_PICKER_BASE": "ctrl-g", "HERDR_PICKER_TARGET": "w1:p3"})
+        json!({"PWE_BASE": "ctrl-g", "PWE_TARGET": "w1:p3"})
     );
 }
 

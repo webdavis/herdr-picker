@@ -15,11 +15,11 @@ pub use header::{encode_header, parse_header};
 use wire::{WireAction, WireHerdr, WirePreview, Words};
 
 // The state a next action hands the picker it opens, as the JSON the action carried.
-pub const PICKER_STATE_VARIABLE: &str = "HERDR_PICKER_STATE";
+pub const PICKER_STATE_VARIABLE: &str = "PWE_STATE";
 // The source a picker with sources reads its rows from.
-pub const PICKER_SOURCE_VARIABLE: &str = "HERDR_PICKER_SOURCE";
+pub const PICKER_SOURCE_VARIABLE: &str = "PWE_SOURCE";
 // What is typed, for a picker whose rows follow the query.
-pub const PICKER_QUERY_VARIABLE: &str = "HERDR_PICKER_QUERY";
+pub const PICKER_QUERY_VARIABLE: &str = "PWE_QUERY";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RowError {

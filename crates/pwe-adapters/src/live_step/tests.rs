@@ -42,7 +42,7 @@ impl Drop for Sandbox {
     }
 }
 
-const ECHOES: &str = r#"printf '{"header":"%s %s"}\n{"label":"%s","enter":"none"}\n' "$1" "$HERDR_PICKER_STATE" "$HERDR_PICKER_QUERY""#;
+const ECHOES: &str = r#"printf '{"header":"%s %s"}\n{"label":"%s","enter":"none"}\n' "$1" "$PWE_STATE" "$PWE_QUERY""#;
 
 #[test]
 fn a_live_step_runs_its_command_again_with_the_query_and_its_own_args_and_state() {

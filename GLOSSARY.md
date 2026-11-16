@@ -32,7 +32,7 @@ A question about the marked rows, asked of `claude -p` on one clauth profile and
 **Source**:
 One of the lists a picker can show, such as `hidden` in the files picker. The first is the one it
 opens on; ctrl-space chooses another, and the picker's command reads the chosen one in
-`HERDR_PICKER_SOURCE`.
+`PWE_SOURCE`.
 _Avoid_: mode, tab
 
 **Group**:
@@ -47,7 +47,7 @@ _Avoid_: subpicker, screen
 
 **Live step**:
 A picker or step whose command runs again each time the query changes, reading it in
-`HERDR_PICKER_QUERY`, rather than listing once for fzf to filter.
+`PWE_QUERY`, rather than listing once for fzf to filter.
 _Avoid_: dynamic picker, reload
 
 **Handover**:

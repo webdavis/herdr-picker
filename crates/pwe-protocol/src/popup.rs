@@ -5,13 +5,13 @@ use crate::wire::{ProtocolError, request_line};
 
 pub const SOCKET_PATH_VARIABLE: &str = "HERDR_SOCKET_PATH";
 pub const ACTIVE_WORKSPACE_VARIABLE: &str = "HERDR_ACTIVE_WORKSPACE_ID";
-pub const PICKER_NAME_VARIABLE: &str = "HERDR_PICKER_NAME";
+pub const PICKER_NAME_VARIABLE: &str = "PWE_NAME";
 // herdr overwrites HERDR_PLUGIN_CONFIG_DIR in a plugin pane,
 // so the config file the caller read travels under its own name.
-pub const PICKER_CONFIG_VARIABLE: &str = "HERDR_PICKER_CONFIG";
-pub const PICKER_RESULT_VARIABLE: &str = "HERDR_PICKER_RESULT";
-pub const PICKER_BASE_VARIABLE: &str = "HERDR_PICKER_BASE";
-pub const PICKER_TARGET_VARIABLE: &str = "HERDR_PICKER_TARGET";
+pub const PICKER_CONFIG_VARIABLE: &str = "PWE_CONFIG";
+pub const PICKER_RESULT_VARIABLE: &str = "PWE_RESULT";
+pub const PICKER_BASE_VARIABLE: &str = "PWE_BASE";
+pub const PICKER_TARGET_VARIABLE: &str = "PWE_TARGET";
 pub(crate) const WORKSPACE_PICKER_PANE: &str = "pick";
 pub(crate) const LAUNCHER_PANE: &str = "launcher";
 pub(crate) const CONFIGURED_PICKER_PANE: &str = "run_picker";
