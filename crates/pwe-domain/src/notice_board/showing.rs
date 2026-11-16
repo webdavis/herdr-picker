@@ -32,7 +32,10 @@ impl NoticeBoard {
     }
 
     pub(super) fn present(&mut self, notice: &Notice, now: u64) -> Vec<NoticeEffect> {
-        if notice.level == Level::Quiet || self.is_in_view(notice) {
+        if notice.level == Level::Quiet
+            || self.is_in_view(notice)
+            || self.is_muted(&notice.source, now)
+        {
             return Vec::new();
         }
         if let Some(grouped) = self.join_group(notice, now) {

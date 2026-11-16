@@ -67,7 +67,7 @@ impl NoticeBoard {
         let waiting = self.waiting();
         let elsewhere: Vec<&Notice> = waiting
             .iter()
-            .filter(|notice| !self.is_in_view(notice))
+            .filter(|notice| !self.is_in_view(notice) && !self.is_muted(&notice.source, now))
             .collect();
         let Some(line) = reminder_line(&elsewhere) else {
             return Vec::new();

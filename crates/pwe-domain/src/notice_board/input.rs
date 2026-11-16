@@ -25,6 +25,11 @@ pub enum NoticeInput {
     OwnerMoved(RexFocus),
     TimePassed,
     ListWaiting,
+    Hide,
+    Mute { source: String, until: Option<u64> },
+    Unmute { source: String },
+    Dismiss { id: String },
+    Read { id: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

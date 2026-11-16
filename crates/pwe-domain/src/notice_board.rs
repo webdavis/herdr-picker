@@ -3,6 +3,7 @@ mod grouping;
 mod input;
 mod line;
 mod moving;
+mod quieting;
 mod settings;
 mod showing;
 mod updating;
@@ -12,6 +13,7 @@ pub use settings::NoticeSettings;
 
 use crate::notice::Notice;
 use float::Float;
+use quieting::Mute;
 
 #[derive(Debug, Clone)]
 pub struct NoticeBoard {
@@ -20,6 +22,7 @@ pub struct NoticeBoard {
     floats: Vec<Float>,
     focus: RexFocus,
     focused_since: u64,
+    mutes: Vec<Mute>,
     asking_for_session: bool,
     numbers: u64,
 }
@@ -32,6 +35,7 @@ impl NoticeBoard {
             floats: Vec::new(),
             focus: RexFocus::Closed,
             focused_since: 0,
+            mutes: Vec::new(),
             asking_for_session: false,
             numbers: 0,
         }
@@ -44,6 +48,10 @@ impl NoticeBoard {
             NoticeInput::Resolve { key } => self.resolve(&key, now),
             NoticeInput::TimePassed => [self.expire(now), self.mark_seen(now)].concat(),
             NoticeInput::ListWaiting => vec![NoticeEffect::Waiting(self.waiting())],
+            NoticeInput::Hide => self.hide(),
+            NoticeInput::Mute { source, until } => self.mute(source, until, now),
+            NoticeInput::Unmute { source } => self.unmute(&source),
+            NoticeInput::Dismiss { id } | NoticeInput::Read { id } => self.mark_read(&id, now),
         };
         effects.extend(self.follow_waiting());
         effects

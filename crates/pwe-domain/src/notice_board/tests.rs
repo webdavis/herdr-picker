@@ -3,6 +3,7 @@ use crate::notice::{Level, Pane};
 
 mod grouping;
 mod moving;
+mod quieting;
 mod showing;
 mod updating;
 
