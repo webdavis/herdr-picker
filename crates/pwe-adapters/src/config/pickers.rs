@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use pwe_domain::{
-    BUILTIN_PICKERS, BuiltinPicker, Picker, PickerCommand, PickerDeclaration, PickerError,
+    BUILTIN_PICKERS, BuiltinPicker, Engine, Picker, PickerCommand, PickerDeclaration, PickerError,
     PickerStep, pickers,
 };
 use serde::Deserialize;
@@ -31,6 +31,7 @@ pub(super) struct PickerEntry {
     steps: BTreeMap<String, StepEntry>,
     #[serde(default)]
     live: bool,
+    engine: Option<String>,
     pub(super) unifi: Option<UnifiSettings>,
     pub(super) bluebubbles: Option<BlueBubblesSettings>,
 }
@@ -66,6 +67,7 @@ pub(super) fn declared_pickers(
             sources: Vec::new(),
             steps: BTreeMap::new(),
             live: false,
+            engine: Engine::Fzf,
         })
         .collect::<Vec<_>>();
     let declarations = entries
@@ -103,6 +105,10 @@ impl PickerEntry {
             ),
             _ => return Err(PickerError::UnclearCommand { name }),
         };
+        let engine = match self.engine.as_deref() {
+            Some(word) => Engine::named(&name, word)?,
+            None => Engine::Fzf,
+        };
         let key = self
             .key
             .or_else(|| shipped.map(|shipped| shipped.key.to_string()));
@@ -133,6 +139,7 @@ impl PickerEntry {
             sources: self.sources,
             steps,
             live: self.live,
+            engine,
         })
     }
 }

@@ -12,6 +12,7 @@ fn declared(name: &str, key: &str) -> PickerDeclaration {
         sources: Vec::new(),
         steps: Default::default(),
         live: false,
+        engine: crate::Engine::Fzf,
     }
 }
 

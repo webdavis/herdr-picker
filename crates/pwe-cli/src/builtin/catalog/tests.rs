@@ -26,6 +26,7 @@ fn declared(name: &str, key: &str, description: &str, command: PickerCommand) ->
         sources: Vec::new(),
         steps: BTreeMap::new(),
         live: false,
+        engine: pwe_domain::Engine::Fzf,
     }
 }
 

@@ -13,6 +13,7 @@ fn picker(name: &str, key: &str) -> Picker {
         sources: Vec::new(),
         steps: Default::default(),
         live: false,
+        engine: pwe_domain::Engine::Fzf,
     }
 }
 

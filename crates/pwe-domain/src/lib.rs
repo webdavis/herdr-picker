@@ -60,7 +60,9 @@ pub use notice_float::{Corner, NoticePlace, notice_place};
 pub use notice_program::{NoticeEvent, NoticeStep, notice_step};
 pub use owner_place::{OwnerPlace, SessionSeen};
 pub use pick::{Command, Frame, Menu, Mode, Pick, Refusal, Row, SearchLine};
-pub use picker::{Picker, PickerCommand, PickerDeclaration, PickerError, PickerStep, pickers};
+pub use picker::{
+    Engine, Picker, PickerCommand, PickerDeclaration, PickerError, PickerStep, pickers,
+};
 pub use picker_act::{ActRefusal, act};
 pub use picker_builtin::{
     BUILTIN_PICKERS, BuiltinPicker, Live, follows_query, is_step_builtin, step_sources,
