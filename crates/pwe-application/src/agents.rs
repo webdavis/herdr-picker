@@ -1,7 +1,7 @@
 use std::fmt;
 use std::path::PathBuf;
 
-use pwe_domain::ProgramReport;
+use pwe_domain::{AgentBook, AgentSession, ProgramReport};
 
 pub trait AgentProgram {
     fn sessions(&mut self) -> Result<Vec<ProgramReport>, AgentReadError>;
@@ -36,3 +36,23 @@ impl fmt::Display for AgentReadError {
         )
     }
 }
+
+pub fn agent_sessions(
+    programs: &mut [&mut dyn AgentProgram],
+    now: u64,
+) -> (Vec<AgentSession>, Vec<AgentReadError>) {
+    let mut reports = Vec::new();
+    let mut refusals = Vec::new();
+    for program in programs.iter_mut() {
+        match program.sessions() {
+            Ok(sessions) => reports.extend(sessions),
+            Err(refusal) => refusals.push(refusal),
+        }
+    }
+    let mut book = AgentBook::default();
+    book.update(&reports, &[], now);
+    (book.newest_state_first(), refusals)
+}
+
+#[cfg(test)]
+mod tests;

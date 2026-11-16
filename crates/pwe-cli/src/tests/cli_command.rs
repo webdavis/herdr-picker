@@ -60,6 +60,30 @@ impl RecordedCli {
             })
             .collect()
     }
+
+    pub(crate) fn printing(name: &str, printed: &str) -> Self {
+        let number = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
+        let directory =
+            std::env::temp_dir().join(format!("pwe-program-{}-{number}", std::process::id()));
+        std::fs::create_dir(&directory).expect("create owned program directory");
+        std::fs::write(directory.join("printed"), printed).expect("write the printed answer");
+        let binary = directory.join(name);
+        let script = format!(
+            "#!/bin/bash\nset -euo pipefail\ncd {}\ncount=0\nif [[ -f count ]]; then read -r count < count; fi\ncount=$((count + 1))\nprintf '%s\\n' \"$count\" > count\nprintf '%s\\0' \"$@\" > \"call-$count\"\ncat printed\n",
+            quoted(&directory.to_string_lossy())
+        );
+        std::fs::write(&binary, script).expect("write argument-recording executable");
+        std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o700))
+            .expect("make fake program executable");
+        Self {
+            binary: binary.to_string_lossy().into_owned(),
+            directory,
+        }
+    }
+
+    pub(crate) fn folder(&self) -> &std::path::Path {
+        &self.directory
+    }
 }
 
 impl Drop for RecordedCli {

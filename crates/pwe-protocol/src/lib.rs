@@ -17,7 +17,7 @@ mod view;
 mod wire;
 
 pub use agent_programs::{
-    claude_code_sessions, codex_session, omp_held_session_ids, omp_session,
+    agent_sessions_json, claude_code_sessions, codex_session, omp_held_session_ids, omp_session,
     open_files_in_lsof_listing, variable_in_environ_file, variable_in_ps_listing,
 };
 pub use agents::{
