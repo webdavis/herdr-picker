@@ -1,17 +1,22 @@
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use pwe_domain::{JumpTarget, Picker, RowLook, Theme, jump_targets};
+use pwe_domain::{InboxLimits, JumpTarget, Picker, RowLook, Theme, jump_targets};
 use serde::Deserialize;
 
 mod error;
+mod location;
+mod notices;
 mod pickers;
 mod rex;
 mod services;
 mod workspaces;
 
 pub use error::ConfigError;
+pub use location::config_file;
+pub use notices::NoticeConfig;
+use notices::{InboxTable, NoticesTable};
 use pickers::{PickerEntry, declared_pickers};
 pub use rex::RexSettings;
 use services::service_tables;
@@ -27,6 +32,8 @@ pub struct PluginConfig {
     pub unifi: Option<UnifiSettings>,
     pub bluebubbles: Option<BlueBubblesSettings>,
     pub rex: RexSettings,
+    pub notices: NoticeConfig,
+    pub inbox: InboxLimits,
 }
 
 #[derive(Deserialize)]
@@ -39,6 +46,10 @@ struct ConfigFile {
     pickers: BTreeMap<String, PickerEntry>,
     #[serde(default)]
     rex: RexSettings,
+    #[serde(default)]
+    notices: NoticesTable,
+    #[serde(default)]
+    inbox: InboxTable,
 }
 
 #[derive(Deserialize, Default)]
@@ -64,24 +75,6 @@ impl From<ThemeName> for Theme {
         match name {
             ThemeName::CatppuccinMocha => Self::CatppuccinMocha,
         }
-    }
-}
-pub fn config_file(
-    plugin_config_dir: Option<&str>,
-    xdg_config_home: Option<&str>,
-    home: Option<&str>,
-) -> PathBuf {
-    let directory = match plugin_config_dir.filter(|directory| !directory.is_empty()) {
-        Some(directory) => PathBuf::from(directory),
-        None => base_config_dir(xdg_config_home, home).join("pwe"),
-    };
-    directory.join("config.toml")
-}
-
-fn base_config_dir(xdg_config_home: Option<&str>, home: Option<&str>) -> PathBuf {
-    match xdg_config_home.filter(|directory| !directory.is_empty()) {
-        Some(directory) => PathBuf::from(directory),
-        None => PathBuf::from(home.unwrap_or_default()).join(".config"),
     }
 }
 pub fn read_config(path: &Path) -> Result<PluginConfig, ConfigError> {
@@ -138,6 +131,8 @@ fn parsed(path: &Path, content: &str) -> Result<PluginConfig, ConfigError> {
         unifi,
         bluebubbles,
         rex: file.rex,
+        notices: file.notices.settings(path)?,
+        inbox: file.inbox.limits(),
     })
 }
 fn one_based_line_of(content: &str, failure: &toml::de::Error) -> Option<usize> {

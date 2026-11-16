@@ -27,6 +27,13 @@ pub enum ConfigError {
         table: String,
         reading_picker: &'static str,
     },
+    UnknownWord {
+        path: PathBuf,
+        table: &'static str,
+        key: &'static str,
+        word: String,
+        accepted: Vec<&'static str>,
+    },
 }
 
 impl fmt::Display for ConfigError {
@@ -49,6 +56,19 @@ impl fmt::Display for ConfigError {
             } => (
                 path,
                 format!("{table} belongs under [pickers.{reading_picker}]"),
+            ),
+            Self::UnknownWord {
+                path,
+                table,
+                key,
+                word,
+                accepted,
+            } => (
+                path,
+                format!(
+                    "{table} {key} does not accept \"{word}\"; it accepts {}",
+                    accepted.join(", ")
+                ),
             ),
         };
         write!(
