@@ -487,6 +487,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pwe"
+version = "0.1.0"
+dependencies = [
+ "pwe-adapters",
+ "pwe-application",
+ "pwe-daemon",
+ "pwe-domain",
+ "pwe-protocol",
+ "rustix",
+ "serde",
+ "serde_json",
+ "toml",
+ "toon-format",
+]
+
+[[package]]
 name = "pwe-adapters"
 version = "0.1.0"
 dependencies = [
@@ -509,22 +525,6 @@ name = "pwe-application"
 version = "0.1.0"
 dependencies = [
  "pwe-domain",
-]
-
-[[package]]
-name = "pwe-cli"
-version = "0.1.0"
-dependencies = [
- "pwe-adapters",
- "pwe-application",
- "pwe-daemon",
- "pwe-domain",
- "pwe-protocol",
- "rustix",
- "serde",
- "serde_json",
- "toml",
- "toon-format",
 ]
 
 [[package]]
